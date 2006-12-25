@@ -19,7 +19,7 @@ class ClockApplet(applet.GnomeApplet):
 		self.set_menu(items)
 		self.clock = self.add_image(self._clock_image)
 		self.add_timeout(1.0, self.on_timeout)
-		self.clock.connect("button_press_event", self.on_button)
+		self.clock.connect_signal("button_press_event", self.on_button)
 		
 	def on_button(self, widget, event):
 		if event.type == gtk.gdk._2BUTTON_PRESS and event.button == 1:

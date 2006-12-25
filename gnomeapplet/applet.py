@@ -49,7 +49,7 @@ class AppletImage:
 	def hide(self):
 		self.event_box.hide()
 
-	def connect(self, *args, **kwargs):
+	def connect_signal(self, *args, **kwargs):
 		self.event_box.connect(*args, **kwargs)
 
 ##############################################

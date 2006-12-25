@@ -18,7 +18,7 @@ class ClockApplet(applet.GnomeApplet):
 		self.set_menu(items)
 		self.clock = self.add_image(self._clock_image)
 		self.add_timeout(1.0, self.on_timeout)
-		self.clock.connect("button_press_event", self.on_button)
+		self.clock.connect_signal("button_press_event", self.on_button)
 				
 	def on_button(self, widget, event):
 		if event.type == gtk.gdk._2BUTTON_PRESS and event.button == 1:
@@ -31,6 +31,7 @@ class ClockApplet(applet.GnomeApplet):
 		for x in range(10):
 			print "Just counting to 10...", x
 			time.sleep(1)
+		self.set_sensitive("about", False)
 		
 	def on_about(self):
 		self.show_about(logo=self._clock_image, version="0.1", \
