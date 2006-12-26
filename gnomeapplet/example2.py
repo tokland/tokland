@@ -41,9 +41,10 @@ class ClockApplet(applet.GnomeApplet):
 
 ##############################################
 def main():
+	name = os.path.basename(sys.argv[0])
 	usage = """usage: %s [applet-options] 
 
-Just an example to show the use of the GnomeApplet class"""
+Just an example to show the use of the GnomeApplet class"""%name
 	parser = optparse.OptionParser(usage)
 	parser.add_option('', '--oaf-activate-iid', dest='iid', default='', metavar='FILE', type='string', help='Applet identifier')
 	parser.add_option('', '--oaf-ior-fd', dest='fd', default='', metavar='FILE', type='string', help='Input/Output descriptor')

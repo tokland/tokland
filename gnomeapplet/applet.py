@@ -113,13 +113,15 @@ class GnomeApplet:
 
 	def __setup_menu(self):
 		if self.__gapplet:
-			self.__gapplet.setup_menu("\n".join(self.__menu_xml), self.__menu_verbs, None)
+			self.__gapplet.setup_menu("\n".join(self.__menu_xml), \
+				self.__menu_verbs, None)
 
 	# Public interface
 	
 	def run(self, factory):
 		gnomeapplet.bonobo_factory(factory, \
-			gnomeapplet.Applet.__gtype__, self.__description, "0", self.__factory_callback)
+			gnomeapplet.Applet.__gtype__, self.__description, "0", \
+			self.__factory_callback)
 
 	def run_window(self):
 		window = gtk.Window(gtk.WINDOW_TOPLEVEL)
@@ -127,7 +129,6 @@ class GnomeApplet:
 		self.__applet_init(gnomeapplet.Applet())
 		self.__gapplet.reparent(window)
 		window.show_all()
-		gtk.gdk.threads_init() 
 		gtk.main()
 
 	def add_timeout(self, tseconds, callback, *args):
@@ -138,8 +139,12 @@ class GnomeApplet:
 		for item in items:
 			verb, label, pixname = item[:3]
 			callback = item[3:]
-			self.__menu_xml.append('<menuitem name="%s" verb="%s" label="%s" pixtype="stock" pixname="%s"/>'
-				%(verb, verb, label, pixname))
+			if pixname.find("gtk-") == 0 or pixname.find("gnome-") == 0:
+				pixtype = "stock"
+			else: pixtype = "filename"
+			self.__menu_xml.append('<menuitem name="%s" verb="%s" \
+				label="%s" pixtype="%s" pixname="%s"/>'
+				%(verb, verb, label, pixtype, pixname))
 			self.__menu_callbacks[verb] = callback
 			self.__menu_verbs.append((verb, self.__menu_callback))
 		self.__menu_xml.append('</popup>')	
@@ -151,11 +156,11 @@ class GnomeApplet:
 		popup.set_prop("/commands/"+menu_verb, "sensitive", s)
 	
 	def add_image(self, image_path=None, show=True):
-		element = AppletImage(self.__box, self.__tips, image_path)
-		self.__images.append(element)
+		image = AppletImage(self.__box, self.__tips, image_path)
+		self.__images.append(image)
 		if show: 
-			element.show()
-		return element
+			image.show()
+		return image
 					
 	def show_about(self, logo, version, license, authors):
 		about = gnome.ui.About(self.__name, version, license, \
@@ -166,11 +171,9 @@ class GnomeApplet:
 #############################################
 class ClockApplet(GnomeApplet):
 	_clock_image = "clock.png"
-	_name = "Clock"
-	_description = "Clock Applet"
 	
 	def __init__(self):
-		GnomeApplet.__init__(self, self._name, self._description)
+		GnomeApplet.__init__(self, "Clock", "Clock applet")
 		items = [("about", "_About...", "gtk-about", self.on_about)]
 		self.set_menu(items)
 		self.clock = self.add_image(self._clock_image)
@@ -189,9 +192,20 @@ class ClockApplet(GnomeApplet):
 
 ##############################################
 def main():
+	import optparse
+	name = os.path.basename(sys.argv[0])
+	usage = """usage: %s [applet-options] 
+
+Just an example to show the use of the GnomeApplet class"""%name
+	parser = optparse.OptionParser(usage)
+	parser.add_option('', '--oaf-activate-iid', dest='iid', default='', \
+		metavar='IDENTIFIER', type='string', help='Applet identifier')
+	parser.add_option('', '--oaf-ior-fd', dest='fd', default='', \
+		metavar='FD', type='string', help='Input/Output file descriptor')
+	options, args = parser.parse_args()
 	applet = ClockApplet()
 	if len(sys.argv) > 1:
-		applet.run("OAFIID:GNOME_ClockApplet_Factory")
+		applet.run(options.iid)
 	else: applet.run_window()
 	
 ##############################################
