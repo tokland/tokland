@@ -37,7 +37,7 @@ Con una aproximación de este tipo debes tener claro qué nivel de abstracción qui
 
 Aquí tenéis el enlace con el código al que haremos referencia en el tuturial:
 
-http://tokland.googlecode.com/files/gnomeapplet-0.2.tgz
+http://code.google.com/p/tokland/downloads/list
 
 A falta de un Makefile, copiad a mano los scripts a /usr/local/bin, las imágenes PNG a /usr/local/share/pixmaps y el fichero de configuración GNOME_ClockExampleApplet.server a /usr/lib/bonobo/servers.
 
