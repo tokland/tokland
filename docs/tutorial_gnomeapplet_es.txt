@@ -1,81 +1,190 @@
-ProgramaciÛn de applets en Gnome
-Arnau Sanchez (arnau@ehas.org)
-25 de Diciembre de 2006
+ÔªøProgramaci√≥n de applets en Gnome
+================================
 
-IntroducciÛn
+.{date}: Primera versi√≥n enviada a Dotpy
+************************************************************************
+- Clase 'GnomeApplet'
+- Dos ejemplos de uso
+- Configuraci√≥n de Bonobo
 
-Una de las grandes ventajas del universo Unix es su extraordinaria variedad. Es habitual que no haya un ˙nico programa para una tarea, sino varios. Aunque algunos lo vean como un inconveniente, no es m·s que el resultado natural de una comunidad heterogÈnea con gustos y necesidades distintos. Al final, los beneficiados son usuarios y desarrolladores, que pueden emplear el software o las bibliotecas m·s adecuadas en cada momento. 
+mailto:arnau@ehas.org['Arnau Sanchez']
+************************************************************************
 
-Los entornos de escritorio no son una excepciÛn: hay muchos, decenas de ellos. Con el tiempo, sin embargo, parece que han acabado siendo Gnome y KDE (y Xfce algo por detr·s) los dos escritorios m·s populares. Si no se est· limitado en CPU, espacio de disco o RAM (y es que tanto Gnome como KDE son voraces devoradores de recursos), ambos son una buena elecciÛn.
+Introducci√≥n
+------------
+Una de las grandes ventajas del universo Unix es su extraordinaria
+variedad. Es habitual que no haya un √∫nico programa para una tarea, sino
+varios. Aunque algunos lo vean como un inconveniente, no es m√°s que el
+resultado natural de una comunidad heterog√©nea con gustos y necesidades
+distintos. Al final, los beneficiados son usuarios y desarrolladores,
+que pueden emplear el software o las bibliotecas m√°s adecuadas en cada
+momento.
 
-Esta variedad requiere a menudo del programador que domine una gama de bibliotecas en funciÛn del escritorio al que vaya destinadas sus aplicaciones. En este tutorial presentaremos una programaciÛn de un applet (tambiÈn conocidos como iconos del Systray en Windows) para Gnome empleando Python y PyGTK.
+Los entornos de escritorio no son una excepci√≥n: hay muchos, decenas de
+ellos. Con el tiempo, sin embargo, parece que han acabado siendo 
+link:http://www.gnome.org[Gnome] y link:http://kde.org[KDE] (y link://http://xfce.org[Xfce] 
+algo por detr√°s) los dos escritorios m√°s populares. Si no se
+est√° limitado en CPU, espacio de disco o RAM (y es que tanto Gnome como
+KDE son voraces devoradores de recursos), ambos son una buena elecci√≥n.
+
+Esta variedad requiere a menudo del programador que domine una gama
+de bibliotecas en funci√≥n del escritorio al que vaya destinadas sus
+aplicaciones. En este tutorial presentaremos una programaci√≥n de un
+applet (tambi√©n conocidos como iconos del 'Systray' en Windows) para Gnome
+empleando Python y PyGTK.
 
 Requisitos
+----------
+Necesitaremos Gnome instalado, por supuesto. Por su filosof√≠a y
+versatilidad, soy un entusiasta de link:http://www.debian.org[Debian] y derivados, pero naturalmente
+servir√° cualquier otra distribuci√≥n GNU/Linux o BSD. Si tenemos Debian
+(o http://www.ubuntu.com[Ubuntu], que para el caso da igual), s√≥lo necesitamos el paquete que
+incluye el m√≥dulo 'gnomeapplet' ('apt-get install python-gnome2-desktop').
 
-Necesitaremos Gnome instalado, por supuesto. Por su filosofÌa y versatilidad, soy un entusiasta de Debian y derivados, pero naturalmente servir· cualquier otra distribuciÛn GNU/Linux o BSD. Si tenemos Debian (o Ubuntu, que para el caso da igual), sÛlo necesitamos el paquete que incluye el mÛdulo gnomeapplet:
+Comprobemos que el paquete est√° instalado correctamente:
 
-http://www.debian.org
+-----------------------------------
+~$ python 
+>>> import gnomeapplet 
+>>> dir(gnomeapplet) ['Applet',
+'COLOR_BACKGROUND', 'EXPAND_MAJOR', 'EXPAND_MINOR', 'HAS_HANDLE',
+'NO_BACKGROUND', 'ORIENT_DOWN', 'ORIENT_LEFT', 'ORIENT_RIGHT',
+'ORIENT_UP', 'PIXMAP_BACKGROUND', 'SIZE_LARGE', 'SIZE_MEDIUM',
+'SIZE_SMALL', 'SIZE_XX_LARGE', 'SIZE_XX_SMALL', 'SIZE_X_LARGE',
+'SIZE_X_SMALL', '__doc__', '__file__', '__name__', 'bonobo_factory',
+'factory_main']
+-----------------------------------
 
-apt-get install python-gnome2-desktop
+Despu√©s, descargad la √∫ltima versi√≥n de 'gnomeapplet-version.tgz' que encontr√©is
+en este link:http://code.google.com/p/tokland/downloads/list[repositorio ] de google.
 
-Comprobemos que el paquete est· instalado correctamente:
+La clase 'GnomeApplet'
+--------------------
 
-~$ python
->>> import gnomeapplet
->>> dir(gnomeapplet)
-['Applet', 'COLOR_BACKGROUND', 'EXPAND_MAJOR', 'EXPAND_MINOR', 'HAS_HANDLE', 'NO_BACKGROUND', 'ORIENT_DOWN', 'ORIENT_LEFT', 'ORIENT_RIGHT', 'ORIENT_UP', 'PIXMAP_BACKGROUND', 'SIZE_LARGE', 'SIZE_MEDIUM', 'SIZE_SMALL', 'SIZE_XX_LARGE', 'SIZE_XX_SMALL', 'SIZE_X_LARGE', 'SIZE_X_SMALL', '__doc__', '__file__', '__name__', 'bonobo_factory', 'factory_main']
+Gnome usa GTK+ ('The GIMP Toolkit'), una herramienta inicialmente
+desarrollada para el programa de dibujo Gimp y despu√©s adoptada por
+Gnome como biblioteca de creaci√≥n de interfaces (GUI). Desde Python
+podemos acceder gracias al trabajo del proyecto link:http://www.pygtk.org/[PyGTK].
 
-La clase GnomeApplet
+GTK (y por tanto su 'wrapper' PyGTK) es una biblioteca muy potente. Eso
+es estupendo porque te da un control fino sobre tu aplicaci√≥n, pero
+por momentos puede ser agotador que programas en apariencia sencillos
+requieran finalmente cientos de l√≠neas. Al final, eso tampoco es un
+problema: cuando haces dos o tres applets con PyGTK, te acabas dando
+cuenta que el esqueleto es casi id√©ntico, y es obvio que la repetici√≥n
+de c√≥digo es una se√±al de que necesitamos de modularizar. Si elegimos un
+enfoque basado en programaci√≥n orientada a objetos, esto se traduce en
+la creaci√≥n de una clase padre que usaremos de base para nuestras clases.
 
-Gnome usa GTK+ (The GIMP Toolkit), una herramienta inicialmente desarrollada para el programa de dibujo Gimp y despuÈs adoptada por Gnome como biblioteca de creaciÛn de interfaces (GUI). Desde Python podemos acceder gracias al trabajo del proyecto PyGTK:
+Con una aproximaci√≥n de este tipo debes tener claro qu√© nivel de
+abstracci√≥n quieres manejar, ni muy alto (con lo cual el applet ser√≠a
+poco vers√°til), ni muy bajo (para este viaje no se necesitaban alforjas:
+nos hubi√©ramos quedado con 'gnomeapplet/GTK' y listo). La clase 'GnomeApplet',
+cubre las necesidades b√°sicas para applets sencillos. A las malas, sirva
+al menos como ejemplo de c√≥mo interacturar con el m√≥dulo 'gnomeapplet'.
 
-http://www.pygtk.org/
+A falta de un Makefile, copiad a mano los scripts a '/usr/local/bin', las
+im√°genes PNG a '/usr/local/share/pixmaps' y el fichero de configuraci√≥n
+'GNOME_ClockExampleApplet.server' a '/usr/lib/bonobo/servers'.
 
-GTK (y por tanto su wrapper PyGTK) es una biblioteca muy potente. Eso es estupendo porque te da un control fino sobre tu aplicaciÛn, pero por momentos puede ser agotador que programas en apariencia sencillos requieran finalmente cientos de lÌneas. Al final, eso tampoco es un problema: cuando haces dos o tres applets con PyGTK, te acabas dando cuenta que el esqueleto es casi idÈntico, y es obvio que la repeticiÛn de cÛdigo es una seÒal de que necesitamos de modularizar. Si elegimos un enfoque basado en programaciÛn orientada a objetos, esto se traduce en la creaciÛn de una clase padre que usaremos de base para nuestras clases.
+Las caracter√≠sticas b√°sicas de la clase 'GnomeApplet' son:
 
-Con una aproximaciÛn de este tipo debes tener claro quÈ nivel de abstracciÛn quieres manejar, ni muy alto (con lo cual el applet serÌa poco vers·til), ni muy bajo (para este viaje no se necesitaban alforjas: nos hubiÈramos quedado con gnomeapplet/GTK y listo). La clase GnomeApplet, cubre las necesidades b·sicas para applets sencillos. A las malas, sirva al menos como ejemplo de cÛmo interacturar con el mÛdulo gnomeapplet.
+- Funciona en modo de pruebas (en una ventana) o modo 'applet' (en el
+panel).  
+- Im√°genes con su correspondiente texto de informaci√≥n contextual (hint).  
+- Bot√≥n derecho de acceso al men√∫.  
+- Los items del men√∫ pueden
+ser activados o desactivados (para entendernos, se puede modificar
+la propiedad 'sensitive') 
+- Funci√≥n de callback por temporizador.  
+- Funci√≥n para mostrar la ventana 'About' (Acerca de)
 
-AquÌ tenÈis el enlace con el cÛdigo al que haremos referencia en el tuturial:
+He intentado que el c√≥digo de la clase sea lo m√°s claro posible, a√∫n
+as√≠ ah√≠ van algunos apuntes:
 
-http://code.google.com/p/tokland/downloads/list
+- No soy un amante de los prefijos '__' (m√°s que nada porque ensucian
+el c√≥digo), pero en casos como √©ste, donde estamos haciendo una clase
+padre, evitamos que aparezcan variables y m√©todos internos en las objetos
+finales. As√≠, s√≥lo las funciones p√∫blicas son visibles y el interfaz es
+m√°s claro.
 
-A falta de un Makefile, copiad a mano los scripts a /usr/local/bin, las im·genes PNG a /usr/local/share/pixmaps y el fichero de configuraciÛn GNOME_ClockExampleApplet.server a /usr/lib/bonobo/servers.
+- La oscura funci√≥n '__panel_bg' se encarga de las transparencias en
+el applet. Est√° copiada casi literalmente de otros applets, ni idea de
+qui√©n es el autor original.
 
-Las caracterÌsticas b·sicas de la clase GnomeApplet son:
-
-- Funciona en modo de pruebas (en una ventana) o modo applet (en el panel).
-- Im·genes con su correspondiente texto de informaciÛn contextual (hint).
-- BotÛn derecho de acceso al men˙.
-- Los items del men˙ pueden ser activados o desactivados (para entendernos, se puede modificar la propiedad "sensitive")
-- FunciÛn de callback por temporizador.
-- FunciÛn para mostrar la ventana "About" (Acerca de)
-
-He intentado que el cÛdigo de la clase sea lo m·s claro posible, a˙n asÌ ahÌ van algunos apuntes: 
-
-- No soy un amante de los prefijos "__" (m·s que nada porque ensucian el cÛdigo), pero en casos como Èste, donde estamos haciendo una clase padre, evitamos que aparezcan variables y mÈtodos internos en las objetos finales. AsÌ, sÛlo las funciones p˙blicas son visibles y el interfaz es m·s claro.
-
-- La oscura funciÛn "__panel_bg" se encarga de las transparencias en el applet. Est· copiada casi literalmente de otros applets, ni idea de quiÈn es el autor original.
-
-- Los objetos AppletImage est·n formados por un gtk.Image dentro de un gtk.EventBox. Esto es necesario porque un gtk.Image no tiene una ventana X asociada, por lo que serÌa incapaz de recibir eventos del ratÛn ni de mostrar informaciÛn al situarnos encima. Las funciones m·s comunes est·n definidas explÌcitamente (show, hide, connect_signal); para un control directo a los objetos GTK, se puede acceder a las variables "event_box" e "image".
+- Los objetos 'AppletImage' es realmente un 'gtk.Image' dentro de un
+'gtk.EventBox'. Esto es necesario porque un 'gtk.Image' no tiene una ventana
+X asociada, por lo que ser√≠a incapaz de recibir eventos del rat√≥n ni de
+mostrar informaci√≥n al situarnos encima. Las funciones m√°s comunes est√°n
+definidas expl√≠citamente ('show', 'hide', 'connect_signal'); para un control
+directo a los objetos GTK, se puede acceder a las variables 'event_box'
+e 'image'.
 
 Ejemplo 1: Nuestro primer applet
+--------------------------------
 
-En el primer ejemplo (example1.py), heredada de la clase GnomeApplet, llamamos al constructor original, aÒadimos la imagen del reloj y establecemos una funciÛn que se llamar· cada segundo. AllÌ actualizamos el tip, mostrando la hora actual (formato HH:MM:SS). Todo esto en menos de veinte lÌneas.
+En el primer ejemplo ('example1.py'), heredada de la clase 'GnomeApplet',
+llamamos al constructor original, a√±adimos la imagen del reloj y
+establecemos una funci√≥n que se llamar√° cada segundo. All√≠ actualizamos
+el tip, mostrando la hora actual (formato 'HH:MM:SS'). Todo esto en menos
+de veinte l√≠neas.
 
-En este ejemplo el alto de la imagen es de 22 pÌxeles, un valor bastante habitual para estos menesteres. En realidad se puede -se deberÌa- hacer que cambie con la altura del panel (ya que est· es configurable por el usuario), pero de momento no liemos la cosa. Al fin y al cabo, applets oficiales de Gnome tienen im·genes de altura fija y todo el mundo contento.
+En este ejemplo el alto de la imagen es de 22 p√≠xeles, un valor bastante
+habitual para estos menesteres. En realidad se puede -se deber√≠a-
+hacer que cambie con la altura del panel (ya que est√° es configurable
+por el usuario), pero de momento no liemos la cosa. Al fin y al cabo,
+applets oficiales de Gnome tienen im√°genes de altura fija y todo el
+mundo contento.
 
-Podemos comprobar que todo va bien llamando al script desde lÌnea de comandos, sin ning˙n argumento; deberÌa aparecer el applet en una pequeÒa ventana como una aplicaciÛn normal y corriente. M·s adelante veremos cÛmo configurarlo como un applet de verdad, insert·ndolo en el panel.
+Podemos comprobar que todo va bien llamando al script desde l√≠nea de
+comandos, sin ning√∫n argumento; deber√≠a aparecer el applet en una peque√±a
+ventana como una aplicaci√≥n normal y corriente. M√°s adelante veremos
+c√≥mo configurarlo como un applet de verdad, insert√°ndolo en el panel.
 
-Ejemplo 2: Asociando pulsaciones de ratÛn
+Ejemplo 2: Asociando pulsaciones de rat√≥n
+-----------------------------------------
 
-En el segundo ejemplo ("example2.py") aÒadimos algo m·s de interactividad: establecemos las entradas del men˙ que deben aparecer al presionar el botÛn derecho (en este caso, sÛlo el "Acerca de") y ligamos la pulsaciÛn del primer botÛn al GUI de ajuste de fecha y hora (time-admin) al hacer un doble click (con lo que, almas de c·ntaro, estaremos violando la patente 6.727.830 de Microsoft). Para esto ˙ltimo, conectamos la seÒal "button_press_event" a un callback donde lanzamos el programa con el mÛdulo subprocess. Para evitar que el proceso quede zombie al finalizar, recogemos la seÒal SIGCHLD y leemos la ˙ltima voluntad del finado (su valor de retorno, mayormente)
+En el segundo ejemplo ('example2.py') a√±adimos algo m√°s de interactividad:
+establecemos las entradas del men√∫ que deben aparecer al presionar el
+bot√≥n derecho (en este caso, s√≥lo el "Acerca de") y ligamos la pulsaci√≥n
+del primer bot√≥n al GUI de ajuste de fecha y hora ('time-admin') al hacer
+un doble click (con lo que, almas de c√°ntaro, estaremos violando la
+patente 6.727.830 de Microsoft). Para esto √∫ltimo, conectamos la se√±al
+'button_press_event' a un callback donde lanzamos el programa con el
+m√≥dulo subprocess. Para evitar que el proceso quede zombie al finalizar,
+recogemos la se√±al 'SIGCHLD' y leemos la √∫ltima voluntad del finado (su
+valor de retorno, mayormente)
 
 Configurar Bonobo
+-----------------
 
-GNOME usa interfaces CORBA para la intercomunicaciÛn entre procesos. Como parte de todo este conglomerado, la biblioteca Bonobo se encarga de gestionar todo lo referente a los applets. En el directorio "/usr/lib/bonobo/servers" cada applet deja su fichero de configuraciÛn (con extensiÛn .server), donde se detalla (en formato XML) el nombre, descripciÛn, ruta del ejecutable, el icono, etc. Como siempre, lo m·s sencillo es copiar uno ya existente y adaptarlo. Una vez pong·is el fichero .server con la descripciÛn de vuestra aplicaciÛn, Èsta deberÌa aparecer en el GUI de adiciÛn de applets (a veces es necesario reiniciar los demonios gnome-panel y bonobo-activation-server para que se actualice).
+GNOME usa interfaces CORBA para la intercomunicaci√≥n entre procesos. Como
+parte de todo este conglomerado, la biblioteca Bonobo se encarga
+de gestionar todo lo referente a los applets. En el directorio
+'/usr/lib/bonobo/servers' cada applet deja su fichero de configuraci√≥n
+(con extensi√≥n '.server'), donde se detalla (en formato XML) el nombre,
+descripci√≥n, ruta del ejecutable, el icono, etc. 
 
-ConclusiÛn
+Como siempre, lo m√°s sencillo es copiar uno ya existente y adaptarlo. Una vez pong√°is
+el fichero .server con la descripci√≥n de vuestra aplicaci√≥n, √©sta
+deber√≠a aparecer en el GUI de adici√≥n de applets (a veces es necesario
+reiniciar los demonios 'gnome-panel' y 'bonobo-activation-server' para que
+se actualice).
 
-Lo visto aquÌ es sÛlo una pequeÒa muestra de lo que se puede hacer con los applets en Gnome y PyGTK. Para profundizar en el tema os remitirÌa a la documentaciÛn, en el caso que existiera... de momento no queda m·s remedio que buscar en internet y ver cÛmo demonios lo usa la gente. El recurso de emergencia de inspeccionar el mÛdulo directamente no sirve en este caso, toda vez que gnomeapplet est· escrito directamente en C. SÌ, claro, podemos miraros el cÛdigo fuente, pero entre nosotros, tratar de entender algo a partir de un cÛdigo C con el que no estamos familiarizados *no* es trivial.
+Conclusi√≥n
+----------
 
-La clase GnomeApplet que ilustra este artÌculo est· en beta (siendo generosos...), agradecerÌa cualquier sugerencia, mejora o bug que detectÈis.
+Lo visto aqu√≠ es s√≥lo una peque√±a muestra de lo que se puede hacer con
+los applets en Gnome y PyGTK. Para profundizar en el tema os remitir√≠a
+a la documentaci√≥n, en el caso que existiera... de momento no queda m√°s
+remedio que buscar en internet y ver c√≥mo demonios lo usa la gente. 
+
+El recurso de emergencia de inspeccionar el m√≥dulo directamente no sirve
+en este caso, toda vez que 'gnomeapplet' est√° escrito directamente en
+C. S√≠, claro, podemos miraros el c√≥digo fuente, pero entre nosotros,
+tratar de entender algo a partir de un c√≥digo C con el que no estamos
+familiarizados *no* es trivial.
+
+La clase 'GnomeApplet' que ilustra este art√≠culo est√° en beta (siendo
+generosos...), agradecer√≠a cualquier sugerencia, mejora o bug que
+detect√©is.
