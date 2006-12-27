@@ -112,7 +112,7 @@ más claro.
 el applet. Está copiada casi literalmente de otros applets, ni idea de
 quién es el autor original.
 
-- Los objetos 'AppletImage' es realmente un 'gtk.Image' dentro de un
+- Los objetos 'AppletImage' son realmente un 'gtk.Image' dentro de un
 'gtk.EventBox'. Esto es necesario porque un 'gtk.Image' no tiene una ventana
 X asociada, por lo que sería incapaz de recibir eventos del ratón ni de
 mostrar información al situarnos encima. Las funciones más comunes están

@@ -1,0 +1,503 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+    "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="generator" content="AsciiDoc 7.1.2" />
+<style type="text/css">
+/* Debug borders */
+p, li, dt, dd, div, pre, h1, h2, h3, h4, h5, h6 {
+/*
+  border: 1px solid red;
+*/
+}
+
+body {
+  margin: 1em 5% 1em 5%;
+}
+
+a {
+  color: blue;
+  text-decoration: underline;
+}
+a:visited {
+  color: fuchsia;
+}
+
+em {
+  font-style: italic;
+}
+
+strong {
+  font-weight: bold;
+}
+
+tt {
+  color: navy;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #527bbd;
+  font-family: sans-serif;
+  margin-top: 1.2em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+h1 {
+  border-bottom: 2px solid silver;
+}
+h2 {
+  border-bottom: 2px solid silver;
+  padding-top: 0.5em;
+}
+
+div.sectionbody {
+  font-family: serif;
+  margin-left: 0;
+}
+
+hr {
+  border: 1px solid silver;
+}
+
+p {
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+}
+
+pre {
+  padding: 0;
+  margin: 0;
+}
+
+span#author {
+  color: #527bbd;
+  font-family: sans-serif;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+span#email {
+}
+span#revision {
+  font-family: sans-serif;
+}
+
+div#footer {
+  font-family: sans-serif;
+  font-size: small;
+  border-top: 2px solid silver;
+  padding-top: 0.5em;
+  margin-top: 4.0em;
+}
+div#footer-text {
+  float: left;
+  padding-bottom: 0.5em;
+}
+div#footer-badges {
+  float: right;
+  padding-bottom: 0.5em;
+}
+
+div#preamble,
+div.tableblock, div.imageblock, div.exampleblock, div.verseblock,
+div.quoteblock, div.literalblock, div.listingblock, div.sidebarblock,
+div.admonitionblock {
+  margin-right: 10%;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+}
+div.admonitionblock {
+  margin-top: 2.5em;
+  margin-bottom: 2.5em;
+}
+
+div.content { /* Block element content. */
+  padding: 0;
+}
+
+/* Block element titles. */
+div.title, caption.title {
+  font-family: sans-serif;
+  font-weight: bold;
+  text-align: left;
+  margin-top: 1.0em;
+  margin-bottom: 0.5em;
+}
+div.title + * {
+  margin-top: 0;
+}
+
+td div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content div.title:first-child {
+  margin-top: 0.0em;
+}
+div.content + div.title {
+  margin-top: 0.0em;
+}
+
+div.sidebarblock > div.content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+
+div.listingblock > div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock > div.content {
+  padding-left: 2.0em;
+}
+
+div.attribution {
+  text-align: right;
+}
+div.verseblock + div.attribution {
+  text-align: left;
+}
+
+div.admonitionblock .icon {
+  vertical-align: top;
+  font-size: 1.1em;
+  font-weight: bold;
+  text-decoration: underline;
+  color: #527bbd;
+  padding-right: 0.5em;
+}
+div.admonitionblock td.content {
+  padding-left: 0.5em;
+  border-left: 2px solid silver;
+}
+
+div.exampleblock > div.content {
+  border-left: 2px solid silver;
+  padding: 0.5em;
+}
+
+div.verseblock div.content {
+  white-space: pre;
+}
+
+div.imageblock div.content { padding-left: 0; }
+div.imageblock img { border: 1px solid silver; }
+span.image img { border-style: none; }
+
+dl {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+dt {
+  margin-top: 0.5em;
+  margin-bottom: 0;
+  font-style: italic;
+}
+dd > *:first-child {
+  margin-top: 0;
+}
+
+ul, ol {
+    list-style-position: outside;
+}
+ol.olist2 {
+  list-style-type: lower-alpha;
+}
+
+div.tableblock > table {
+  border: 3px solid #527bbd;
+}
+thead {
+  font-family: sans-serif;
+  font-weight: bold;
+}
+tfoot {
+  font-weight: bold;
+}
+
+div.hlist {
+  margin-top: 0.8em;
+  margin-bottom: 0.8em;
+}
+td.hlist1 {
+  vertical-align: top;
+  font-style: italic;
+  padding-right: 0.8em;
+}
+td.hlist2 {
+  vertical-align: top;
+}
+
+@media print {
+  div#footer-badges { display: none; }
+}
+/* Workarounds for IE6's broken and incomplete CSS2. */
+
+div.sidebar-content {
+  background: #ffffee;
+  border: 1px solid silver;
+  padding: 0.5em;
+}
+div.sidebar-title, div.image-title {
+  font-family: sans-serif;
+  font-weight: bold;
+  margin-top: 0.0em;
+  margin-bottom: 0.5em;
+}
+
+div.listingblock div.content {
+  border: 1px solid silver;
+  background: #f4f4f4;
+  padding: 0.5em;
+}
+
+div.quoteblock-content {
+  padding-left: 2.0em;
+}
+
+div.exampleblock-content {
+  border-left: 2px solid silver;
+  padding-left: 0.5em;
+}
+</style>
+<title>﻿Programación de applets en Gnome</title>
+</head>
+<body>
+<div id="header">
+<h1>﻿Programación de applets en Gnome</h1>
+<span id="revision">version 0.1,</span>
+12/27/06
+</div>
+<div id="preamble">
+<div class="sectionbody">
+<div class="sidebarblock">
+<div class="sidebar-content">
+<div class="sidebar-title">12/27/06: Primera versión enviada a Dotpy</div>
+<ul>
+<li>
+<p>
+Clase <em>GnomeApplet</em>
+</p>
+</li>
+<li>
+<p>
+Dos ejemplos de uso
+</p>
+</li>
+<li>
+<p>
+Configuración de Bonobo
+</p>
+</li>
+</ul>
+<p><a href="mailto:arnau@ehas.org"><em>Arnau Sanchez</em></a></p>
+</div></div>
+</div>
+</div>
+<h2>Introducción</h2>
+<div class="sectionbody">
+<p>Una de las grandes ventajas del universo Unix es su extraordinaria
+variedad. Es habitual que no haya un único programa para una tarea, sino
+varios. Aunque algunos lo vean como un inconveniente, no es más que el
+resultado natural de una comunidad heterogénea con gustos y necesidades
+distintos. Al final, los beneficiados son usuarios y desarrolladores,
+que pueden emplear el software o las bibliotecas más adecuadas en cada
+momento.</p>
+<p>Los entornos de escritorio no son una excepción: hay muchos, decenas de
+ellos. Con el tiempo, sin embargo, parece que han acabado siendo
+<a href="http://www.gnome.org">Gnome</a> y <a href="http://kde.org">KDE</a> (y <a href="//http://xfce.org">Xfce</a>
+algo por detrás) los dos escritorios más populares. Si no se
+está limitado en CPU, espacio de disco o RAM (y es que tanto Gnome como
+KDE son voraces devoradores de recursos), ambos son una buena elección.</p>
+<p>Esta variedad requiere a menudo del programador que domine una gama
+de bibliotecas en función del escritorio al que vaya destinadas sus
+aplicaciones. En este tutorial presentaremos una programación de un
+applet (también conocidos como iconos del <em>Systray</em> en Windows) para Gnome
+empleando Python y PyGTK.</p>
+</div>
+<h2>Requisitos</h2>
+<div class="sectionbody">
+<p>Necesitaremos Gnome instalado, por supuesto. Por su filosofía y
+versatilidad, soy un entusiasta de <a href="http://www.debian.org">Debian</a> y derivados, pero naturalmente
+servirá cualquier otra distribución GNU/Linux o BSD. Si tenemos Debian
+(o <a href="http://www.ubuntu.com">Ubuntu</a>, que para el caso da igual), sólo necesitamos el paquete que
+incluye el módulo <em>gnomeapplet</em> (<em>apt-get install python-gnome2-desktop</em>).</p>
+<p>Comprobemos que el paquete está instalado correctamente:</p>
+<div class="listingblock">
+<div class="content">
+<pre><tt>~$ python
+&gt;&gt;&gt; import gnomeapplet
+&gt;&gt;&gt; dir(gnomeapplet) ['Applet',
+'COLOR_BACKGROUND', 'EXPAND_MAJOR', 'EXPAND_MINOR', 'HAS_HANDLE',
+'NO_BACKGROUND', 'ORIENT_DOWN', 'ORIENT_LEFT', 'ORIENT_RIGHT',
+'ORIENT_UP', 'PIXMAP_BACKGROUND', 'SIZE_LARGE', 'SIZE_MEDIUM',
+'SIZE_SMALL', 'SIZE_XX_LARGE', 'SIZE_XX_SMALL', 'SIZE_X_LARGE',
+'SIZE_X_SMALL', '__doc__', '__file__', '__name__', 'bonobo_factory',
+'factory_main']</tt></pre>
+</div></div>
+<p>Después, descargad la última versión de <em>gnomeapplet-version.tgz</em> que encontréis
+en este <a href="http://code.google.com/p/tokland/downloads/list">repositorio </a> de google.</p>
+</div>
+<h2>La clase <em>GnomeApplet</em></h2>
+<div class="sectionbody">
+<p>Gnome usa GTK+ (<em>The GIMP Toolkit</em>), una herramienta inicialmente
+desarrollada para el programa de dibujo Gimp y después adoptada por
+Gnome como biblioteca de creación de interfaces (GUI). Desde Python
+podemos acceder gracias al trabajo del proyecto <a href="http://www.pygtk.org/">PyGTK</a>.</p>
+<p>GTK (y por tanto su <em>wrapper</em> PyGTK) es una biblioteca muy potente. Eso
+es estupendo porque te da un control fino sobre tu aplicación, pero
+por momentos puede ser agotador que programas en apariencia sencillos
+requieran finalmente cientos de líneas. Al final, eso tampoco es un
+problema: cuando haces dos o tres applets con PyGTK, te acabas dando
+cuenta que el esqueleto es casi idéntico, y es obvio que la repetición
+de código es una señal de que necesitamos de modularizar. Si elegimos un
+enfoque basado en programación orientada a objetos, esto se traduce en
+la creación de una clase padre que usaremos de base para nuestras clases.</p>
+<p>Con una aproximación de este tipo debes tener claro qué nivel de
+abstracción quieres manejar, ni muy alto (con lo cual el applet sería
+poco versátil), ni muy bajo (para este viaje no se necesitaban alforjas:
+nos hubiéramos quedado con <em>gnomeapplet/GTK</em> y listo). La clase <em>GnomeApplet</em>,
+cubre las necesidades básicas para applets sencillos. A las malas, sirva
+al menos como ejemplo de cómo interacturar con el módulo <em>gnomeapplet</em>.</p>
+<p>A falta de un Makefile, copiad a mano los scripts a <em>/usr/local/bin</em>, las
+imágenes PNG a <em>/usr/local/share/pixmaps</em> y el fichero de configuración
+<em>GNOME_ClockExampleApplet.server</em> a <em>/usr/lib/bonobo/servers</em>.</p>
+<p>Las características básicas de la clase <em>GnomeApplet</em> son:</p>
+<ul>
+<li>
+<p>
+Funciona en modo de pruebas (en una ventana) o modo <em>applet</em> (en el
+panel).
+</p>
+</li>
+<li>
+<p>
+Imágenes con su correspondiente texto de información contextual (hint).
+</p>
+</li>
+<li>
+<p>
+Botón derecho de acceso al menú.
+</p>
+</li>
+<li>
+<p>
+Los items del menú pueden
+ser activados o desactivados (para entendernos, se puede modificar
+la propiedad <em>sensitive</em>)
+</p>
+</li>
+<li>
+<p>
+Función de callback por temporizador.
+</p>
+</li>
+<li>
+<p>
+Función para mostrar la ventana <em>About</em> (Acerca de)
+</p>
+</li>
+</ul>
+<p>He intentado que el código de la clase sea lo más claro posible, aún
+así ahí van algunos apuntes:</p>
+<ul>
+<li>
+<p>
+No soy un amante de los prefijos <em>__</em> (más que nada porque ensucian
+el código), pero en casos como éste, donde estamos haciendo una clase
+padre, evitamos que aparezcan variables y métodos internos en las objetos
+finales. Así, sólo las funciones públicas son visibles y el interfaz es
+más claro.
+</p>
+</li>
+<li>
+<p>
+La oscura función <em>__panel_bg</em> se encarga de las transparencias en
+el applet. Está copiada casi literalmente de otros applets, ni idea de
+quién es el autor original.
+</p>
+</li>
+<li>
+<p>
+Los objetos <em>AppletImage</em> son realmente un <em>gtk.Image</em> dentro de un
+<em>gtk.EventBox</em>. Esto es necesario porque un <em>gtk.Image</em> no tiene una ventana
+X asociada, por lo que sería incapaz de recibir eventos del ratón ni de
+mostrar información al situarnos encima. Las funciones más comunes están
+definidas explícitamente (<em>show</em>, <em>hide</em>, <em>connect_signal</em>); para un control
+directo a los objetos GTK, se puede acceder a las variables <em>event_box</em>
+e <em>image</em>.
+</p>
+</li>
+</ul>
+</div>
+<h2>Ejemplo 1: Nuestro primer applet</h2>
+<div class="sectionbody">
+<p>En el primer ejemplo (<em>example1.py</em>), heredada de la clase <em>GnomeApplet</em>,
+llamamos al constructor original, añadimos la imagen del reloj y
+establecemos una función que se llamará cada segundo. Allí actualizamos
+el tip, mostrando la hora actual (formato <em>HH:MM:SS</em>). Todo esto en menos
+de veinte líneas.</p>
+<p>En este ejemplo el alto de la imagen es de 22 píxeles, un valor bastante
+habitual para estos menesteres. En realidad se puede -se debería-
+hacer que cambie con la altura del panel (ya que está es configurable
+por el usuario), pero de momento no liemos la cosa. Al fin y al cabo,
+applets oficiales de Gnome tienen imágenes de altura fija y todo el
+mundo contento.</p>
+<p>Podemos comprobar que todo va bien llamando al script desde línea de
+comandos, sin ningún argumento; debería aparecer el applet en una pequeña
+ventana como una aplicación normal y corriente. Más adelante veremos
+cómo configurarlo como un applet de verdad, insertándolo en el panel.</p>
+</div>
+<h2>Ejemplo 2: Asociando pulsaciones de ratón</h2>
+<div class="sectionbody">
+<p>En el segundo ejemplo (<em>example2.py</em>) añadimos algo más de interactividad:
+establecemos las entradas del menú que deben aparecer al presionar el
+botón derecho (en este caso, sólo el "Acerca de") y ligamos la pulsación
+del primer botón al GUI de ajuste de fecha y hora (<em>time-admin</em>) al hacer
+un doble click (con lo que, almas de cántaro, estaremos violando la
+patente 6.727.830 de Microsoft). Para esto último, conectamos la señal
+<em>button_press_event</em> a un callback donde lanzamos el programa con el
+módulo subprocess. Para evitar que el proceso quede zombie al finalizar,
+recogemos la señal <em>SIGCHLD</em> y leemos la última voluntad del finado (su
+valor de retorno, mayormente)</p>
+</div>
+<h2>Configurar Bonobo</h2>
+<div class="sectionbody">
+<p>GNOME usa interfaces CORBA para la intercomunicación entre procesos. Como
+parte de todo este conglomerado, la biblioteca Bonobo se encarga
+de gestionar todo lo referente a los applets. En el directorio
+<em>/usr/lib/bonobo/servers</em> cada applet deja su fichero de configuración
+(con extensión <em>.server</em>), donde se detalla (en formato XML) el nombre,
+descripción, ruta del ejecutable, el icono, etc.</p>
+<p>Como siempre, lo más sencillo es copiar uno ya existente y adaptarlo. Una vez pongáis
+el fichero .server con la descripción de vuestra aplicación, ésta
+debería aparecer en el GUI de adición de applets (a veces es necesario
+reiniciar los demonios <em>gnome-panel</em> y <em>bonobo-activation-server</em> para que
+se actualice).</p>
+</div>
+<h2>Conclusión</h2>
+<div class="sectionbody">
+<p>Lo visto aquí es sólo una pequeña muestra de lo que se puede hacer con
+los applets en Gnome y PyGTK. Para profundizar en el tema os remitiría
+a la documentación, en el caso que existiera&#8230; de momento no queda más
+remedio que buscar en internet y ver cómo demonios lo usa la gente.</p>
+<p>El recurso de emergencia de inspeccionar el módulo directamente no sirve
+en este caso, toda vez que <em>gnomeapplet</em> está escrito directamente en
+C. Sí, claro, podemos miraros el código fuente, pero entre nosotros,
+tratar de entender algo a partir de un código C con el que no estamos
+familiarizados <strong>no</strong> es trivial.</p>
+<p>La clase <em>GnomeApplet</em> que ilustra este artículo está en beta (siendo
+generosos&#8230;), agradecería cualquier sugerencia, mejora o bug que
+detectéis.</p>
+</div>
+<div id="footer">
+<div id="footer-text">
+Version 0.1<br />
+Last updated 27-Dec-2006 14:30:31 CEST
+</div>
+</div>
+</body>
+</html>
