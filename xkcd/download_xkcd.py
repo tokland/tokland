@@ -5,6 +5,7 @@ Use the descriptive "alt" text of the image as output filename."""
 import BeautifulSoup
 import optparse
 import urllib2
+import glob
 import sys
 import os
 
@@ -39,11 +40,18 @@ def download_image(soup):
     data = urllib2.urlopen(image["src"]).read()
     return title, extension, data 
 
-def download_cartoon(baseurl, num):
+def download_cartoon(baseurl, num, force=False, index_format="%03d."):
     """Get the 'num' XKCD cartoon"""
+    header = index_format % num
+    if not force:
+        # Force is not enabled, check if file with the expect format exists
+        existing = glob.glob(header+"*")
+        if existing:
+            debug("skipping: %s" % existing[0])
+            return 
     soup = get_soup(os.path.join(baseurl, str(num)))
     title, image_extension, data = download_image(soup)
-    filename = "%03d.%s%s" % (num, title, image_extension)
+    filename = "".join([header, title, image_extension])
     open(filename, "w").write(data)
     debug(filename)
 
@@ -53,6 +61,8 @@ def main(args0):
     parser = optparse.OptionParser(usage)
     parser.add_option('-u', '--url', dest='baseurl', metavar="URL",
         default="http://xkcd.com", type="string", help='XKCD main page URL')
+    parser.add_option('-f', '--force', dest='force', default=False,
+        action='store_true', help="Force file downloading")
     options, args = parser.parse_args(args0)
     if len(args) == 0:
         start, end = 1, get_last_num(options.baseurl)
@@ -60,9 +70,11 @@ def main(args0):
         start, end = int(args[0]), get_last_num(options.baseurl)
     else: start, end = map(int, args[:2])
        
-    debug("download XKCD from %d to %d" % (start, end))    
+    debug("download XKCD from %d to %d" % (start, end))
+    if options.force:
+        debug("force enabled")    
     for num in xrange(start, end+1):
-        download_cartoon(options.baseurl, num)
+        download_cartoon(options.baseurl, num, force=options.force)
         
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
