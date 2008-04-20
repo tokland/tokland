@@ -5,17 +5,17 @@ operations (+, -, /, *)  between them, find (or be as close as possible to)
 another given number.
 """
 
-# Arnau Sanchez <tokland@gmail.com>
+# Author: arnau sanchez <tokland@gmail.com>
 
 import sys
 import operator
 import optparse
 
-# Best current approximation
+# Best current approximation (global variable)
 best = None
 
 def get_strnum(num):
-    """Get string number from num
+    """Get pair of (integer_value, string_representation) from num.
     
     >>> get_strnum(8)
     (8, '8')
@@ -25,7 +25,7 @@ def get_strnum(num):
 def makeop(op, (num1, str1), (num2, str2)):
     """Make operation op between two string numbers.
     
-    Return a tuple with the numerical result and the sring representation 
+    Return a tuple with the numerical result and the string representation 
     of that operation
     
     >>> makeop(operator.mul, (2, "(1+1)"), (6, "(2*3)"))
@@ -37,7 +37,7 @@ def makeop(op, (num1, str1), (num2, str2)):
     return op(num1, num2), outstr     
 
 def process_pair(numstr1, numstr2):
-    """Return all possible results from operating two values
+    """Return all possible results from operating two values.
     
     >>> process_pair((7, "7"), (3, "3"))
     [(7, '7'), (3, '3'), (10, '(7+3)'), (21, '(7*3)'), (4, '(7-3)')]
@@ -58,9 +58,9 @@ def process_pair(numstr1, numstr2):
 def process(final, numstrs, show_approx=False):
     """Recursive function to search 'final', making operations on numstrs.
     
-    Numstrings are tuples containing (integer, operation_string)
+    Numstrings are tuples containing (integer_value, operation_string)
     
-    >>> process(576, [(n, str(n)) for n in [1, 2, 3, 4, 5, 6]])
+    >>> process(576, map(get_strnum, [1, 2, 3, 4, 5, 6]))
     (576, '(((4*(2+1))*6)*(5+3))')
     """
     for i1 in xrange(len(numstrs)):
@@ -86,11 +86,9 @@ def _show_approximation(final, (x, strx)):
 def _test():
     """Run tests on docstrings"""
     import doctest
-    global best
-    best = None
-    doctest.testmod(verbose=True)
+    return doctest.testmod(verbose=True)
     
-def main(args0):
+def _main(args0):
     """Process options and arguments"""
     usage = "usage: cifras.py number1 ... numberN final\n    %s" % __doc__.strip()
     parser = optparse.OptionParser(usage)
@@ -110,4 +108,4 @@ def main(args0):
     else: print "Couldn't find the number %d" % final
                 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))   
+    sys.exit(_main(sys.argv[1:]))   
