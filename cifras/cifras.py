@@ -71,7 +71,7 @@ def process(final, numstrs, show_approx=False):
                     return numstr
                 if show_approx:
                     _show_approximation(final, numstr)
-                numstr = process(final, [numstr] + other_numstrs)
+                numstr = process(final, [numstr] + other_numstrs, show_approx)
                 if numstr:
                     return numstr         
     
@@ -90,7 +90,7 @@ def _test():
     
 def _main(args0):
     """Process options and arguments"""
-    usage = "usage: cifras.py number1 ... numberN final\n    %s" % __doc__.strip()
+    usage = "usage: cifras.py number1 ... numberN final\n    " + __doc__.strip()
     parser = optparse.OptionParser(usage)
     parser.add_option('-t', '--test', dest='test', default=False,
         action="store_true", help='Run unittests')        
@@ -101,6 +101,7 @@ def _main(args0):
     if len(args) < 2:
         parser.print_help()
         return 1
+        
     nums, final = nums0[:-1], nums0[-1]
     result = process(final, map(get_strnum, nums), show_approx=True)
     if result:
