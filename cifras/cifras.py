@@ -38,15 +38,17 @@ def process_pair(numstr1, numstr2):
 best = None
 
 def show_approximation(final, (x, strx)):
-    """Calculate difference with the current best approximation. Uses
-    a global variable (best)"""
+    """Calculate difference with the current best approximation. 
+    Uses a global variable (best)"""
     global best
     if best is None or abs(final-x) < abs(final-best):
         best = x
         print "apprx: %d = %s [delta=%d]" % (best, strx, abs(final-x))
      
 def process(final, numstrs):
-    """Recursive function to search 'final', making operations on numstrs"""
+    """Recursive function to search 'final', making operations on numstrs.
+    
+    Numstrings are tuples containing (integer, operation_string)"""
     for i1 in xrange(len(numstrs)):
         for i2 in xrange(i1+1, len(numstrs)):
             other_numstrs = numstrs[:i1] + numstrs[i1+1:i2] + numstrs[i2+1:] 
