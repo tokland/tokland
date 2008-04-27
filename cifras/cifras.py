@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Based on a simple math game: given a bunch of numbers, and using the basic 
+Based on a simple math game: given a list of numbers, and using the basic 
 operations (+, -, /, *)  between them, find (or be as close as possible to) 
 another given number.
 """
@@ -13,6 +13,15 @@ import optparse
 
 # Best current approximation (global variable)
 best = None
+
+def _show_approximation(final, (x, strx)):
+    """Calculate difference with the current best approximation. 
+    Uses a global variable (best)"""
+    global best
+    if best is None or abs(final-x) < abs(final-best):
+        best = x
+        print "approx: %d = %s [delta=%d]" % (best, strx, abs(final-x))
+
 
 def get_strnum(num):
     """Get pair of (integer_value, string_representation) from num.
@@ -74,15 +83,7 @@ def process(final, numstrs, show_approx=False):
                 numstr = process(final, [numstr] + other_numstrs, show_approx)
                 if numstr:
                     return numstr         
-    
-def _show_approximation(final, (x, strx)):
-    """Calculate difference with the current best approximation. 
-    Uses a global variable (best)"""
-    global best
-    if best is None or abs(final-x) < abs(final-best):
-        best = x
-        print "approx: %d = %s [delta=%d]" % (best, strx, abs(final-x))
-    
+        
 def _test():
     """Run tests on docstrings"""
     import doctest
