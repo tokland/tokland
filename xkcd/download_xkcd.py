@@ -1,7 +1,9 @@
 #!/usr/bin/python
-"""Download the great XKCD cartoon. 
+"""Download the great XKCD cartoons using the descriptive "alt" 
+attribute text of the image as the image filename"""
 
-Use the descriptive "alt" text of the image as output filename."""
+# Author: <tokland@gmail.com>
+
 import BeautifulSoup
 import optparse
 import urllib2
@@ -16,7 +18,7 @@ def debug(obj):
 
 def get_soup(url):
     """Return a BeautifulSoup from plain HTML data"""
-    debug("downloading: %s" % url)
+    debug("downloading: %s" % url.encode("utf-8"))
     data = urllib2.urlopen(url).read()
     return BeautifulSoup.BeautifulSoup(data)
 
@@ -33,7 +35,8 @@ def get_last_num(baseurl):
 
 def download_image(soup):
     """Download cartoon image given its index and HTML soup"""
-    image = soup.find(id="contentContainer").img
+    image = soup.find("div", {"id": "middleContent", "class": "dialog"}).img
+    assert image, "could not find image tag from html soup"
     title = image["title"].strip().strip(".").replace("/", "-")
     extension = os.path.splitext(image["src"])[1]
     debug("download image: %s" % image["src"])
@@ -41,19 +44,23 @@ def download_image(soup):
     return title, extension, data 
 
 def download_cartoon(baseurl, num, force=False, index_format="%03d."):
-    """Get the 'num' XKCD cartoon"""
+    """Get the ntk XKCD cartoon (404th is missing, you know why)"""
     header = index_format % num
     if not force:
-        # Force is not enabled, check if file with the expect format exists
+        # Force is not enabled, check if file with the expecteded format exists
         existing = glob.glob(header+"*")
         if existing:
             debug("skipping: %s" % existing[0])
-            return 
-    soup = get_soup(os.path.join(baseurl, str(num)))
+            return
+    try: 
+        soup = get_soup(os.path.join(baseurl, str(num)))
+    except urllib2.HTTPError:
+        debug("cartoon not found: %s" % num)
+        return
     title, image_extension, data = download_image(soup)
-    filename = "".join([header, title, image_extension])
+    filename = header + title + image_extension
     open(filename, "w").write(data)
-    debug(filename)
+    debug(filename.encode("utf-8"))
 
 def main(args0):
     """Process options and arguments"""
@@ -70,7 +77,7 @@ def main(args0):
         start, end = int(args[0]), get_last_num(options.baseurl)
     else: start, end = map(int, args[:2])
        
-    debug("download XKCD from %d to %d" % (start, end))
+    debug("downloading XKCD cartoons from %d to %d" % (start, end))
     if options.force:
         debug("force enabled")    
     for num in xrange(start, end+1):
