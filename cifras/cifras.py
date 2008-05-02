@@ -10,7 +10,7 @@ another given number.
 import operator
 import sys
 
-# Best current approximation (global variable)
+# Best current approximation
 best = None
 
 def show_approximation(final, (x, strx)):
@@ -90,20 +90,21 @@ def _test():
 def _main(args0):
     """Process options and arguments"""
     import optparse
-    usage = "usage: cifras.py number1 ... numberN final\n    " + __doc__.strip()
+    usage = "usage: cifras.py number1 ... numberN final\n\n" + __doc__.strip()
     parser = optparse.OptionParser(usage)
     parser.add_option('-t', '--test', dest='test', default=False,
         action="store_true", help='Run unittests')        
+    parser.add_option('-v', '--verbose', dest='verbose', default=False,
+        action="store_true", help='Enable verbose mode')        
     options, args = parser.parse_args(args0)
     if options.test:
         return _test()
     nums0 = map(int, args)
     if len(args) < 2:
         parser.print_help()
-        return 1
-        
+        return 1    
     nums, final = nums0[:-1], nums0[-1]
-    result = process(final, map(get_strnum, nums), show_approx=True)
+    result = process(final, map(get_strnum, nums), show_approx=options.verbose)
     if not result:
         print "Couldn't find the number %d" % final
         return 2
