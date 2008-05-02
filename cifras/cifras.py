@@ -14,14 +14,13 @@ import optparse
 # Best current approximation (global variable)
 best = None
 
-def _show_approximation(final, (x, strx)):
+def show_approximation(final, (x, strx)):
     """Calculate difference with the current best approximation. 
     Uses a global variable (best)"""
     global best
     if best is None or abs(final-x) < abs(final-best):
         best = x
         print "approx: %d = %s [delta=%d]" % (best, strx, abs(final-x))
-
 
 def get_strnum(num):
     """Get pair of (integer_value, string_representation) from num.
@@ -46,7 +45,9 @@ def makeop(op, (num1, str1), (num2, str2)):
     return op(num1, num2), outstr     
 
 def process_pair(numstr1, numstr2):
-    """Return all possible results from operating two values.
+    """Yield all possible results from operating two values. 
+    
+    Allowed operations are n1, n2, n1*n2, n1+n2, n1-n2, n1/n2.
     
     >>> process_pair((7, "7"), (3, "3"))
     [(7, '7'), (3, '3'), (10, '(7+3)'), (21, '(7*3)'), (4, '(7-3)')]
@@ -54,15 +55,13 @@ def process_pair(numstr1, numstr2):
     if numstr1[0] < numstr2[0]:
         numstr1, numstr2 = numstr2, numstr1
     num1, num2 = numstr1[0], numstr2[0]
-    output = [numstr1, numstr2]
     get = lambda op: makeop(op, numstr1, numstr2)
-    output.append(get(operator.add))
-    output.append(get(operator.mul))
+    for numstr in numstr1, numstr2, get(operator.add), get(operator.mul):
+        yield numstr
     if num1 > num2:
-        output.append(get(operator.sub))
+        yield get(operator.sub)
     if (num1 % num2) == 0:
-        output.append(get(operator.div))
-    return output
+        yield get(operator.div)
           
 def process(final, numstrs, show_approx=False):
     """Recursive function to search 'final', making operations on numstrs.
@@ -79,7 +78,7 @@ def process(final, numstrs, show_approx=False):
                 if numstr[0] == final:
                     return numstr
                 if show_approx:
-                    _show_approximation(final, numstr)
+                    show_approximation(final, numstr)
                 numstr = process(final, [numstr] + other_numstrs, show_approx)
                 if numstr:
                     return numstr         
@@ -110,4 +109,4 @@ def _main(args0):
     else: print "Couldn't find the number %d" % final
                 
 if __name__ == "__main__":
-    sys.exit(_main(sys.argv[1:]))   
+    sys.exit(_main(sys.argv[1:]))
