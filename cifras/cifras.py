@@ -7,9 +7,8 @@ another given number.
 
 # Author: arnau sanchez <tokland@gmail.com>
 
-import sys
 import operator
-import optparse
+import sys
 
 # Best current approximation (global variable)
 best = None
@@ -49,14 +48,14 @@ def process_pair(numstr1, numstr2):
     
     Allowed operations are n1, n2, n1*n2, n1+n2, n1-n2, n1/n2.
     
-    >>> process_pair((7, "7"), (3, "3"))
+    >>> list(process_pair((7, "7"), (3, "3")))
     [(7, '7'), (3, '3'), (10, '(7+3)'), (21, '(7*3)'), (4, '(7-3)')]
     """
     if numstr1[0] < numstr2[0]:
         numstr1, numstr2 = numstr2, numstr1
     num1, num2 = numstr1[0], numstr2[0]
     get = lambda op: makeop(op, numstr1, numstr2)
-    for numstr in numstr1, numstr2, get(operator.add), get(operator.mul):
+    for numstr in (numstr1, numstr2, get(operator.add), get(operator.mul)):
         yield numstr
     if num1 > num2:
         yield get(operator.sub)
@@ -90,6 +89,7 @@ def _test():
     
 def _main(args0):
     """Process options and arguments"""
+    import optparse
     usage = "usage: cifras.py number1 ... numberN final\n    " + __doc__.strip()
     parser = optparse.OptionParser(usage)
     parser.add_option('-t', '--test', dest='test', default=False,
@@ -104,9 +104,10 @@ def _main(args0):
         
     nums, final = nums0[:-1], nums0[-1]
     result = process(final, map(get_strnum, nums), show_approx=True)
-    if result:
-        print "%d = %s" % (final, result[1])
-    else: print "Couldn't find the number %d" % final
+    if not result:
+        print "Couldn't find the number %d" % final
+        return 2
+    print "%d = %s" % (final, result[1])
                 
 if __name__ == "__main__":
     sys.exit(_main(sys.argv[1:]))
