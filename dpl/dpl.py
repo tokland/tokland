@@ -3,16 +3,15 @@
 Try commonly used pairs user/password to access an ADSL router. The 
 password list is created from http://www.phenoelit-us.org/dpl/dpl.html.
 
-Example:
-
-1. Generate TXT password file from HTML:
+- Generate TXT password file from HTML:
 
 wget http://www.phenoelit-us.org/dpl/dpl.html
 python dpl.py --generate
 
-2. Try user/password list for host 192.168.1.1:
+- Try user/password list for host 192.168.1.1 (you need dpl.txt):
 
 python dpl.py 192.168.1.1
+
 ---
 
 Author: tokland@gmail.com
@@ -88,11 +87,10 @@ def connect(host, passfilename):
     user_passwords = [line.split() for line in open(passfilename)]
     for username, password in user_passwords:
         if try_user(host, username, password):
-            print "found: %s/%s" % (username, password)
-            break
+            return username, password
     
 def main(args):
-    """Main method for dpl, process options and arguments"""
+    """Main method for dpl"""
     usage = """usage: dpl.py [options] [host]
     %s""" % __doc__.split("---")[0].rstrip()
     parser = optparse.OptionParser(usage)
@@ -103,10 +101,14 @@ def main(args):
         output = ("%s %s\n" % (u, p) for (u, p) in get_info("dpl.html"))
         open("dpl.txt", "w").writelines(sorted(output))
         return 0
-    if len(args0) == 0:
+    elif len(args0) == 0:
         parser.print_help()
         return 1
-    connect(args0[0], "dpl.txt")    
+    res = connect(args0[0], "dpl.txt")
+    if not res:
+        return 2
+    username, password = res
+    print "found: %s/%s" % (username, password)
         
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
