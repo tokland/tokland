@@ -1,11 +1,7 @@
 #!/usr/bin/python
 """
 Try commonly used pairs user/password to access an ADSL router. The 
-password list is created from this URL:
-
-http://www.phenoelit-us.org/dpl/dpl.html
-
-Author: tokland@gmail.com
+password list is created from http://www.phenoelit-us.org/dpl/dpl.html.
 
 Example:
 
@@ -17,6 +13,9 @@ python dpl.py --generate
 2. Try user/password list for host 192.168.1.1:
 
 python dpl.py 192.168.1.1
+---
+
+Author: tokland@gmail.com
 """
 import sys
 import urllib2
@@ -93,12 +92,10 @@ def connect(host, passfilename):
             break
     
 def main(args):
-    usage = """usage: myprogram [options] [host]
-
-    %s""" % __doc__ 
+    """Main method for dpl, process options and arguments"""
+    usage = """usage: dpl.py [options] [host]
+    %s""" % __doc__.split("---")[0].rstrip()
     parser = optparse.OptionParser(usage)
-    parser.add_option('-v', '--verbose', dest='vlevel', action="count",
-        default=0, help='Increase verbose level (0=Error, 1=Info, 2=Debug)')
     parser.add_option('-g', '--generate-password-file', dest='generate',
         action="store_true", default=False, help='Generate password file')
     options, args0 = parser.parse_args(args)
