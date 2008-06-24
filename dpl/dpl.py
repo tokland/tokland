@@ -6,6 +6,17 @@ password list is created from this URL:
 http://www.phenoelit-us.org/dpl/dpl.html
 
 Author: tokland@gmail.com
+
+Example:
+
+1. Generate TXT password file from HTML:
+
+wget http://www.phenoelit-us.org/dpl/dpl.html
+python dpl.py --generate
+
+2. Try user/password list for host 192.168.1.1:
+
+python dpl.py 192.168.1.1
 """
 import sys
 import urllib2
