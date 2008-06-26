@@ -3,7 +3,7 @@
 Try commonly used pairs user/password to access an ADSL router. The 
 password list is created from http://www.phenoelit-us.org/dpl/dpl.html.
 
-- Generate TXT password file from HTML:
+- To generate TXT password file (dpl.txt) from last version of HTML source:
 
 wget http://www.phenoelit-us.org/dpl/dpl.html
 python dpl.py --generate
@@ -16,6 +16,7 @@ python dpl.py 192.168.1.1
 
 Author: tokland@gmail.com
 """
+import re
 import sys
 import urllib2
 import optparse
@@ -30,36 +31,29 @@ def get_soup(data):
     """Return a soup of HTML tags from string data"""
     return BeautifulSoup.BeautifulSoup(data)
 
-def get_contents(tags):
-    """Iterate on tags and extract string contents"""
-    for tag in tags:
-        if tag.contents:
-            yield str(tag.contents[0]).strip()
-        else: yield ""
-        
 def get_info(filename):
     """Yield user/password pairs from dpl htmt list"""
-    skip = set(["", "n/a"])
+    skip_re = map(re.compile, ["^$", "^n/a$", " ", "^\("])
+    debug("reading html source: %s" % filename)
     soup = get_soup(open(filename).read())    
+    debug("extracting td tags from HTML soup")
     trtags = soup.findAll("tr")
-    headers = list(get_contents(trtags[0].findAll("td")))
+    get_content = lambda tag: tag.contents and tag.contents[0].strip() or ""
+    headers = map(get_content, trtags[0].findAll("td"))
     useridx = headers.index("User ID")
     passwordidx = headers.index("Password")
     seen = set()
     for trtag in trtags[1:]:
-        tds = list(get_contents(trtag.findAll("td")))
-        user, password = (tds[useridx], tds[passwordidx])
-        entry = user, password
+        tds = map(get_content, trtag.findAll("td"))
+        entry = user, password = (tds[useridx], tds[passwordidx])
         if entry in seen:
             continue
-        if user in skip or password in skip:
-            continue
-        if user.startswith("(") or password.startswith("("):
-            continue
-        if " " in user or " " in password:
+        if any(skre.search(user) or skre.search(password) for skre in skip_re):
             continue
         yield entry
-        seen.add(entry)        
+        debug("adding: %s" % repr(entry))
+        seen.add(entry)
+    debug("done")        
 
 def create_password_file(htmlfile):
     """Create a file of user/password pairs from dpl html list"""
@@ -84,15 +78,15 @@ def connect(host, passfilename):
     authentication enabled"""
     if not host.startswith("http://"):
         host = "http://" + host    
-    user_passwords = [line.split() for line in open(passfilename)]
+    user_passwords = (line.split() for line in open(passfilename))
     for username, password in user_passwords:
         if try_user(host, username, password):
             return username, password
     
 def main(args):
     """Main method for dpl"""
-    usage = """usage: dpl.py [options] [host]
-    %s""" % __doc__.split("---")[0].rstrip()
+    doc = __doc__.split("---")[0].rstrip()
+    usage = "usage: dpl.py [options] [host]\n%s" % doc
     parser = optparse.OptionParser(usage)
     parser.add_option('-g', '--generate-password-file', dest='generate',
         action="store_true", default=False, help='Generate password file')
