@@ -62,14 +62,14 @@ class ReversePolishCalc:
         return self.stack
 
     def operation(self, operation):
-        """Issue operation (should be a callable) on last two values on stack """
+        """Make operation (should be callable) on last two values on stack"""
         if len(self.stack) < 2:
             errmsg = "Insufficient stack size to issue an operation"
             raise ReversePolishCalcError, errmsg
         try:
             value = operation(*self.stack[-2:])
         except ZeroDivisionError:
-            raise ReversePolishError, "Zero division raised"
+            raise ReversePolishCalcError, "Zero division raised"
         self.stack[-2:] = [value]
         return self.stack
 
@@ -127,7 +127,7 @@ class InteractiveReversePolishCalc(Cmd):
 
     def do_shell(self, line):
         """Run a command on a shell"""
-        subprocess.call(s, shell=True)
+        subprocess.call(line, shell=True)
 
     def do_help(self, line):
         """Get help on commands.
@@ -169,7 +169,6 @@ class InteractiveReversePolishCalc(Cmd):
                 self.calc.insert_value(float(line))
             except ValueError:
                 debug("Invalid float value: %s" % line)
-                return
         else:
             debug("Unknown command: %s" % line)
         self._debug_stack()
