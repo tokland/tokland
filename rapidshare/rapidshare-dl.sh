@@ -23,7 +23,7 @@ get_rapidshare_url() {
     WAIT_URL=$(wget -O - "$URL" | match_line '<form' 'action="(.*?)"')
     test "$WAIT_URL" || { debug "can't get wait main page URL"; return 2; }
     trap "test \$TEMPFILE && rm -f \$TEMPFILE" SIGINT SIGHUP SIGTERM
-    TEMPFILE=$(tempfile)
+    TEMPFILE=$(mktemp)
     FILE_URL=$(wget -O - --post-data="dl.start=Free" "$WAIT_URL" | \
         tee $TEMPFILE | match_line "document.dlf" "action=\\\\'(.*?)\\\\'")
     SLEEP=$(cat $TEMPFILE | match_line "^var c=" "c=(\d+);")
