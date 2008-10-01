@@ -2,11 +2,11 @@
 #
 # Download a file from Rapidshare.
 #
-# Author: <tokland@gmail.com> 
+# Author: <tokland@gmail.com> September 2008.
 #
 set -e
 
-# Grep and match a Perl-style regular expression for a matched line.
+# Match a Perl-style regular expression for a grepped line.
 #
 # $1: POSIX-regexp to get the first line that matches
 # $2: Perl-regexp to match (use parentheses) a portion of the line.
@@ -24,8 +24,8 @@ get_rapidshare_url() {
     test "$WAIT_URL" || { debug "can't get wait main page URL"; return 2; }
     trap "rm -f \$TEMPFILE" SIGINT SIGHUP SIGTERM
     TEMPFILE=$(mktemp)
-    FILE_URL=$(wget -O - --post-data="dl.start=Free" "$WAIT_URL" | \
-        tee $TEMPFILE | match_line "document.dlf" "action=\\\\'(.*?)\\\\'")
+    wget -O $TEMPFILE --post-data="dl.start=Free" "$WAIT_URL" 
+    FILE_URL=$(cat $TEMPFILE | match_line "document.dlf" "action=\\\\'(.*?)\\\\'")
     SLEEP=$(cat $TEMPFILE | match_line "^var c=" "c=(\d+);")
     rm -f $TEMPFILE
     trap SIGINT SIGHUP SIGTERM
@@ -37,9 +37,9 @@ get_rapidshare_url() {
     echo $FILE_URL
 }
 
-### Main
+# Main
 
 URL=$1 
-test "$URL" || { debug "usage: rapidshare URL"; exit 1; }
+test "$URL" || { debug "usage: $0 rapidshare_url"; exit 1; }
 FILE_URL=$(get_rapidshare_url "$URL")
-exec wget -c "$FILE_URL"
+test "$FILE_URL" && wget -c "$FILE_URL"
