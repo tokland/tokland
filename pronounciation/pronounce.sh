@@ -3,6 +3,7 @@
 #
 # Play English words (and cache them) using The Free Dictionary webpage. 
 # 
+# Depends: mplayer
 set -e
 CACHE="/var/local/words"
 LANGUAGE=en
@@ -23,7 +24,8 @@ get_word_mp3_path() {
     echo $MP3PATH
 }        
 
-
+# Main
+[ $# -ge 2 ] || { echo "usage: $(basename $0) US|UK word [word...]"; exit 1; }
 COUNTRY=$1
 shift
 for WORD in "$@"; do 
