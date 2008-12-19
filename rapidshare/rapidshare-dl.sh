@@ -1,4 +1,4 @@
-#!/bin/bash
+c#!/bin/bash
 #
 # Download files from Rapidshare.
 #
@@ -35,7 +35,7 @@ get_rapidshare_url() {
     debug "URL File: $FILE_URL" 
     test "$SLEEP" || { debug "can't get sleep time"; SLEEP=100; }
     debug "Waiting $SLEEP seconds" 
-    sleep $(($SLEEP + 1)) # don't be greedy, wait a little more than specified
+    sleep $(($SLEEP + 1)) 
     echo $FILE_URL
 }
 
@@ -50,10 +50,10 @@ for ITEM in "$@"; do
     if [ $(expr match "$ITEM" "http://") == 0 ]; then
         # Not an URL, assume it is a filename containing one link per line.
         while read URL; do 
-            get_rapidshare_url "$URL" | xargs -r wget
+            wget $(get_rapidshare_url "$URL")
         done < "$ITEM"
     else
         # It's a URL, assume it is a Rapidshare URL 
-        get_rapidshare_url "$ITEM" | xargs -r wget
+        wget $(get_rapidshare_url "$ITEM")
     fi
 done
