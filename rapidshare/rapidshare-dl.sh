@@ -1,10 +1,13 @@
-c#!/bin/bash
+#!/bin/bash
 #
 # Download files from Rapidshare.
 #
-# Author: <tokland@gmail.com>.
+# Contact: <tokland@gmail.com>.
 #
 set -e
+
+# Echo text to standard error.
+debug() { echo "$@" >&2; }
 
 # Get first line that matches a regular expression and parse it.
 #
@@ -12,14 +15,12 @@ set -e
 # $2: POSIX-regexp to match (using parentheses) on the matched line.
 match_line() { sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1; }
 
-# Echo text to standard error.
-debug() { echo "$@" >&2; }
-
 # Output a rapidshare file download url given its Rapidshare URL
 #
 # $1: A rapidshare URL
 get_rapidshare_url() {
     URL=$1
+    # Get Wait URL (use a loop, because there is a download limit)
     while true; do
         WAIT_URL=$(wget -O - "$URL" | match_line '<form' 'action="\(.*\)"')
         test "$WAIT_URL" || { debug "can't get wait-page URL"; return 2; }
@@ -35,11 +36,16 @@ get_rapidshare_url() {
     debug "URL File: $FILE_URL" 
     test "$SLEEP" || { debug "can't get sleep time"; SLEEP=100; }
     debug "Waiting $SLEEP seconds" 
-    sleep $(($SLEEP + 1)) 
+    sleep $(($SLEEP + 1))
     echo $FILE_URL
 }
 
-# Main
+# Check if a string is a http url
+#
+# $1: string to check
+is_url() { test $(expr match "$1" "http://") -ne 0; }
+
+### Main
 
 if [ $# -eq 0 ]; then
     debug "usage: $(basename $0) URL|FILE [URL|FILE ...]"
@@ -47,13 +53,9 @@ if [ $# -eq 0 ]; then
 fi
 
 for ITEM in "$@"; do
-    if [ $(expr match "$ITEM" "http://") == 0 ]; then
-        # Not an URL, assume it is a filename containing one link per line.
-        while read URL; do 
-            wget $(get_rapidshare_url "$URL")
-        done < "$ITEM"
-    else
-        # It's a URL, assume it is a Rapidshare URL 
-        wget $(get_rapidshare_url "$ITEM")
-    fi
+    { is_url "$ITEM" && echo "$ITEM" || { cat $ITEM | grep -v "^#"; }; } | \
+        while read URL; do
+            FILE_URL=$(get_rapidshare_url "$URL")
+            [ $? -eq 0 ] && wget "$FILE_URL"
+        done
 done
