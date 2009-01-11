@@ -1,12 +1,12 @@
 #!/bin/bash
 #
 # Download files from Rapidshare using free access (NOT premium accounts).
-# Outputs files downloaded to standard output.
+# Output files downloaded to standard output (one per line).
 #
 # Dependencies: sed, sleep, expr, wget.
 #
 # Web: http://code.google.com/p/megaupload-dl/wiki/RapidShare
-# Contact: <tokland@gmail.com>.
+# Contact: Arnau Sanchez <tokland@gmail.com>.
 #
 set -e
 
@@ -24,17 +24,16 @@ match() { sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1; }
 # Check if a string is (or seems) a rapidshare URL.
 #
 is_rapidshare_url() { 
-    test ! -z $(expr match "$1" "^\(http://\|\(www\.\)\?rapidshare.com/files\)")
+    test -n $(expr match "$1" "^\(http://\|\(www\.\)\?rapidshare.com/files\)")
 }
 
 # Guess is item is a rapidshare URL or file (then return contents)
 #
 process_item() {
-    ITEM=$1
-    if is_rapidshare_url "$ITEM"; then
-        echo "$ITEM" 
+    if is_rapidshare_url "$1"; then
+        echo "$1" 
     else
-        grep -v "^[[:space:]]*\(#\|$\)" -- "$ITEM" 
+        grep -v "^[[:space:]]*\(#\|$\)" -- "$1" 
     fi
 }
 
