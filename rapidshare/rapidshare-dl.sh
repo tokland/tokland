@@ -8,6 +8,8 @@
 # Web: http://code.google.com/p/megaupload-dl/wiki/RapidShare
 # Contact: Arnau Sanchez <tokland@gmail.com>.
 #
+# License: GNU GPL v3.0: http://www.gnu.org/licenses/gpl-3.0-standalone.html
+#
 set -e
 
 # Echo text to standard error.
@@ -19,23 +21,11 @@ debug() { echo "$@" >&2; }
 # $1: POSIX-regexp to filter (get only the first matching line).
 # $2: POSIX-regexp to match (use parentheses) on the matched line.
 #
-match() { sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1; }
+parse() { sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1; }
 
-# Check if a string is (or seems) a rapidshare URL.
+# Check if a string ($2) matchs a regexp ($1)
 #
-is_rapidshare_url() { 
-    test -n $(expr match "$1" "^\(http://\|\(www\.\)\?rapidshare.com/files\)")
-}
-
-# Guess is item is a rapidshare URL or file (then return contents)
-#
-process_item() {
-    if is_rapidshare_url "$1"; then
-        echo "$1" 
-    else
-        grep -v "^[[:space:]]*\(#\|$\)" -- "$1" 
-    fi
-}
+match() { grep -q "$1" <<< "$2"; }
 
 # Output a rapidshare file download URL given its rapidshare URL
 #
@@ -44,16 +34,17 @@ process_item() {
 get_rapidshare_file_url() {
     URL=$1
     while true; do
-        WAIT_URL=$(wget -O - "$URL" | match '<form' 'action="\(.*\)"')
-        test "$WAIT_URL" || { debug "can't get wait-page URL"; return 1; }
+        WAIT_URL=$(wget -O - "$URL" | parse '<form' 'action="\(.*\)"')
+        test "$WAIT_URL" || { debug "can't get wait-page URL"; return 2; }
         DATA=$(wget -O - --post-data="dl.start=Free" "$WAIT_URL")
-        LIMIT=$(echo "$DATA" | match "try again" "about \([[:digit:]]\+\) min")
+        test "$DATA" || { debug "can't get wait URL contents"; return 2; }
+        LIMIT=$(echo "$DATA" | parse "try again" "about \([[:digit:]]\+\) min")
         test -z "$LIMIT" && break
         debug "download limit reached: waiting $LIMIT minutes"
         sleep ${LIMIT}m
     done
-    FILE_URL=$(echo "$DATA" | match "<form " 'action="\([^\"]*\)"') 
-    SLEEP=$(echo "$DATA" | match "^var c=" "c=\([[:digit:]]\+\);")
+    FILE_URL=$(echo "$DATA" | parse "<form " 'action="\([^\"]*\)"') 
+    SLEEP=$(echo "$DATA" | parse "^var c=" "c=\([[:digit:]]\+\);")
     test "$FILE_URL" || { debug "can't get file URL"; return 2; }
     debug "URL File: $FILE_URL" 
     test "$SLEEP" || { debug "can't get sleep time"; SLEEP=100; }
@@ -62,9 +53,27 @@ get_rapidshare_file_url() {
     echo $FILE_URL    
 }
 
-# Return on testing (don't run main code)
+# Guess is item is a rapidshare URL, a generic URL (try bulk download)
+# or a file with links
 #
-test "$1" = "--test" && return
+process_item() {
+    ITEM=$1
+    BASEURL="\(http://\)\?\(www\.\)\?rapidshare.com"
+    if match "^$BASEURL/" "$ITEM"; then
+        # Rapidshare URL
+        echo "$ITEM" 
+    elif match "^\(http://\)" "$ITEM"; then
+        # Non-rapidshare URL, extract RS links (highly fallible!) and download
+        wget -O - "$ITEM" | tr -d '\r' | grep -o "$BASEURL/[^\"<>]\+" | uniq
+    else 
+        # Assume it's a file and read links (discard comments and empty lines)
+        grep -v "^[[:space:]]*\(#\|$\)" -- "$ITEM"
+    fi
+}
+
+# Don't run main code on testing
+#
+test "$TESTMODE" = "1" && return
 
 # Main
 #
@@ -75,8 +84,9 @@ fi
 
 for ITEM in "$@"; do
     process_item "$ITEM" | while read URL; do
+        debug "start download: $URL"
         FILE_URL=$(get_rapidshare_file_url "$URL") && 
             wget "$FILE_URL" && echo $(basename "$FILE_URL") ||
-            debug "could not download URL: $URL" 
+            debug "could not download: $URL" 
     done
 done
