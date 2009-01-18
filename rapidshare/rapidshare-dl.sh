@@ -38,7 +38,7 @@ get_rapidshare_file_url() {
         test "$WAIT_URL" || { debug "can't get wait-page URL"; return 2; }
         DATA=$(wget -O - --post-data="dl.start=Free" "$WAIT_URL")
         test "$DATA" || { debug "can't get wait URL contents"; return 2; }
-        LIMIT=$(echo "$DATA" | parse "try again" "about \([[:digit:]]\+\) min")
+        LIMIT=$(echo "$DATA" | parse "try again" "\([[:digit:]]\+\) minutes")
         test -z "$LIMIT" && break
         debug "download limit reached: waiting $LIMIT minutes"
         sleep ${LIMIT}m
