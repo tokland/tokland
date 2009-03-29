@@ -3,9 +3,9 @@
 Based on a simple math game: given a list of numbers, and using the basic 
 operations (+, -, /, *)  between them, find (or be as close as possible to) 
 another given number.
-"""
 
-# Author: arnau sanchez <tokland@gmail.com>
+Author: Arnau Sanchez <tokland@gmail.com>
+"""
 
 import operator
 import sys
@@ -22,7 +22,7 @@ def show_approximation(final, (x, strx)):
         print "approx: %d = %s [delta=%d]" % (best, strx, abs(final-x))
 
 def get_strnum(num):
-    """Get pair of (integer_value, string_representation) from num.
+    """Get pair (integer_value, string_representation) for num.
     
     >>> get_strnum(8)
     (8, '8')
@@ -38,8 +38,12 @@ def makeop(op, (num1, str1), (num2, str2)):
     >>> makeop(operator.mul, (2, "(1+1)"), (6, "(2*3)"))
     (12, '((1+1)*(2*3))')
     """
-    operator_string = {operator.add: "+", operator.sub: "-",
-        operator.mul: "*", operator.div: "/"}
+    operator_string = {
+        operator.add: "+", 
+        operator.sub: "-",
+        operator.mul: "*", 
+        operator.div: "/"
+    }
     outstr = "(" + str1 + operator_string[op] + str2 + ")"
     return op(num1, num2), outstr     
 
@@ -74,10 +78,10 @@ def process(final, numstrs, show_approx=False):
         for i2 in xrange(i1+1, len(numstrs)):
             other_numstrs = numstrs[:i1] + numstrs[i1+1:i2] + numstrs[i2+1:] 
             for numstr in process_pair(numstrs[i1], numstrs[i2]):
-                if numstr[0] == final:
-                    return numstr
                 if show_approx:
                     show_approximation(final, numstr)
+                if numstr[0] == final:
+                    return numstr
                 numstr = process(final, [numstr] + other_numstrs, show_approx)
                 if numstr:
                     return numstr         
