@@ -49,6 +49,12 @@ class SubtitleModuleTest(unittest.TestCase):
         self.assertEqual("02:10:24,023", 
             subtitle.unparse_timing(2*60*60*1000+10*60*1000+24*1000+23))
 
+    def test_parse_subtitle(self):
+        self.assertEqual(PARSED, dict(subtitle.parse_subtitle(SUBTITLE)))
+
+    def test_unparse_subtitle(self):
+        self.assertEqual(SUBTITLE, subtitle.unparse_subtitle(PARSED))
+
                     
 class SubtitleTest(unittest.TestCase):
     def setUp(self):

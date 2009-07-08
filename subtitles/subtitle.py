@@ -46,7 +46,7 @@ def parse_subtitle(data):
             endms = parse_timing(end)                    
             yield int(number), dict(timing=[startms, endms], text=text)
 
-def unparse_subtitles(dsubtitles):
+def unparse_subtitle(dsubtitles):
     """Unparse subtitle (see parse_subtitles)."""
     def _generator(items):
         for num, entry in sorted(items):        
@@ -77,7 +77,7 @@ class Subtitle:
         for num, entry in self.parsed.iteritems():
             start, end = entry["timing"]
             entry["timing"] = [start * factor, end * factor]
-        self.data = unparse_subtitles(self.parsed)        
+        self.data = unparse_subtitle(self.parsed)        
 
 
 def main(args0):
@@ -91,7 +91,8 @@ def main(args0):
     import optparse
     parser = optparse.OptionParser(usage)
     parser.add_option('-s', '--scale', dest='scale', default=None, 
-        metavar="N/M", type="string", help='Timing factor scale (N/M)')
+        metavar="FLOAT1/FLOAT2", type="string", 
+        help='Apply timing factor scale (N/M)')
     options, args = parser.parse_args(args0)
     if not args:
         parser.print_help()
