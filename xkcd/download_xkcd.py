@@ -1,11 +1,12 @@
 #!/usr/bin/python
-"""Download the great XKCD cartoons using the descriptive "alt" 
-attribute text of the image as the image filename"""
+"""Download the great XKCD cartoons. Uses the descriptive "title" 
+attribute of the image to write the output filename"""
 
 # Author: <tokland@gmail.com>
 
 import BeautifulSoup
 import optparse
+import urlparse
 import urllib2
 import glob
 import sys
@@ -13,7 +14,7 @@ import os
 
 def debug(obj):
     """Print a debug info line to stderr"""
-    sys.stderr.write("--- " + str(obj)+"\n")
+    sys.stderr.write("--- %s\n" % obj)
     sys.stderr.flush()
 
 def get_soup(url):
@@ -28,8 +29,8 @@ def get_last_num(baseurl):
     """Get the last published cartoon index"""
     debug("getting last cartoon index")
     homesoup = get_soup(baseurl)
-    previous_anchors = homesoup.findAll("a", {'accesskey': 'p'})
-    index = int(previous_anchors[0]["href"].strip("/")) + 1
+    previous_anchor = homesoup.find("a", {'accesskey': 'p'})
+    index = int(previous_anchor["href"].strip("/")) + 1
     debug("last picture index: %d" % index)
     return index
 
@@ -47,13 +48,12 @@ def download_cartoon(baseurl, num, force=False, index_format="%03d."):
     """Get the ntk XKCD cartoon (404th is missing, you know why)"""
     header = index_format % num
     if not force:
-        # Force is not enabled, check if file with the expecteded format exists
         existing = glob.glob(header+"*")
         if existing:
             debug("skipping: %s" % existing[0])
             return
     try: 
-        soup = get_soup(os.path.join(baseurl, str(num)))
+        soup = get_soup(urlparse.urljoin(baseurl, str(num)))
     except urllib2.HTTPError:
         debug("cartoon not found: %s" % num)
         return
@@ -69,7 +69,7 @@ def main(args0):
     parser.add_option('-u', '--url', dest='baseurl', metavar="URL",
         default="http://xkcd.com", type="string", help='XKCD main page URL')
     parser.add_option('-f', '--force', dest='force', default=False,
-        action='store_true', help="Force file downloading")
+        action='store_true', help="Overwrite existing images")
     options, args = parser.parse_args(args0)
     if len(args) == 0:
         start, end = 1, get_last_num(options.baseurl)
