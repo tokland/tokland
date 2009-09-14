@@ -35,10 +35,10 @@ get_rapidshare_file_url() {
     URL=$1
     while true; do
         WAIT_URL=$(wget -O - "$URL" | parse '<form' 'action="\(.*\)"')
-        test "$WAIT_URL" || { debug "can't get wait-page URL"; return 2; }
+        test "$WAIT_URL" || { debug "file not found"; return 2; }
         DATA=$(wget -O - --post-data="dl.start=Free" "$WAIT_URL")
         test "$DATA" || { debug "can't get wait URL contents"; return 2; }
-        LIMIT=$(echo "$DATA" | parse "try again" "\([[:digit:]]\+\) minutes")
+        LIMIT=$(echo "$DATA" | parse "try again" "\(\<[[:digit:]]\+\>\) minutes")
         test -z "$LIMIT" && break
         debug "download limit reached: waiting $LIMIT minutes"
         sleep ${LIMIT}m
@@ -53,12 +53,12 @@ get_rapidshare_file_url() {
     echo $FILE_URL    
 }
 
-# Guess is item is a rapidshare URL, a generic URL (try bulk download)
+# Guess is item is a rapidshare URL, a generic URL (to start a download)
 # or a file with links
 #
 process_item() {
     ITEM=$1
-    BASEURL="\(http://\)\?\(www\.\)\?rapidshare.com"
+    BASEURL="\(http://\)\?\(www\.\)\?rapidshare.com/files"
     if match "^$BASEURL/" "$ITEM"; then
         # Rapidshare URL
         echo "$ITEM" 
@@ -78,7 +78,7 @@ test "$TESTMODE" = "1" && return
 # Main
 #
 if test $# -eq 0; then
-    debug "usage: $(basename $0) URL|FILE [URL|FILE ...]"
+    debug "usage: $(basename $0) RS_URL|URL|FILE [RS_URL|URL|FILE ...]"
     exit 1
 fi
 
