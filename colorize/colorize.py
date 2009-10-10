@@ -33,17 +33,17 @@ def _main(args):
 
     Colorize matched regular expression in file or standard input
     """ 
-    colors = ", ".join(ANSI_COLOR_TABLE.keys())
     parser = optparse.OptionParser(usage)
     parser.add_option('-c', '--color', dest='color', default="red", 
-        metavar="STRING", type="string", help='Highlight color (%s)' % colors)
+        metavar="STRING", type="string", 
+        help='Highlight color (%s)' % , ".join(ANSI_COLOR_TABLE.keys()))
     options, arguments = parser.parse_args(args)
     if not arguments:
         parser.print_help()
         return 2
     elif options.color not in ANSI_COLOR_TABLE:
         parser.print_help()
-        sys.stderr.write("\nColor not valid: %s\n" % options.color)        
+        sys.stderr.write("\nColor invalid: %s\n" % options.color)        
         return 3
     regexp, paths = arguments[0], arguments[1:]
     streams = (map(open, paths) if paths else [sys.stdin])    
