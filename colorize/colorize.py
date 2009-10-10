@@ -36,7 +36,7 @@ def _main(args):
     parser = optparse.OptionParser(usage)
     parser.add_option('-c', '--color', dest='color', default="red", 
         metavar="STRING", type="string", 
-        help='Highlight color (%s)' % , ".join(ANSI_COLOR_TABLE.keys()))
+        help='Highlight color (%s)' % ", ".join(ANSI_COLOR_TABLE.keys()))
     options, arguments = parser.parse_args(args)
     if not arguments:
         parser.print_help()
