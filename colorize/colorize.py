@@ -17,8 +17,8 @@ ANSI_COLOR_TABLE = {
 }
 
 def ansi_colorize(string, regexp, fg_color):
-    """Colorize all matches of regexp found in string s with
-    the ANSI string defined by a color string"""
+    """Colorize all matches of regexp found in string with the ANSI code 
+    defined by a color string (see ANS_COLOR_TABLE)"""
     code = ANSI_COLOR_TABLE[fg_color]
     ansi_match = "\033[1;%dm%%s\033[0m" % code
     def _replace(match):
