@@ -1,10 +1,8 @@
 #!/usr/bin/python
 """
-Download web dictionaries.
+Download web dictionaries that show adjacent words.
 
-The only requisit is that the dictionary provides a box with adjacent words.
-
-Words known to work: wordreference and freedictionary
+Dictionaries known to work: wordreference and freedictionary
 """
 import optparse
 import subprocess
