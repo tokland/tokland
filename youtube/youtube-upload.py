@@ -12,6 +12,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this library.  If not, see <http://www.gnu.org/licenses/>.
+
 """
 Simple script to upload videos to Youtube.
 """
@@ -50,24 +51,20 @@ class Youtube:
         """Upload a video to youtube along with some metadata."""
         assert self.service, "Youtube service object is not set"
         assert category in self.categories, "Category not found: %s" % category
-         
+                 
         media_group = gdata.media.Group(
             title=gdata.media.Title(text=title),
             description=gdata.media.Description(description_type='plain', text=description),
             keywords=gdata.media.Keywords(text=", ".join(keywords or [])),
             category=gdata.media.Category(
                 text=category,
-                label=category,
+                label=self.categories[category],
                 scheme=self.CATEGORIES_SCHEME),
             player=None)
+        where = gdata.geo.Where()
         if location:
-            where = gdata.geo.Where()
             where.set_location(location)
-        else:
-            where = None
-
         video_entry = gdata.youtube.YouTubeVideoEntry(media=media_group, geo=where)
-        from ipdb import set_trace; set_trace()
         return self.service.InsertVideoEntry(video_entry, path)
 
     @classmethod
@@ -75,7 +72,7 @@ class Youtube:
         """Return categories dictionary with pairs (term, label)."""
         xmldata = urllib.urlopen(cls.CATEGORIES_SCHEME).read()
         xml = ElementTree.XML(xmldata)    
-        return dict([(e.get("term"), e.get("label")) for e in xml])
+        return dict((el.get("term"), el.get("label")) for el in xml)
 
 def main_upload(args):
     """Upload video to Youtube."""
