@@ -1,10 +1,27 @@
-function get_selected_anchor() {
+/*
+ This script is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This script is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this script.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ Author: Arnau Sanchez <tokland@gmail.com> (web: http://www.arnau-sanchez.com/en)
+*/ 
+
+function getSelectedAnchor() {
   if (document.activeElement.tagName == "A")
     return(document.activeElement);
 }
 
 // Refactor of http://james.padolsey.com/javascript/find-and-replace-text-with-javascript/
-function find_text_recursive(searchNode, searchText) {
+function findTextRecursively(searchNode, searchText) {
   var regex = typeof searchText === 'string' ?
               new RegExp(searchText, 'i') : searchText;
   var childNodes = (searchNode || document.body).childNodes;
@@ -33,46 +50,44 @@ function up(element, tagName) {
   return element;
 }
 
-function process_search(search, search_index) {
-  console.log("search: " + search);
+function processSearch(search, searchIndex) {
   var selected = false;    
-  var selected_anchor = get_selected_anchor();
+  var selectedAnchor = getSelectedAnchor();
   
   if (search.length > 0) {
-    var matched_anchors = [], index;
+    var marchedAnchors = [];
     anchors = document.getElementsByTagName('a');
     
-    for(index = 0; index < anchors.length; index++) {
+    for(var index = 0; index < anchors.length; index++) {
       anchor = anchors[index];
-      result = find_text_recursive(anchor, search);
+      result = findTextRecursively(anchor, search);
       if (result) {
-        matched_anchors.push(result);
+        marchedAnchors.push(result);
       } 
     }
-    if (matched_anchors.length > 0) {
-      index = search_index % matched_anchors.length;
+    if (marchedAnchors.length > 0) {
+      var index = searchIndex % marchedAnchors.length;
       if (index < 0)
-        index += matched_anchors.length; 
-      anchor = matched_anchors[index].node;
+        index += marchedAnchors.length; 
+      anchor = marchedAnchors[index].node;
       up(anchor, 'a').focus();
       var selection = window.getSelection();
       selection.removeAllRanges();
       var range = document.createRange();
-      var start = matched_anchors[index].index;
+      var start = marchedAnchors[index].index;
       range.setStart(anchor, start);
       range.setEnd(anchor, start + search.length);
       selection.addRange(range);
       selected = true;
     } 
   }
-  if (selected_anchor && !selected)
-    selected_anchor.blur();
+  if (selectedAnchor && !selected)
+    selectedAnchor.blur();
 }
 
-function add_keyboard_listeners() {
-  console.log("ta2");
+function setKeyboardListeners() {
   var search = "";
-  var search_index = 0;
+  var searchIndex = 0;
   var chars = "abcdefghijklmnopqrstuvwxyz0123456789";  
   var keycodes = {
     "backspace": 8,
@@ -83,27 +98,28 @@ function add_keyboard_listeners() {
   
   window.addEventListener('keydown', function(ev) {
     var code = ev.keyCode;
-    var selected_anchor = get_selected_anchor();    
+    var selectedAnchor = getSelectedAnchor();    
     
     if (code == keycodes.backspace) {
       if (search) {
         search = search.substr(0, search.length-1)
-        process_search(search, search_index);
+        processSearch(search, searchIndex);
       }
     } else if (code == keycodes.escape && search) {
       selection = window.getSelection();
       selection.removeAllRanges();
       search = "";
-      search_index = 0;
-    } else if (code == keycodes.enter && selected_anchor) {
+      searchIndex = 0;
+    } else if (code == keycodes.enter && selectedAnchor) {
       search = "";
-      search_index = 0;
+      searchIndex = 0;
       selection = window.getSelection();
       selection.removeAllRanges();
       return;
-    } else if (code == keycodes.tab && selected_anchor && search) {
-      search_index += ev.shiftKey ? -1 : +1;
-      process_search(search, search_index);
+    } else if (code == keycodes.tab && selectedAnchor && search &&
+               document.activeElement.tagName != "INPUT") {
+      searchIndex += ev.shiftKey ? -1 : +1;
+      processSearch(search, searchIndex);
     } else {
       return;
     }
@@ -118,11 +134,9 @@ function add_keyboard_listeners() {
     
     if (!ev.altKey && !ev.metaKey && !ev.controlKey && ascii) {
       search += ascii;
-      process_search(search, search_index);
+      processSearch(search, searchIndex);
     }
   }, false);
 }
 
-console.log("ta1");
-//window.addEventListener('load', add_keyboard_listeners, false);
-add_keyboard_listeners();
+setKeyboardListeners();

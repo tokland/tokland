@@ -1,7 +1,7 @@
 {
   "name": "Type-ahead-find",
-  "description": "Start finding as you type",
-  "version": "0.1",
+  "description": "Find links as you type",
+  "version": "0.0.1",
   "content_scripts": [
     {
       "matches": ["http://*/*", "https://*/*", "file://*/*", "ftp://*/*"],
@@ -9,6 +9,6 @@
     }
   ],
   "icons": {
-    "128": "icon_128.png"
+    "48": "icon-48.png"
   }
 }
