@@ -50,7 +50,7 @@ function up(element, tagName) {
   return element;
 }
 
-function processSearch(search, searchIndex) {
+function processSearch(search, searchIndex, skip_blur) {
   var selected = false;    
   var selectedAnchor = getSelectedAnchor();
   
@@ -69,20 +69,22 @@ function processSearch(search, searchIndex) {
       var index = searchIndex % marchedAnchors.length;
       if (index < 0)
         index += marchedAnchors.length; 
-      anchor = marchedAnchors[index].node;
-      up(anchor, 'a').focus();
+      node = marchedAnchors[index].node;
+      up(node, 'a').focus();
       var selection = window.getSelection();
       selection.removeAllRanges();
       var range = document.createRange();
       var start = marchedAnchors[index].index;
-      range.setStart(anchor, start);
-      range.setEnd(anchor, start + search.length);
+      range.setStart(node, start);
+      range.setEnd(node, start + search.length);
       selection.addRange(range);
       selected = true;
     } 
   }
-  if (selectedAnchor && !selected)
+  if (selectedAnchor && !selected && !skip_blur)
     selectedAnchor.blur();
+    
+  return(selected);
 }
 
 function setKeyboardListeners() {
@@ -97,6 +99,9 @@ function setKeyboardListeners() {
   }
   
   window.addEventListener('keydown', function(ev) {
+    if (document.activeElement.tagName == "INPUT")
+      return;
+      
     var code = ev.keyCode;
     var selectedAnchor = getSelectedAnchor();    
     
@@ -111,13 +116,12 @@ function setKeyboardListeners() {
       search = "";
       searchIndex = 0;
     } else if (code == keycodes.enter && selectedAnchor) {
-      search = "";
-      searchIndex = 0;
       selection = window.getSelection();
       selection.removeAllRanges();
+      search = "";
+      searchIndex = 0;
       return;
-    } else if (code == keycodes.tab && selectedAnchor && search &&
-               document.activeElement.tagName != "INPUT") {
+    } else if (code == keycodes.tab && selectedAnchor && search) {
       searchIndex += ev.shiftKey ? -1 : +1;
       processSearch(search, searchIndex);
     } else {
@@ -129,12 +133,18 @@ function setKeyboardListeners() {
   }, false);
   
   window.addEventListener('keypress', function(ev) {
+    if (document.activeElement.tagName == "INPUT")
+      return;
+      
     var code = ev.keyCode;
     var ascii = String.fromCharCode(code);
     
     if (!ev.altKey && !ev.metaKey && !ev.controlKey && ascii) {
+      var old_search = search; 
       search += ascii;
-      processSearch(search, searchIndex);
+      if (!processSearch(search, searchIndex, true)) {
+        search = old_search;
+      }        
     }
   }, false);
 }
