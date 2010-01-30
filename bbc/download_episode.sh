@@ -2,7 +2,8 @@
 #
 # Download radio episodes from the BBC website.
 # 
-# Example: 
+# Example:
+# 
 #   $ bash download_episode.sh "http://www.bbc.co.uk/iplayer/episode/p005x3x5/World_Briefing_27_01_2010/"
 #
 # Author: Arnau Sanchez <tokland@gmail.com> (January 2010)
@@ -15,32 +16,46 @@ debug() { echo "$@" >&2; }
 
 parse() { local S=$(sed -n "s/^.*$1.*$/\1/p") && test "$S" && echo "$S"; }
 
+parse_attr() { echo "$1" | parse "$2=\"\([^\"]*\)\""; }
+
 download() { curl -s "$@"; }
 
 download_rtmp() {
   local HOST=$1
-  local STREAM_NAME=$2
-  rtmpdump -r "rtmp://$HOST/ondemand?slist=$STREAM_NAME" --flv -
+  local APP=$2
+  local PLAYPATH=$3
+  rtmpdump -r "rtmp://$HOST" -a "$APP" --playpath "$PLAYPATH" --flv -
 }
 
 download_episode() {
-  EPISODE=$(echo $URL | grep -o "episode/[^/]*" | cut -d"/" -f2) ||
-    { debug "cannot parse episode: $URL"; return 1; }
+  EPISODE=$(echo $URL | grep -o "\(episode\|console\)/[^/]*" | cut -d"/" -f2) 
+  test "$EPISODE" || { debug "cannot parse episode: $URL"; return 1; }
   debug "episode: $EPISODE"
   EPISODE_XML=$(download "http://www.bbc.co.uk/iplayer/playlist/$EPISODE") || return 1
-  TITLE=$(echo "$EPISODE_XML" | grep "<title>" | head -n1 | 
+  TITLE=$(echo "$EPISODE_XML" | grep -A1 "<item " | tail -n1 |  
     parse '<title>\(.*\)<\/title>') || return 1
   debug "title: $TITLE"
   ITEM=$(echo "$EPISODE_XML" | grep "<item " | parse 'identifier="\([^"]*\)"') || return 1
   XML=$(download "http://www.bbc.co.uk/mediaselector/4/mtis/stream/$ITEM") || return 1
-  echo $XML | sed "s/>/>\n/g" | grep "<connection" | grep "wsondemandflash" | while read CONNECTION; do
-    SERVER=$(echo $CONNECTION | parse 'server="\([^"]*\)"')
-    IDENTIFIER=$(echo $CONNECTION | parse 'identifier="\([^"]*\)"')
-    debug "rtmp: server=$SERVER, identifier=$IDENTIFIER"
-    OUTPUT=$(echo "$TITLE.flv" | sed "s/\//_/g")
-    download_rtmp "$SERVER" "$IDENTIFIER" > "$OUTPUT" || return 1
-    echo "$OUTPUT"
-  done
+  CONNECTIONS=$(echo $XML | sed "s/>/>\n/g" | grep "<connection")
+  OUTPUT=$(echo "$TITLE.flv" | sed "s/\//_/g")
+  if echo "$CONNECTIONS" | grep -q "wsondemandflash"; then
+    CONNECTION=$(echo "$CONNECTIONS" | grep "wsondemandflash" | head -n1)
+    SERVER=$(parse_attr "$CONNECTION" "server")
+    IDENTIFIER=$(parse_attr "$CONNECTION" "identifier" | recode html..utf8)
+    debug "rtmp-wsondemandfash: server=$SERVER, identifier=$IDENTIFIER"
+    download_rtmp "$SERVER" "ondemand" "$IDENTIFIER" > "$OUTPUT" || return 1
+  elif echo "$CONNECTIONS" | grep -q 'bbcmedia.fcod.llnwd.net'; then
+    CONNECTION=$(echo "$CONNECTIONS" | grep 'bbcmedia.fcod.llnwd.net' | head -n1)
+    SERVER=$(parse_attr "$CONNECTION" "server")
+    IDENTIFIER=$(parse_attr "$CONNECTION" "identifier")
+    APP=$(parse_attr "$CONNECTION" "application")
+    AUTH=$(parse_attr "$CONNECTION" "authString")
+    PLAYPATH=$(echo "$IDENTIFIER?$AUTH" | recode html..utf8)
+    debug "rtmp-bbcmedia: server=$SERVER, identifier=$IDENTIFIER, auth=$AUTH"
+    download_rtmp "$SERVER" "$APP" "$PLAYPATH" > "$OUTPUT" || return 1
+  fi
+  echo "$OUTPUT"
 }
 
 # Main
