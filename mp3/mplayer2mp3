@@ -1,0 +1,25 @@
+#/bin/bash
+set -e
+
+named_piped_processes() {
+	local COMMAND1=$1
+	local COMMAND2=$2
+	FIFO="/tmp/$(basename "$0").named_piped_processes.$$"
+	rm -f "$FIFO"
+	mkfifo "$FIFO" || return 1
+	eval "$COMMAND1" &
+	eval "$COMMAND2"
+	RETVAL=$?
+	rm -f "$FIFO"
+	return $RETVAL
+}
+	
+# Main
+
+test $# -ge 1 || { echo "Usage: mplayer2mp3 INPUT [MP3OUTPUT]"; exit 1; }
+INPUT=$1
+OUTPUT=$2
+test -z "$OUTPUT" && OUTPUT="${INPUT%.[^.]*}.mp3"
+named_piped_processes \
+	"mplayer -novideo -quiet -ao \"pcm:file=\$FIFO\" \"$INPUT\"" \
+	"lame ${LAMEOPTS:-v} \"\$FIFO\" \"$OUTPUT\""
