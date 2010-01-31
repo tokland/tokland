@@ -13,13 +13,14 @@ named_piped_processes() {
 	rm -f "$FIFO"
 	return $RETVAL
 }
-	
+
 # Main
 
 test $# -ge 1 || { echo "Usage: mplayer2mp3 INPUT [MP3OUTPUT]"; exit 1; }
 INPUT=$1
 OUTPUT=$2
 test -z "$OUTPUT" && OUTPUT="${INPUT%.[^.]*}.mp3"
+trap ":" SIGINT
 named_piped_processes \
 	"mplayer -novideo -quiet -ao \"pcm:file=\$FIFO\" \"$INPUT\"" \
-	"lame ${LAMEOPTS:-v} \"\$FIFO\" \"$OUTPUT\""
+	"lame ${LAMEOPTS} \"\$FIFO\" \"$OUTPUT\""
