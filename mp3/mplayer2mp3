@@ -2,15 +2,22 @@
 # 
 # Extracy audio from media and convert to MP3
 #
-# Use LAMEOPTS to adjust lame options.
+# Set environment variable LAMEOPTS to adjust lame options.
 # 
 set -e
+
+mplayer2mp3() {
+	local INPUT=$1
+	local OUTPUT=$2
+	local LAMEOPTS=$3
+	mplayer -vc null -vo null -really-quiet -ao pcm:file=/dev/stdout - < "$INPUT" | \
+		lame $LAMEOPTS - "$OUTPUT"
+}
 
 test $# -ge 1 || 
 	{ echo "Usage: $(basename "$0") INPUT [MP3OUTPUT]"; exit 1; }
 INPUT=$1
 OUTPUT=$2
 test -z "$OUTPUT" && OUTPUT="${INPUT%.[^.]*}.mp3"
-mplayer -vc null -vo null -really-quiet -ao pcm:file=/dev/stdout - < "$INPUT" | \
-	lame $LAMEOPTS - "$OUTPUT"
+mplayer2mp3 "$INPUT" "$OUTPUT" "$LAMEOPTS"
 echo "$OUTPUT"
