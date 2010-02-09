@@ -5,11 +5,11 @@
 # Depends: wget, tar, gzip, chroot
 # Author: Arnau Sanchez <tokland@gmail.com>
 #
-# Packages needed for pacman to run can be obtained that way:
+# Packages needed by pacman can be obtained that way:
 # 
 # $ ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}' | while read PACKAGE; do 
-#     pacman -Qo $PACKAGE; 
-#   done | awk '{print $5}' | sort -u
+#     pacman -Qo $PACKAGE 
+#   done | awk '{print $5}' | sort -u | xargs
 #
 set -e
 
