@@ -22,7 +22,7 @@ stderr() { echo "$@" >&2; }
 debug() { stderr "--- $@"; }
 
 # Extract href attribute from HTML link
-extract_href() { sed -n "s/^.*<a [^>]*href=\"\([^\"]*\)\".*$/\1/p"; }
+  extract_href() { sed -n "s/^.*<a [^>]*href=\"\([^\"]*\)\".*$/\1/p"; }
 
 # Simple wrapper around wget
 fetch() { wget -c --passive-ftp --quiet "$@"; }
@@ -34,7 +34,7 @@ BASIC_PACKAGES=(acl attr bzip2 glibc libarchive libfetch openssl pacman
 EXTRA_PACKAGES=(coreutils bash)
 
 test $# -ge 2 || { 
-  stderr "Usage: $(basename $0) DESTINATION i686|x86_64 [REPO_URL] [CORE_OS_HTML]"
+  stderr "Usage: $(basename $0) DESTDIR i686|x86_64 [REPO_URL] [CORE_OS_HTMLFILE]"
   exit 2
 }
    
@@ -43,7 +43,7 @@ ARCH=$2
 REPO_URL=${3:-"http://mirrors.kernel.org/archlinux"}
 LIST_HTML=$4
 
-REPO="$REPO_URL/core/os/$ARCH"
+REPO="${REPO_URL%/}/core/os/$ARCH"
 debug "using core repository: $REPO"
 
 if test "$LIST_HTML"; then
@@ -51,7 +51,8 @@ if test "$LIST_HTML"; then
   LIST=$(extract_href < "$LIST_HTML")
 else
   debug "fetching packages list: $REPO"
-  LIST=$(fetch -O - $REPO | extract_href) ||
+  # Force '/' ending in case is a FTP server. Also, get only relative path.
+  LIST=$(fetch -O - "$REPO/" | extract_href | awk -F"/" '{print $NF}') ||
     { debug "cannot fetch packages list: $REPO"; exit 1; }
 fi 
 
