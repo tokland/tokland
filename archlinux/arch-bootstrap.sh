@@ -22,7 +22,7 @@ stderr() { echo "$@" >&2; }
 debug() { stderr "--- $@"; }
 
 # Extract href attribute from HTML link
-  extract_href() { sed -n "s/^.*<a [^>]*href=\"\([^\"]*\)\".*$/\1/p"; }
+extract_href() { sed -n "s/^.*<a [^>]*href=\"\([^\"]*\)\".*$/\1/p"; }
 
 # Simple wrapper around wget
 fetch() { wget -c --passive-ftp --quiet "$@"; }
