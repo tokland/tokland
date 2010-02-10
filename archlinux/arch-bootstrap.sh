@@ -1,6 +1,10 @@
 #!/bin/bash
 #
 # arch-bootstrap: Bootstrap a base Arch Linux system.
+#
+# Example:
+#
+# $ bash arch-bootstrap.sh myarch x86_64
 # 
 # Depends: wget, tar, gzip, chroot
 # Author: Arnau Sanchez <tokland@gmail.com>
