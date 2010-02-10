@@ -7,7 +7,7 @@
 #
 # Packages needed by pacman can be obtained that way:
 # 
-# $ ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}' | while read PACKAGE; do 
+# $ for PACKAGE in $(ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}'); do 
 #     pacman -Qo $PACKAGE 
 #   done | awk '{print $5}' | sort -u | xargs
 #
@@ -34,7 +34,7 @@ BASIC_PACKAGES=(acl attr bzip2 glibc libarchive libfetch openssl pacman
 EXTRA_PACKAGES=(coreutils bash)
 
 test $# -ge 2 || { 
-  stderr "Usage: $(basename $0) DESTDIR i686|x86_64 [REPO_URL] [CORE_OS_HTMLFILE]"
+  stderr "Usage: $(basename "$0") DESTDIR i686|x86_64 [REPO_URL] [CORE_OS_HTMLFILE]"
   exit 2
 }
    
@@ -51,7 +51,7 @@ if test "$LIST_HTML"; then
   LIST=$(extract_href < "$LIST_HTML")
 else
   debug "fetching packages list: $REPO"
-  # Force '/' ending in case is a FTP server. Also, get only relative path.
+  # Force trailing '/' needed for FTPs server. Also, get only package relative paths
   LIST=$(fetch -O - "$REPO/" | extract_href | awk -F"/" '{print $NF}') ||
     { debug "cannot fetch packages list: $REPO"; exit 1; }
 fi 
@@ -59,9 +59,10 @@ fi
 debug "creating destination directory: $DEST"
 mkdir -p "$DEST"
 
-debug "fetching basic packages: ${BASIC_PACKAGES[*]}"
+debug "fetching pacman and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
   FILE=$(echo "$LIST" | grep "^$PACKAGE-[[:digit:]]" | sort -n | tail -n1)
+  test "$FILE" || { debug "cannot find package: $PACKAGE"; exit 1; }
   test -f "$FILE" && gunzip -t "$FILE" || {
     debug "downloading: $REPO/$FILE"
     fetch "$REPO/$FILE"
@@ -71,7 +72,7 @@ for PACKAGE in ${BASIC_PACKAGES[*]}; do
 done
 
 debug "doing minimal system configuration (DNS, passwd, hostname, mirrorlist)" 
-cp /etc/resolv.conf "$DEST/etc/resolv.conf"
+cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
 echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
 echo "bootstrap" > "$DEST/etc/hostname"
 echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
@@ -79,4 +80,4 @@ echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
 debug "installing extra packages: ${EXTRA_PACKAGES[*]}"
 chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${EXTRA_PACKAGES[*]}
 
-debug "done - you should now be able to use the system (i.e. chroot $DEST)"
+debug "done - you should now be able to use the system (i.e. chroot \"$DEST\")"
