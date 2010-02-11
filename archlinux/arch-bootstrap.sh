@@ -57,7 +57,7 @@ if test "$LIST_HTML_FILE"; then
   LIST_HTML=$(< "$LIST_HTML_FILE") ||
     { debug "Error: packages list file not found: $LIST_HTML_FILE"; exit 1; }
 else
-  debug "fetch packages list: $REPO"
+  debug "fetch packages list: $REPO/"
   # Force trailing '/' needed by FTP servers.
   LIST_HTML=$(fetch -O - "$REPO/") ||
     { debug "Error: cannot fetch packages list: $REPO"; exit 1; }
@@ -67,7 +67,7 @@ LIST=$(echo "$LIST_HTML" | extract_href | awk -F"/" '{print $NF}' | sort -r -n)
 debug "create destination directory: $DEST"
 mkdir -p "$DEST"
 
-debug "fetch pacman and dependencies: ${BASIC_PACKAGES[*]}"
+debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
   FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]]")
   test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
@@ -79,7 +79,7 @@ for PACKAGE in ${BASIC_PACKAGES[*]}; do
   tar xzf "$FILE" -C "$DEST"
 done
 
-debug "minimal system configuration (DNS, passwd, hostname, mirrorlist)" 
+debug "configure some basic stuff (DNS, passwd, hostname, mirrorlist)" 
 cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
 echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
 echo "bootstrap" > "$DEST/etc/hostname"
@@ -88,4 +88,4 @@ echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
 debug "install extra packages: ${EXTRA_PACKAGES[*]}"
 chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${EXTRA_PACKAGES[*]}
 
-debug "done - you should now be able to use the system (i.e. chroot \"$DEST\")"
+debug "done! you should now be able to use the system (i.e. chroot \"$DEST\")"
