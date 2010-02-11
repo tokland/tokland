@@ -36,6 +36,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 BASIC_PACKAGES=(acl attr bzip2 glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz-utils zlib)
 EXTRA_PACKAGES=(coreutils bash)
+DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 
 test $# -ge 2 || { 
   stderr "Usage: $(basename "$0") DESTDIR i686|x86_64 [REPO_URL] [CORE_OS_HTMLFILE]"
@@ -44,47 +45,47 @@ test $# -ge 2 || {
    
 DEST=$1
 ARCH=$2
-REPO_URL=${3:-"http://mirrors.kernel.org/archlinux"}
+REPO_URL=${3:-$DEFAULT_REPO_URL}
 LIST_HTML_FILE=$4
 
 REPO="${REPO_URL%/}/core/os/$ARCH"
-debug "using core repository: $REPO"
+debug "core repository: $REPO"
 
+# Get filename list for packages
 if test "$LIST_HTML_FILE"; then
-  debug "using packages HTML index: $LIST_HTML_FILE"
-  LIST_HTML=$(< "$LIST_HTML_FILE")
+  debug "packages HTML index: $LIST_HTML_FILE"
+  LIST_HTML=$(< "$LIST_HTML_FILE") ||
+    { debug "Error: packages list file not found: $LIST_HTML_FILE"; exit 1; }
 else
-  debug "fetching packages list: $REPO"
+  debug "fetch packages list: $REPO"
   # Force trailing '/' needed by FTP servers.
   LIST_HTML=$(fetch -O - "$REPO/") ||
-    { debug "cannot fetch packages list: $REPO"; exit 1; }
+    { debug "Error: cannot fetch packages list: $REPO"; exit 1; }
 fi 
+LIST=$(echo "$LIST_HTML" | extract_href | awk -F"/" '{print $NF}' | sort -r -n) 
 
-# Get only filename of package
-LIST=$(echo "$LIST_HTML" | extract_href | awk -F"/" '{print $NF}') 
-
-debug "creating destination directory: $DEST"
+debug "create destination directory: $DEST"
 mkdir -p "$DEST"
 
-debug "fetching pacman and dependencies: ${BASIC_PACKAGES[*]}"
+debug "fetch pacman and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
-  FILE=$(echo "$LIST" | grep "^$PACKAGE-[[:digit:]]" | sort -n | tail -n1)
-  test "$FILE" || { debug "cannot find package: $PACKAGE"; exit 1; }
+  FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]]")
+  test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
   test -f "$FILE" && gunzip -t "$FILE" || {
-    debug "downloading: $REPO/$FILE"
+    debug "download: $REPO/$FILE"
     fetch "$REPO/$FILE"
   }
-  debug "uncompressing package: $FILE"
+  debug "uncompress package: $FILE"
   tar xzf "$FILE" -C "$DEST"
 done
 
-debug "doing minimal system configuration (DNS, passwd, hostname, mirrorlist)" 
+debug "minimal system configuration (DNS, passwd, hostname, mirrorlist)" 
 cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
 echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
 echo "bootstrap" > "$DEST/etc/hostname"
 echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
 
-debug "installing extra packages: ${EXTRA_PACKAGES[*]}"
+debug "install extra packages: ${EXTRA_PACKAGES[*]}"
 chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${EXTRA_PACKAGES[*]}
 
 debug "done - you should now be able to use the system (i.e. chroot \"$DEST\")"
