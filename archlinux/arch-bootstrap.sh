@@ -6,7 +6,7 @@
 #
 # $ bash arch-bootstrap.sh myarch x86_64
 # 
-# Depends: wget, tar, gzip, chroot
+# Depends: wget, sed, awk, tar, gzip, chroot
 # Author: Arnau Sanchez <tokland@gmail.com>
 #
 # Packages needed by pacman can be obtained that way:
@@ -45,20 +45,23 @@ test $# -ge 2 || {
 DEST=$1
 ARCH=$2
 REPO_URL=${3:-"http://mirrors.kernel.org/archlinux"}
-LIST_HTML=$4
+LIST_HTML_FILE=$4
 
 REPO="${REPO_URL%/}/core/os/$ARCH"
 debug "using core repository: $REPO"
 
-if test "$LIST_HTML"; then
-  debug "using packages HTML index: $LIST_HTML"
-  LIST=$(extract_href < "$LIST_HTML")
+if test "$LIST_HTML_FILE"; then
+  debug "using packages HTML index: $LIST_HTML_FILE"
+  LIST_HTML=$(< "$LIST_HTML_FILE")
 else
   debug "fetching packages list: $REPO"
-  # Force trailing '/' needed for FTPs server. Also, get only package relative paths
-  LIST=$(fetch -O - "$REPO/" | extract_href | awk -F"/" '{print $NF}') ||
+  # Force trailing '/' needed by FTP servers.
+  LIST_HTML=$(fetch -O - "$REPO/") ||
     { debug "cannot fetch packages list: $REPO"; exit 1; }
 fi 
+
+# Get only filename of package
+LIST=$(echo "$LIST_HTML" | extract_href | awk -F"/" '{print $NF}') 
 
 debug "creating destination directory: $DEST"
 mkdir -p "$DEST"
