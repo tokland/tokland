@@ -2,14 +2,17 @@
 #
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Example:
-#
-# $ bash arch-bootstrap.sh myarch x86_64
-# 
 # Depends: wget, sed, awk, tar, gzip, chroot
 # Author: Arnau Sanchez <tokland@gmail.com>
+# Report bugs to http://code.google.com/p/tokland/issues
 #
-# Packages needed by pacman can be obtained that way:
+# Some examples:
+#
+# $ bash arch-bootstrap.sh myarch x86_64
+# $ bash arch-bootstrap.sh myarch x86_64 "ftp://ftp.archlinux.org"
+# $ bash arch-bootstrap.sh myarch x86_64 "" "file_containing_core_os_index.html"
+# 
+# Packages list needed by pacman can be obtained this way:
 # 
 # $ for PACKAGE in $(ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}'); do 
 #     pacman -Qo $PACKAGE 
@@ -26,7 +29,7 @@ stderr() { echo "$@" >&2; }
 debug() { stderr "--- $@"; }
 
 # Extract href attribute from HTML link
-extract_href() { sed -n "s/^.*<a [^>]*href=\"\([^\"]*\)\".*$/\1/p"; }
+extract_href() { sed -n '/<a / s/^.*<a [^>]*href="\([^\"]*\)".*$/\1/p'; }
 
 # Simple wrapper around wget
 fetch() { wget -c --passive-ftp --quiet "$@"; }
@@ -71,7 +74,7 @@ debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
   FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]]")
   test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
-  test -f "$FILE" && gunzip -t "$FILE" || {
+  test -f "$FILE" && gunzip -q -t "$FILE" || {
     debug "download: $REPO/$FILE"
     fetch "$REPO/$FILE"
   }
