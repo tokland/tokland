@@ -38,7 +38,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 
 BASIC_PACKAGES=(acl attr bzip2 glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz-utils zlib)
-EXTRA_PACKAGES=(coreutils bash)
+EXTRA_PACKAGES=(coreutils bash filesystem)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 
 test $# -ge 2 || { 
@@ -82,11 +82,19 @@ for PACKAGE in ${BASIC_PACKAGES[*]}; do
   tar xzf "$FILE" -C "$DEST"
 done
 
-debug "configure some basic stuff (DNS, passwd, hostname, mirrorlist)" 
+debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
 cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
-echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
+# root/root
+echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
+touch "$DEST/etc/group"
 echo "bootstrap" > "$DEST/etc/hostname"
 echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
+mkdir "$DEST/root"
+mkdir "$DEST/dev"
+mknod "$DEST/dev/null c 1 3"
+
+debug "clean re-install of basic packages: ${BASICK_PACKAGES[*]}"
+chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${BASIC_PACKAGES[*]}
 
 debug "install extra packages: ${EXTRA_PACKAGES[*]}"
 chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${EXTRA_PACKAGES[*]}
