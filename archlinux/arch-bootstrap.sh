@@ -38,8 +38,24 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 
 BASIC_PACKAGES=(acl attr bzip2 glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz-utils zlib)
-EXTRA_PACKAGES=(coreutils bash filesystem)
+EXTRA_PACKAGES=(coreutils bash grep awk file tar filesystem)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
+
+configure_pacman() {
+  local DEST=$1; local ARCH=$2
+  cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
+  echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
+}
+
+minimal_configuration() {
+  local DEST=$1
+  echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
+  echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
+  touch "$DEST/etc/group"
+  echo "bootstrap" > "$DEST/etc/hostname"
+  mkdir -p "$DEST/dev"
+  test -c "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
+}
 
 test $# -ge 2 || { 
   stderr "Usage: $(basename "$0") DESTDIR i686|x86_64 [REPO_URL] [CORE_OS_HTMLFILE]"
@@ -47,7 +63,7 @@ test $# -ge 2 || {
 }
    
 DEST=$1
-ARCH=$2
+ARCH=${2:-i686}
 REPO_URL=${3:-$DEFAULT_REPO_URL}
 LIST_HTML_FILE=$4
 
@@ -82,21 +98,14 @@ for PACKAGE in ${BASIC_PACKAGES[*]}; do
   tar xzf "$FILE" -C "$DEST"
 done
 
-cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
+debug "configure DNS and pacman"
+configure_pacman "$DEST" "$ARCH"
 
-debug "clean re-install of basic packages: ${BASICK_PACKAGES[*]}"
-chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${BASIC_PACKAGES[*]}
-
-debug "install extra packages: ${EXTRA_PACKAGES[*]}"
-chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${EXTRA_PACKAGES[*]}
+debug "clean re-install of basic packages and extra packages: ${BASICK_PACKAGES[*]}"
+chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${BASIC_PACKAGES[*]} ${BASIC_PACKAGES[*]}
 
 debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
-cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
-# root/root
-echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
-touch "$DEST/etc/group"
-echo "bootstrap" > "$DEST/etc/hostname"
-echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
-mknod "$DEST/dev/null c 1 3"
+configure_pacman "$DEST" "$ARCH"
+minimal_configuration "$DEST"
 
 debug "done! you should now be able to use the system (i.e. chroot \"$DEST\")"
