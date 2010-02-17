@@ -82,6 +82,14 @@ for PACKAGE in ${BASIC_PACKAGES[*]}; do
   tar xzf "$FILE" -C "$DEST"
 done
 
+cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
+
+debug "clean re-install of basic packages: ${BASICK_PACKAGES[*]}"
+chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${BASIC_PACKAGES[*]}
+
+debug "install extra packages: ${EXTRA_PACKAGES[*]}"
+chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${EXTRA_PACKAGES[*]}
+
 debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
 cp "/etc/resolv.conf" "$DEST/etc/resolv.conf"
 # root/root
@@ -89,12 +97,6 @@ echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
 touch "$DEST/etc/group"
 echo "bootstrap" > "$DEST/etc/hostname"
 echo "Server = $REPO_URL/\$repo/os/$ARCH" >> "$DEST/etc/pacman.d/mirrorlist"
-
-debug "clean re-install of basic packages: ${BASICK_PACKAGES[*]}"
-chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${BASIC_PACKAGES[*]}
-
-debug "install extra packages: ${EXTRA_PACKAGES[*]}"
-chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${EXTRA_PACKAGES[*]}
 mknod "$DEST/dev/null c 1 3"
 
 debug "done! you should now be able to use the system (i.e. chroot \"$DEST\")"
