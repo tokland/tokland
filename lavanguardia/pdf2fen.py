@@ -66,7 +66,7 @@ def create_board(board_lines, ref_line):
         # Black pieces
         u'\uf06a': 'r', u'\uf064': 'r',
         u'\uf067': 'p', u'\uf061': 'p',
-        u'\uf06c': 'k',
+        u'\uf06c': 'k', u'\uf066': 'k',
         u'\uf062': 'n', u'\uf068': 'n',
         u'\uf065': 'q', u'\uf06b': 'q',
         u'\uf063': 'b', u'\uf069': 'b',    
