@@ -80,26 +80,30 @@ ARCH=${2:-i686}
 REPO_URL=${3:-$DEFAULT_REPO_URL}
 LIST_HTML_FILE=$4
 
-PACKDIR="./arch-bootstrap-packages"
+PACKDIR="./arch-bootstrap"
 REPO="${REPO_URL%/}/core/os/$ARCH"
 debug "core repository: $REPO"
 
+debug "create package directory: $DEST"
+mkdir -p "$PACKDIR"
+
 # Get filename list for packages
-if test "$LIST_HTML_FILE"; then
-  debug "packages HTML index: $LIST_HTML_FILE"
-  LIST_HTML=$(< "$LIST_HTML_FILE") ||
-    { debug "Error: packages list file not found: $LIST_HTML_FILE"; exit 1; }
-else
-  debug "fetch packages list: $REPO/"
-  # Force trailing '/' needed by FTP servers.
-  LIST_HTML=$(fetch -O - "$REPO/") ||
+if test -z "$LIST_HTML_FILE"; then
+  LIST_HTML_FILE="$PACKDIR/core_os-index.html"
+  if ! test -e "$LIST_HTML_FILE"; then 
+    debug "fetch packages list: $REPO/"
+    # Force trailing '/' needed by FTP servers.
+    fetch -O "$LIST_HTML_FILE" "$REPO/" ||
     { debug "Error: cannot fetch packages list: $REPO"; exit 1; }
+  fi
 fi 
-LIST=$(echo "$LIST_HTML" | extract_href | awk -F"/" '{print $NF}' | sort -r -n) 
+debug "packages HTML index: $LIST_HTML_FILE"
+LIST=$(< "$LIST_HTML_FILE" extract_href | awk -F"/" '{print $NF}' | sort -r -n)
+test "$LIST" || 
+  { debug "Error: cannot process list file: $LIST_HTML_FILE"; exit 1; }  
 
 debug "create destination directory: $DEST"
 mkdir -p "$DEST"
-mkdir -p "$PACKDIR"
 
 debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
