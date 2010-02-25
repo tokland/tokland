@@ -2,7 +2,7 @@
 #
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot
+# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot, xzutils
 # Author: Arnau Sanchez <tokland@gmail.com>
 # Report bugs to http://code.google.com/p/tokland/issues
 #
@@ -36,7 +36,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 
 ### Main
 
-BASIC_PACKAGES=(acl attr bzip2 glibc libarchive libfetch openssl pacman 
+BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz-utils zlib)
 EXTRA_PACKAGES=(coreutils bash grep awk file tar filesystem)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
@@ -62,7 +62,7 @@ uncompress() {
   
   case "$FILEPATH" in
   *.gz) tar xzf "$FILEPATH" -C "$DEST";;
-  *.xz) tar xf "$FILEPATH" --xz  -C "$DEST";;
+  *.xz) xz -dc "$FILEPATH" | tar x -C "$DEST";;
   *) debug "Error: unknown package format: $FILEPATH"
      return 1;;
   esac
