@@ -2,7 +2,7 @@
 #
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Depends: wget, sed, awk, tar, gzip, chroot
+# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot
 # Author: Arnau Sanchez <tokland@gmail.com>
 # Report bugs to http://code.google.com/p/tokland/issues
 #
@@ -57,6 +57,19 @@ minimal_configuration() {
   test -c "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
 }
 
+uncompress() {
+  local FILEPATH=$1; local DEST=$2
+  
+  case "$FILEPATH" in
+  *.gz) tar xzf "$FILEPATH" -C "$DEST";;
+  *.xz) tar xf "$FILEPATH" --xz  -C "$DEST";;
+  *) debug "Error: unknown package format: $FILEPATH"
+     return 1;;
+  esac
+}  
+
+### Main
+
 test $# -ge 2 || { 
   stderr "Usage: $(basename "$0") DESTDIR i686|x86_64 [REPO_URL] [CORE_OS_HTMLFILE]"
   exit 2
@@ -67,6 +80,7 @@ ARCH=${2:-i686}
 REPO_URL=${3:-$DEFAULT_REPO_URL}
 LIST_HTML_FILE=$4
 
+PACKDIR="./arch-bootstrap-packages"
 REPO="${REPO_URL%/}/core/os/$ARCH"
 debug "core repository: $REPO"
 
@@ -85,6 +99,7 @@ LIST=$(echo "$LIST_HTML" | extract_href | awk -F"/" '{print $NF}' | sort -r -n)
 
 debug "create destination directory: $DEST"
 mkdir -p "$DEST"
+mkdir -p "$PACKDIR"
 
 debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
@@ -92,10 +107,11 @@ for PACKAGE in ${BASIC_PACKAGES[*]}; do
   test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
   test -f "$FILE" && gunzip -q -t "$FILE" || {
     debug "download: $REPO/$FILE"
-    fetch "$REPO/$FILE"
+    fetch -P "$PACKDIR" "$REPO/$FILE"
   }
-  debug "uncompress package: $FILE"
-  tar xzf "$FILE" -C "$DEST"
+  FILEPATH="$PACKDIR/$FILE"
+  debug "uncompress package: $FILEPATH"
+  uncompress "$FILEPATH" "$DEST"
 done
 
 debug "configure DNS and pacman"
