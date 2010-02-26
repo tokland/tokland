@@ -32,7 +32,7 @@ debug() { stderr "--- $@"; }
 extract_href() { sed -n '/<a / s/^.*<a [^>]*href="\([^\"]*\)".*$/\1/p'; }
 
 # Simple wrapper around wget
-fetch() { wget -c --passive-ftp --quiet "$@"; }
+fetch() { wget --passive-ftp --quiet "$@"; }
 
 ### Main
 
@@ -55,6 +55,17 @@ minimal_configuration() {
   echo "bootstrap" > "$DEST/etc/hostname"
   mkdir -p "$DEST/dev"
   test -c "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
+}
+
+check_compressed_integrity() {
+  local FILEPATH=$1
+  
+  case "$FILEPATH" in
+  *.gz) gunzip -t "$FILEPATH";;
+  *.xz) xz -t "$FILEPATH";;
+  *) debug "Error: unknown package format: $FILEPATH"
+     return 1;;
+  esac
 }
 
 uncompress() {
@@ -109,11 +120,11 @@ debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
   FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]]")
   test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
-  test -f "$FILE" && gunzip -q -t "$FILE" || {
-    debug "download: $REPO/$FILE"
-    fetch -P "$PACKDIR" "$REPO/$FILE"
-  }
   FILEPATH="$PACKDIR/$FILE"
+  test -e "$FILEPATH" && check_compressed_integrity "$FILEPATH" || {
+    debug "download package: $REPO/$FILE"
+    fetch -O "$FILEPATH" "$REPO/$FILE"
+  }
   debug "uncompress package: $FILEPATH"
   uncompress "$FILEPATH" "$DEST"
 done
