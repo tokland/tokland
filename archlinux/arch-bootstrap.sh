@@ -8,9 +8,9 @@
 #
 # Some examples:
 #
-# $ bash arch-bootstrap.sh myarch x86_64
+# $ bash arch-bootstrap.sh myarch 
+# $ bash arch-bootstrap.sh myarch x86_64 
 # $ bash arch-bootstrap.sh myarch x86_64 "ftp://ftp.archlinux.org"
-# $ bash arch-bootstrap.sh myarch x86_64 "" "file_containing_core_os_index.html"
 # 
 # Packages list needed by pacman can be obtained this way:
 # 
@@ -40,6 +40,7 @@ BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman
                 pacman-mirrorlist xz-utils zlib)
 EXTRA_PACKAGES=(coreutils bash grep awk file tar filesystem)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
+DEFAULT_ARCH=i686
 
 configure_pacman() {
   local DEST=$1; local ARCH=$2
@@ -50,6 +51,7 @@ configure_pacman() {
 minimal_configuration() {
   local DEST=$1
   echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
+  # root/root
   echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
@@ -81,35 +83,32 @@ uncompress() {
 
 ### Main
 
-test $# -ge 2 || { 
-  stderr "Usage: $(basename "$0") DESTDIR i686|x86_64 [REPO_URL] [CORE_OS_HTMLFILE]"
+test $# -ge 1 || { 
+  stderr "Usage: $(basename "$0") DESTDIR [i686|x86_64] [REPO_URL]"
   exit 2
 }
    
 DEST=$1
-ARCH=${2:-i686}
+ARCH=${2:-$DEFAULT_ARCH}
 REPO_URL=${3:-$DEFAULT_REPO_URL}
-LIST_HTML_FILE=$4
 
-PACKDIR="./arch-bootstrap"
+PACKDIR="arch-bootstrap"
 REPO="${REPO_URL%/}/core/os/$ARCH"
-debug "core repository: $REPO"
+debug "using core repository: $REPO"
 
-debug "create package directory: $DEST"
+debug "create package directory: $PACKDIR"
 mkdir -p "$PACKDIR"
 
-# Get filename list for packages
-if test -z "$LIST_HTML_FILE"; then
-  LIST_HTML_FILE="$PACKDIR/core_os-index.html"
-  if ! test -e "$LIST_HTML_FILE"; then 
-    debug "fetch packages list: $REPO/"
-    # Force trailing '/' needed by FTP servers.
-    fetch -O "$LIST_HTML_FILE" "$REPO/" ||
+LIST_HTML_FILE="$PACKDIR/core_os-index.html"
+test -s "$LIST_HTML_FILE" || { 
+  debug "fetch packages list: $REPO/"
+  # Force trailing '/' needed by FTP servers.
+  fetch -O "$LIST_HTML_FILE" "$REPO/" ||
     { debug "Error: cannot fetch packages list: $REPO"; exit 1; }
-  fi
-fi 
+}
+
 debug "packages HTML index: $LIST_HTML_FILE"
-LIST=$(< "$LIST_HTML_FILE" extract_href | awk -F"/" '{print $NF}' | sort -r -n)
+LIST=$(< "$LIST_HTML_FILE" extract_href | awk -F"/" '{print $NF}' | sort -rn)
 test "$LIST" || 
   { debug "Error: cannot process list file: $LIST_HTML_FILE"; exit 1; }  
 
@@ -132,11 +131,12 @@ done
 debug "configure DNS and pacman"
 configure_pacman "$DEST" "$ARCH"
 
-debug "clean re-install of basic packages and extra packages: ${BASICK_PACKAGES[*]}"
-chroot "$DEST" /usr/bin/pacman --noconfirm -Syf ${BASIC_PACKAGES[*]} ${BASIC_PACKAGES[*]}
+debug "re-install basic packages and install extra packages: ${EXTRA_PACKAGES[*]}"
+chroot "$DEST" /usr/bin/pacman --noconfirm \
+  -Syf ${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}
 
 debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
 configure_pacman "$DEST" "$ARCH"
 minimal_configuration "$DEST"
 
-debug "done! you should now be able to use the system (i.e. chroot \"$DEST\")"
+debug "done! you can now use the system (i.e. chroot \"$DEST\")"
