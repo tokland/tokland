@@ -32,13 +32,13 @@ debug() { stderr "--- $@"; }
 extract_href() { sed -n '/<a / s/^.*<a [^>]*href="\([^\"]*\)".*$/\1/p'; }
 
 # Simple wrapper around wget
-fetch() { wget --passive-ftp --quiet "$@"; }
+fetch() { wget -c --passive-ftp --quiet "$@"; }
 
 ### Main
 
 BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz-utils zlib)
-EXTRA_PACKAGES=(coreutils bash grep awk file tar filesystem)
+EXTRA_PACKAGES=(filesystem coreutils bash grep awk file tar)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
 
@@ -55,7 +55,6 @@ minimal_configuration() {
   echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
-  mkdir -p "$DEST/dev"
   test -c "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
 }
 
