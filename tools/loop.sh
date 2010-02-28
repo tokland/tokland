@@ -11,9 +11,11 @@
 #
 # $ loop -b "{1..3} 10" -m 5 -t 2m myapp arg1 arg2
 # 
+# Note that you can use bash {START..END} notation for return values.
+#
 set -e
 
-debug() { echo "--- $@" >&2; }
+debug() { test "$QUIET" -ne 1 && echo "--- $@" >&2; }
 
 infinite_seq() { yes "" | sed -n "="; }
 
@@ -21,7 +23,7 @@ word_in_list() { grep -qw "$2" <<< "$1"; }
 
 loop() {
   local MAXTRIES=$1; local LOOPWAIT=$2; local TIMEOUT=$3; 
-  local BREAK_RETVALS=${4:-0}; local NEGATE={$5-0}
+  local BREAK_RETVALS=${4:-0}; local NEGATE=${5:-0}
   shift 5
   
   BREAK_RETVALS=$(eval echo $BREAK_RETVALS)
@@ -29,7 +31,7 @@ loop() {
   { test "$MAXTRIES" && seq $MAXTRIES || infinite_seq; } | while read TRY; do
     "$@" && RETVAL=0 || RETVAL=$?
     word_in_list "$BREAK_RETVALS" $RETVAL && INARRAY=1 || INARRAY=0 
-    debug "try=$TRY, retval: $RETVAL (break condition: $BREAK_RETVALS, negate: $NEGATE)"
+    debug "try=$TRY, retval: $RETVAL (break retvals: $BREAK_RETVALS, negate: $NEGATE)"
     test \( $INARRAY -eq 1 -a "$NEGATE" -eq 0 \) -o \
          \( $INARRAY -eq 0 -a "$NEGATE" -eq 1 \) && return 0
     test "$TIMEOUT" && expr $(date +%s) - $ITIME + $LOOPWAIT \> $TIMEOUT >/dev/null && {
@@ -43,17 +45,19 @@ loop() {
 
 MAXTRIES=
 LOOPWAIT=1 
+QUIET=0
 NEGATE=0
 TIMEOUT=
 BREAK_RETVALS=
-while getopts "t:m:w:b:nh" ARG; do
+while getopts "t:m:w:b:nqh" ARG; do
   case "$ARG" in
+  q) QUIET=1;;
 	m) MAXTRIES=$OPTARG;;
 	w) LOOPWAIT=$OPTARG;;
 	t) TIMEOUT=$OPTARG;;
 	b) BREAK_RETVALS=$OPTARG;;
 	n) NEGATE=1;;
-	h) debug "Usage: $(basename $0) [-n] [-b BREAK_RETVALS] [-m MAXTRIES] \ 
+	h) debug "Usage: $(basename $0) [-q] [-n] [-b BREAK_RETVALS] [-m MAXTRIES] \ 
 	        [-w LOOPWAIT] [-t TIMEOUT] COMMAND [ARGS]"
 		 exit 1;;
 	esac
