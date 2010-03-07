@@ -1,4 +1,9 @@
 #!/bin/bash
+#
+# Download a book (the images) from Google Books.
+#
+# Author: tokland@gmail.com
+#
 set -e
 
 ### Generic functions
@@ -23,7 +28,7 @@ break_html_lines() { sed 's/\(<\/[^>]*>\)/\1\n/g'; }
 get_images_url() {
   URL=$1
   STARTPAGE=${2:-1}
-  COOKIES=cookies.txt
+  COOKIES=$(mktemp)
   
   COVER=$(download -c "$COOKIES" "$URL")
   TITLE=$(echo "$COVER" | break_html_lines | 
@@ -31,7 +36,7 @@ get_images_url() {
   AUTHOR=$(echo "$COVER" | break_html_lines | 
            parse '<span class="addmd">' '>\(.*\)<\/span>' | cut -d" " -f3-)
   debug "Book: $TITLE ($AUTHOR)"
-  BASE="$AUTHOR - $TITLE"
+  test "$AUTHOR" && BASE="$AUTHOR - $TITLE" || BASE="$TITLE"
   PAGE_URL=$(echo "$COVER" | break_html_lines | 
              grep 'div class=html_page_image' | grep -o "<a.*>" | extract_href)
   JSON=$(echo "$COVER" | grep -o '{"page":.*"prefix":"[^"]*"}')
@@ -74,6 +79,8 @@ download_images() {
 }
 
 download_gbook() {
+  # This function division (get/download) was not really necessary, but the 
+  # pipe parallelizes the download process.
   get_images_url "$@" | download_images
 }
 
