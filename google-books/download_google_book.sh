@@ -2,7 +2,12 @@
 #
 # Download a book (the images) from Google Books.
 #
+# Dependencies: bash, curl, python
 # Author: tokland@gmail.com
+#
+# Example: Download a book and join the images into a single PDF (imagemagick required):
+# 
+#   $ { download_google_book.sh "URL"; echo "book.pdf" } | xargs convert
 #
 set -e
 
@@ -79,7 +84,7 @@ download_images() {
 }
 
 download_gbook() {
-  # This function division (get/download) was not really necessary, but the 
+  # This split (get/download) was not really necessary, but the 
   # pipe parallelizes the download process.
   get_images_url "$@" | download_images
 }
