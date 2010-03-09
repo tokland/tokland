@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# Download a book (the images) from Google Books.
+# Download a book (individual PNG images) from Google Books.
 #
 # Dependencies: bash, curl, python
 # Author: tokland@gmail.com
 #
 # Example: Download a book and join the images into a single PDF (imagemagick required):
 # 
-#   $ { download_google_book.sh "URL"; echo "book.pdf" } | xargs convert
+#   $ convert $(download_google_book.sh "BOOK_URL") "book.pdf"
 #
 set -e
 
@@ -45,17 +45,21 @@ get_images_url() {
   PAGE_URL=$(echo "$COVER" | break_html_lines | 
              grep 'div class=html_page_image' | grep -o "<a.*>" | extract_href)
   JSON=$(echo "$COVER" | grep -o '{"page":.*"prefix":"[^"]*"}')
-  { read PREFIX; read PAGES; } < <({ 
+  # I don't use heredocs to write the Python code because I prefer not to break indentation
+  { read PREFIX; read PAGES; } < <({
+      # Here we take advantage of JSON being (virtually) valid Python code. 
+      # We could use a JS interpreter (Spidermonkey, Rhino, ...) to do this, 
+      # but Python is much nicer :-)  
       echo "d = $JSON"
       echo 'print d["prefix"].decode("raw_unicode_escape")'
-      echo 'print " ".join(x["pid"] for x in sorted(d["page"], key=lambda h: h["order"]))'
+      echo 'pids = [x["pid"] for x in sorted(d["page"], key=lambda h: h["order"])]'
+      echo 'print " ".join(pids)'
     } | python)
 
   debug "Prefix: $PREFIX"
   debug "Total pages: $(echo $PAGES | wc -w)"
 
-  echo "$PAGES" | xargs -n1 | enumerate | tail -n+$STARTPAGE | 
-      while read NPAGE PAGEID; do
+  echo "$PAGES" | xargs -n1 | enumerate | tail -n+$STARTPAGE | while read NPAGE PAGEID; do
     debug "Page: $NPAGE" 
     PAGE_URL="$PREFIX&pg=$PAGEID"
     debug "Page URL: $PAGE_URL"
@@ -77,15 +81,15 @@ download_images() {
     download -b "$COOKIES" "$IMAGE_URL" > "$OUTPUT" && RETVAL=0 || RETVAL=$?
     case $RETVAL in
     0) echo $OUTPUT;;
-    22) debug "image download got a 404";;
+    22) debug "warning: server reported this image is not downloadable (page $NPAGE)";;
     *) debug "error downloading image";;
     esac
   done    
 }
 
 download_gbook() {
-  # This split (get/download) was not really necessary, but the 
-  # pipe parallelizes the download process.
+  # There was no real need to split those functions (get/download), but the 
+  # shell pipe parallelizes the process at cost 0. I just love UNIX.
   get_images_url "$@" | download_images
 }
 
