@@ -45,11 +45,13 @@ get_images_url() {
   PAGE_URL=$(echo "$COVER" | break_html_lines | 
              grep 'div class=html_page_image' | grep -o "<a.*>" | extract_href)
   JSON=$(echo "$COVER" | grep -o '{"page":.*"prefix":"[^"]*"}')
+  #
   # I don't use heredocs to write the Python code because I prefer not to break indentation
+  #
+  # Here we take advantage of JSON being (virtually) valid Python code. 
+  # We could use a JS interpreter (Spidermonkey, Rhino, ...) to do this, 
+  # but Python is much nicer :-)    
   { read PREFIX; read PAGES; } < <({
-      # Here we take advantage of JSON being (virtually) valid Python code. 
-      # We could use a JS interpreter (Spidermonkey, Rhino, ...) to do this, 
-      # but Python is much nicer :-)  
       echo "d = $JSON"
       echo 'print d["prefix"].decode("raw_unicode_escape")'
       echo 'pids = [x["pid"] for x in sorted(d["page"], key=lambda h: h["order"])]'
