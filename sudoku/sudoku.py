@@ -1,9 +1,9 @@
 #!/usr/bin/python
 """
-Simple Sudoku solver using Functional Programming.
+Simple Sudoku solver (not optimized) that uses functional-programming style.
 
-The board must be a 9x9 grid with digits (use any char to denote empty squares) 
-You can format the board with spaces the way you like, they will be all removed.
+The board must be a 9x9 grid with digits (use any other char for empty squares). 
+You can format the board with spaces the way you like (they will be all removed).
 
 Example:
   
@@ -21,7 +21,6 @@ Example:
 """
 import re
 import sys
-import string
 
 def copy_board(board, new_values):
     """Return a copy of board setting values in new_values dictionary."""
@@ -48,7 +47,7 @@ def solve(board):
                 new_board = copy_board(board, {(nrow, ncolumn): test_digit})
                 solved_board = solve(new_board)
                 if solved_board:
-                    # return the solution all the way up to break recursion
+                    # return the solved board all the way up to break recursion
                     return solved_board
             return
     # all squares are filled, so this must be the solution. 
@@ -56,11 +55,11 @@ def solve(board):
 
 def lines2board(lines):
     """Return a board using 0 for empty squares and removing all spaces."""
-    return [[(int(c) if c in string.digits else 0) for c in re.sub("\s+", "", line)] 
+    return [[(int(c) if c in "123456789" else 0) for c in re.sub("\s+", "", line)] 
             for line in lines if line.strip()]
 
 def main(args):
-    """Solve a sudoku board read from a file (first arguments of args)."""
+    """Solve a Sudoku board read from a file (first arguments of args)."""
     from pprint import pprint
     path, = args
     board = lines2board(open(path))
