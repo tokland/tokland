@@ -21,36 +21,31 @@ Example:
 """
 import re
 import sys
-import copy
 import string
 
-def copy_board(board, sets):
-    """Return an indepedent copy of board."""
-    new_board = copy.deepcopy(board)
-    for (nrow, ncolumn), value in sets:
-        # Granted, not functional, but let's keep this low-level function simple
-        new_board[nrow][ncolumn] = value
-    return new_board
+def copy_board(board, new_values):
+    """Return a copy of board setting values in new_values dictionary."""
+    return [[new_values.get((r, c), board[r][c]) for c in range(9)] for r in range(9)] 
             
 def get_alternatives_for_square(board, nrow, ncolumn):
     """Return sequence of valid digits for (nrow, ncolumn) square in board."""
     box_row, box_column = 3 * (nrow / 3), 3 * (ncolumn / 3)
     nums_in_box = [board[r][c] for r in range(box_row, box_row+3) 
                                for c in range(box_column, box_column+3)]
-    nums_in_row = [board[nrow][c] for c in range(0, 9)]
-    nums_in_column = [board[r][ncolumn] for r in range(0, 9)]
+    nums_in_row = [board[nrow][c] for c in range(9)]
+    nums_in_column = [board[r][ncolumn] for r in range(9)]
     groups = [filter(bool, x) for x in [nums_in_box, nums_in_row, nums_in_column]]
     return sorted(set(range(1, 10)) - set(sum(groups, []))) 
      
 def solve(board):
     """Return a solved Sudoku board (return None if if no valid solution)."""
-    for nrow in range(0, 9):
-        for ncolumn in range(0, 9):
+    for nrow in range(9):
+        for ncolumn in range(9):
             if board[nrow][ncolumn]:
-                # there is a digit on this square, go to the next one
+                # the square has a digit, go to the next one
                 continue
             for test_digit in get_alternatives_for_square(board, nrow, ncolumn):
-                new_board = copy_board(board, [((nrow, ncolumn), test_digit)])
+                new_board = copy_board(board, {(nrow, ncolumn): test_digit})
                 solved_board = solve(new_board)
                 if solved_board:
                     # return the solution all the way up to break recursion
