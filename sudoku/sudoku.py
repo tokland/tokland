@@ -1,6 +1,8 @@
 #!/usr/bin/python
 """
-Simple Sudoku solver (not optimized) that uses functional-programming style.
+Brute-force Sudoku solver (no heuristics, no optimization at all). 
+
+The aim of this module is to write a solver in a functional-programming style.
 
 The board must be a 9x9 grid with digits (use any other char for empty squares). 
 You can format the board with spaces the way you like (they will be all removed).
@@ -35,7 +37,7 @@ def get_alternatives_for_square(board, nrow, ncolumn):
     nums_in_row = [board[nrow][c] for c in range(9)]
     nums_in_column = [board[r][ncolumn] for r in range(9)]
     groups = [filter(bool, x) for x in [nums_in_box, nums_in_row, nums_in_column]]
-    return sorted(set(range(1, 10)) - set(sum(groups, []))) 
+    return sorted(set(range(1, 10)) - reduce(set.union, map(set, groups))) 
      
 def solve(board):
     """Return a solved Sudoku board (None if it has no solution)."""
