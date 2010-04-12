@@ -42,7 +42,7 @@ def get_alternatives_for_square(board, nrow, ncolumn):
     nums_in_box = [board[r][c] for r in _box(nrow) for c in _box(ncolumn)]
     nums_in_row = [board[nrow][c] for c in range(9)]
     nums_in_column = [board[r][ncolumn] for r in range(9)]
-    groups = [filter(bool, x) for x in [nums_in_box, nums_in_row, nums_in_column]]
+    groups = [x for x in [nums_in_box, nums_in_row, nums_in_column] if x]
     return sorted(set(range(1, 10)) - reduce(set.union, map(set, groups))) 
      
 def solve(board):
