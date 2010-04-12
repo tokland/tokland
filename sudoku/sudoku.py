@@ -8,9 +8,8 @@ Simple brute-force Sudoku solver.
  
 The board must be a 9x9 grid (use any non-digit char to denote empty squares).
 You can format the board with spaces the way you like (they will be removed).
-Example:
-    
-(mysudoku.txt)
+
+Example (mysudoku.txt):
   
   6-- --- -83
   --7 1-- --4
@@ -36,7 +35,7 @@ def copy_board(board, sets):
 def get_alternatives_for_square(board, nrow, ncolumn):
     """Return sequence of valid digits for square (nrow, ncolumn) in board."""
     def _box(pos, size=3):
-        """Return indexes for a box (sub-matrix of board)."""
+        """Return indexes to cover a box (sub-matrix of board) in one axis."""
         start = (pos // size) * size
         return range(start, start + size)
     nums_in_box = [board[r][c] for r in _box(nrow) for c in _box(ncolumn)]
@@ -57,7 +56,7 @@ def solve(board):
             if solved_board:              
                 # return the solved board all the way up to break recursion
                 return solved_board
-        # no solution was found for the square, so let's go back
+        # no solution was found for this square, so let's go back to keep trying
         return
     # all squares are filled so this must be the solution. 
     return board 
