@@ -6,9 +6,8 @@ Simple brute-force Sudoku solver.
 - Recursive backtracking.
 - No heuristics, no optimization at all.
  
-The board must be a 9x9 grid with digits (use any other char for empty squares). 
-You can format the board with spaces the way you like (they will be all removed).
-
+The board must be a 9x9 grid (use any non-digit char to denote empty squares).
+You can format the board with spaces the way you like (they will be removed).
 Example:
     
 (mysudoku.txt)
@@ -30,19 +29,20 @@ $ python sudoku.py mysoduku.txt
 import re
 import sys
 
-def copy_board(board, values):
+def copy_board(board, sets):
     """Return a copy of board setting new squares from values dictionary."""
-    return [[values.get((r, c), board[r][c]) for c in range(9)] for r in range(9)] 
+    return [[sets.get((r, c), board[r][c]) for c in range(9)] for r in range(9)]
             
 def get_alternatives_for_square(board, nrow, ncolumn):
     """Return sequence of valid digits for square (nrow, ncolumn) in board."""
     def _box(pos, size=3):
+        """Return indexes for a box (sub-matrix of board)."""
         start = (pos // size) * size
         return range(start, start + size)
     nums_in_box = [board[r][c] for r in _box(nrow) for c in _box(ncolumn)]
     nums_in_row = [board[nrow][c] for c in range(9)]
     nums_in_column = [board[r][ncolumn] for r in range(9)]
-    groups = [x for x in [nums_in_box, nums_in_row, nums_in_column] if x]
+    groups = [nums_in_box, nums_in_row, nums_in_column]
     return sorted(set(range(1, 10)) - reduce(set.union, map(set, groups))) 
      
 def solve(board):
@@ -63,8 +63,9 @@ def solve(board):
     return board 
 
 def lines2board(lines):
-    """Parse a text board setting 0's for empty squares and ignoring all spaces."""
-    return [[(int(c) if c in "123456789" else 0) for c in re.sub("\s+", "", line)] 
+    """Parse a text board setting 0's for empty squares."""
+    spaces = re.compile("\s+")
+    return [[(int(c) if c in "123456789" else 0) for c in spaces.sub("", line)]
             for line in lines if line.strip()]
 
 def main(args):
