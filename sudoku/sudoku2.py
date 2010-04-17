@@ -1,6 +1,9 @@
 #!/usr/bin/python
 """
-Brute-force Sudoku solver written in functional-programming style (dictionary version).
+Brute-force Sudoku solver written in functional-programming style.
+
+- Dictionary version 
+- Starts from the more constrained squares (faster)
 
 Author: Arnau Sanchez <tokland@gmail.com>
 License: GNU GPL v3.0
@@ -53,12 +56,18 @@ def get_alternatives_for_square(board, nrow, ncolumn):
     return sorted(set(range(1, 9+1)) - set(nums)) 
 
 ranges = [(x, y) for x in range(9) for y in range(9)]
-     
+        
+def get_more_constrained_square(board):
+    """Get the square in board with more constrains (with less alternatives)."""
+    alternatives = ((len(get_alternatives_for_square(board, r, c)), (r, c)) 
+        for (r, c) in ranges if (r, c) not in board)
+    return min(alternatives)[1]
+ 
 def solve(board):
     """Return a solved Sudoku board (None if no solution was found)."""
     if len(board) == 9 * 9:
         return board
-    nrow, ncolumn = ((x, y) for (x, y) in ranges if (x, y) not in board).next()
+    nrow, ncolumn = get_more_constrained_square(board)
     for test_digit in get_alternatives_for_square(board, nrow, ncolumn):
         test_board = dict(board, **{(nrow, ncolumn): test_digit})
         solved_board = solve(test_board)
@@ -83,6 +92,7 @@ def main(args):
     """Solve a Sudoku board read from a text file."""
     path, = args
     board = lines2board(open(path))
+    print list(sorted(board.items()))
     print_board(board)
     print "-" * (2*9-1)
     print_board(solve(board))
