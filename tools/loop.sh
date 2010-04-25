@@ -23,18 +23,28 @@ QUIET=0
 
 # Generic functions
 
+# Write to standard error
 stderr() { echo "$@" >&2; }
 
+# Write to standard error unless QUIET is enabled (1)
 debug() { test "$QUIET" -ne 1 && stderr "--- $@"; }
 
+# Return an infinite sequence (starts at 1). For-loop are boring, let's use pipes. 
 infinite_seq() { yes "" | sed -n "="; }
 
+# Succeed if string $2 is inside $1
 word_in_list() { grep -qw "$2" <<< "$1"; }
 
+# Run wrapped command ($@) and return 1 if ok, 0 if failed
 tobool() { "$@" > /dev/null && echo 1 || echo 0; }
 
 ###
 
+# Loop over a command. Return values:
+#
+#   0: Command run successfully
+#   3: Timeout reached
+#   4: Max retries reached
 loop() {
   local MAXTRIES=$1; local LOOPWAIT=$2; local TIMEOUT=$3; 
   local BREAK_RETVALS=${4:-0}; local NEGATE=${5:-0}
