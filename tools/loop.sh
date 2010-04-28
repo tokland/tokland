@@ -27,7 +27,7 @@ QUIET=0
 stderr() { echo "$@" >&2; }
 
 # Write to standard error unless QUIET is enabled (1)
-debug() { test "$QUIET" -ne 1 && stderr "--- $@"; }
+debug() { test "$QUIET" -ne 1 && stderr "--- $@" || true; }
 
 # Return an infinite sequence (starts at 1). For-loop are boring, let's use pipes. 
 infinite_seq() { yes "" | sed -n "="; }
