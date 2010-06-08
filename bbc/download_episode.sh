@@ -65,6 +65,9 @@ download_episode() {
     PLAYPATH=$(echo "$IDENTIFIER?$AUTH" | recode html..utf8)
     debug "rtmp-bbcmedia: server=$SERVER, APP=$app, identifier=$IDENTIFIER, auth=$AUTH"
     download_rtmp "$SERVER" "$APP" "$PLAYPATH" > "$OUTPUT" || return 1
+  else
+    debug "error: no known connection type to parse"
+    return 2
   fi
   
   echo "$OUTPUT"

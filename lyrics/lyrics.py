@@ -61,7 +61,6 @@ def main(args, soap_url = "http://lyricwiki.org/server.php"):
     if not res:
         return 2
     output(res)
-    return 0  
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

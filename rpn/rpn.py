@@ -1,5 +1,5 @@
 #!/usr/bin/python
-"""Implement a Reverse Polish Notation Calculator.
+"""Interactive Reverse Polish Notation Calculator.
 
 See: http://en.wikipedia.org/wiki/Reverse_Polish_notation.
 
@@ -85,12 +85,12 @@ class InteractiveReversePolishCalc(Cmd):
     Available commands: 
 
     clear -> Clear the current stack.
-    pop [INDEX] -> Remove an element from the stack.
-    stack -> Display current stack.
+    pop [INDEX] -> Remove an element from the stack (last one by default)
+    stack -> Display current calculator stack.
     quit -> Quit the calculator.
 
-    +|-|*|/ -> Issue an operation.
-    any numeric value (ex: 10.23) -> Insert float number onto stack.
+    +|-|*|/ -> Issue an operation on last two elements on stack.
+    any numeric value (ex: 10.23) -> Append float number onto stack.
     """
 
     intro = __doc__.strip()
@@ -162,6 +162,7 @@ class InteractiveReversePolishCalc(Cmd):
         elif line in self.operations:
             try:
                 self.calc.operation(self.operations[line])
+		self._debug_stack()
             except ReversePolishCalcError, errmsg:
                 self._debug_calc_error(errmsg)
         elif re.match("[0-9.eE]+", line):
@@ -171,7 +172,6 @@ class InteractiveReversePolishCalc(Cmd):
                 debug("Invalid float value: %s" % line)
         else:
             debug("Unknown command: %s" % line)
-        self._debug_stack()
 
     def emptyline(self):
         """Called when the user enters an empty line. Do nothing"""

@@ -63,8 +63,8 @@ loop() {
     test "$TIMEOUT" && expr $(date +%s) - $ITIME + $LOOPWAIT \> $TIMEOUT >/dev/null && {
       debug "timeout reached: $TIMEOUT"
       return 3
-    } 
-	  sleep $LOOPWAIT
+  } 
+  sleep $LOOPWAIT
   done
   
   debug "max retries reached: $MAXTRIES"  

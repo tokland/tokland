@@ -2,9 +2,9 @@
 #
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot, xzutils
+# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot, xz-utils
 # Author: Arnau Sanchez <tokland@gmail.com>
-# Report bugs to http://code.google.com/p/tokland/issues
+# Bug tracker: http://code.google.com/p/tokland/issues
 #
 # Some examples:
 #
@@ -12,7 +12,7 @@
 # $ bash arch-bootstrap.sh myarch x86_64 
 # $ bash arch-bootstrap.sh myarch x86_64 "ftp://ftp.archlinux.org"
 # 
-# Packages list needed by pacman can be obtained this way:
+# Packages needed by pacman can be obtained this way:
 # 
 # $ for PACKAGE in $(ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}'); do 
 #     pacman -Qo $PACKAGE 

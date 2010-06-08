@@ -43,12 +43,13 @@ $ python sudoku2.py mysoduku.txt
 import re
 import sys
 
-def get_alternatives_for_square(board, nrow, ncolumn):
-    """Return sequence of valid digits for square (nrow, ncolumn) in board."""
+def get_alternatives_for_square(board, pos):
+    """Return sequence of possible digits for square pos (nrow, ncolumn)."""
     def _box(idx):
         """Return indexes to cover a box (3x3 sub-matrix of a board)."""
         start = (idx // 3) * 3 
         return range(start, start + 3)
+    nrow, ncolumn = pos
     nums_in_box = [board.get((r, c), None) for r in _box(nrow) for c in _box(ncolumn)]
     nums_in_row = [board.get((nrow, c), None) for c in range(9)]
     nums_in_column = [board.get((r, ncolumn), None) for r in range(9)]
@@ -56,20 +57,20 @@ def get_alternatives_for_square(board, nrow, ncolumn):
     return sorted(set(range(1, 9+1)) - set(nums)) 
 
 ranges = [(x, y) for x in range(9) for y in range(9)]
-        
+
 def get_more_constrained_square(board):
-    """Get the square in board with more constrains (with less alternatives)."""
-    alternatives = ((len(get_alternatives_for_square(board, r, c)), (r, c)) 
-        for (r, c) in ranges if (r, c) not in board)
+    """Get square in board with less possible digits."""
+    alternatives = ((len(get_alternatives_for_square(board, pos)), pos) 
+                    for pos in ranges if pos not in board)
     return min(alternatives)[1]
  
 def solve(board):
     """Return a solved Sudoku board (None if no solution was found)."""
     if len(board) == 9 * 9:
         return board
-    nrow, ncolumn = get_more_constrained_square(board)
-    for test_digit in get_alternatives_for_square(board, nrow, ncolumn):
-        test_board = dict(board, **{(nrow, ncolumn): test_digit})
+    pos = get_more_constrained_square(board)
+    for test_digit in get_alternatives_for_square(board, pos):
+        test_board = dict(board, **{pos: test_digit})
         solved_board = solve(test_board)
         if solved_board:
             return solved_board
@@ -79,22 +80,17 @@ def print_board(board, stream=sys.stdout):
     lines = [[str(board.get((r, c), "-")) for c in range(9)] for r in range(9)]
     stream.writelines(" ".join(line)+"\n" for line in lines)
     
-def lines2board(lines):
-    """Parse a text board stripping spaces and setting 0's for empty squares."""
-    def _get_squares(lines):
-        for nrow, line in enumerate(line for line in lines if line.strip()):
-            for ncolumn, c in enumerate(re.sub("\s+", "", line)):
-                if c in "1234546789":
-                    yield ((nrow, ncolumn), int(c))                    
-    return dict(_get_squares(lines))
+def parse_board(data):
+    """Parse a text board stripping spaces and setting."""
+    return dict((divmod(idx, 9), int(c)) for (idx, c) in 
+                enumerate(re.sub("\s+", "", data)) if c in "1234546789")
 
 def main(args):
     """Solve a Sudoku board read from a text file."""
     path, = args
-    board = lines2board(open(path))
-    print list(sorted(board.items()))
+    board = parse_board(open(path).read())
     print_board(board)
-    print "-" * (2*9-1)
+    print
     print_board(solve(board))
     
 if __name__ == '__main__':

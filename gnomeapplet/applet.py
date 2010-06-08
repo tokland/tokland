@@ -17,8 +17,14 @@
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 import gnomeapplet, gnome.ui
+import egg.trayicon
 import gtk, gobject
 import os, sys
+
+# hacer una clase NotificationApplet
+# usando las AppletImage
+# dar acceso al menu
+# y directamente al eventbox, sin hbox
 
 ##############################################
 class AppletImage:

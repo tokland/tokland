@@ -1,7 +1,8 @@
 #!/bin/bash
 #
-# Split one big APE or FLAC files into many FLAC tracks (one per track)
-# using the information contained on a CUE file.
+# Split one big APE or FLAC file into many FLAC files (one per track)
+# using the information contained on a CUE file. Also, copy the tag info
+# and set a sane name for each track file.
 #
 # Depends: cuetools.
 #

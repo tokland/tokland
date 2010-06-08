@@ -2,7 +2,6 @@
 """Play pitchs (or guitar strings).
 
 $ python tones.py a4 | bplay
-
 $ python tones.py 3 | bplay 
 
 (assumes bplay defaults to sample rate 8000Hz)
@@ -14,11 +13,12 @@ import struct
 import itertools
 
 # pitch = (str-note, int-octave) 
- 
+
+# if sharp notes are needed, create a dictionary (pitch, note_pitch_index)
 notes = "c c# d d# e f f# g g# a a# b".split()
 
-# +3 because of the 3 semitones between A0 (27.5Hz) and C1
-factors_to_c0 = dict((note, 27.5 * 2**(((idx+3)/12.0) - 1)) 
+# +3 because of the 3 semitones between the reference A0 (27.5Hz) and C1
+factors_to_c0 = dict((note, 27.5 * 2**(((idx + 3) / 12.0) - 1)) 
     for (idx, note) in enumerate(notes)) 
 
 def get_frequency(pitch):    
@@ -52,12 +52,13 @@ def main(args):
     if args:
         strpitch = args[0]
         if strpitch.isdigit():
+            # If it's digit, treat it as a standard guitar string tuning (1:E4, 6: E6)
             guitar_string_strpitchs = "e4 a4 d5 g5 b5 e6".split()
-            strpitch = guitar_string_pitchs[int(strpitch)-1]
+            strpitch = guitar_string_strpitchs[int(strpitch)-1]
     else:
-        strpitch = "a4" 
+        strpitch = "a4" # (Play A4/Concert A/A440, the musical default pitch) 
     debug("pitch: %s" % strpitch)
-    for data in sin_generator(get_frequency(get_pitch(strpitch))):
+    for data in sin_generator(get_frequency(get_pitch(strpitch)), samplerate=8000):
         sys.stdout.write(data)
     
 if __name__ == '__main__':

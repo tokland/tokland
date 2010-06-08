@@ -8,9 +8,9 @@ Webpage: http://code.google.com/p/wiki/Projects
 
 = How it works:
     
-The algorithm starts by finding the first empty square on the board and getting
-the list of valid digits for this square. Then it tries these digits calling 
-the solver function.
+The algorithm starts by finding the square with more constrains on the board 
+and getting the list of valid digits for this square. Then it tries these
+digits calling the solver function.
 
 If at some point no valid digit for a square if found (meaning a previously 
 tested digit was wrong) the algorithm goes back. Eventually, all squares 
@@ -40,10 +40,6 @@ $ python sudoku.py mysoduku.txt
 import re
 import sys
 
-def first(it, default=None):
-    """Return first element in iterator (default if exhausted)."""
-    return next(it, default)
-
 def copy_board(board, sets):
     """Return a copy of board setting new squares from 'sets' dictionary."""
     return [[sets.get((r, c), board[r][c]) for c in range(9)] for r in range(9)]
@@ -59,10 +55,18 @@ def get_alternatives_for_square(board, nrow, ncolumn):
     nums_in_column = [board[r][ncolumn] for r in range(9)]
     nums = nums_in_box + nums_in_row + nums_in_column
     return sorted(set(range(1, 9+1)) - set(nums)) 
+
+def get_more_constrained_square(board):
+    """Get the square in board with more constrains (less alternatives)."""
+    ranges = ((x, y) for x in range(9) for y in range(9))
+    constrains = [(len(get_alternatives_for_square(board, r, c)), (r, c)) 
+        for (r, c) in ranges if not board[r][c]]
+    if constrains:
+        return min(constrains)[1]
      
 def solve(board):
     """Return a solved Sudoku board (None if no solution was found)."""
-    pos = first((r, c) for r in range(9) for c in range(9) if not board[r][c])
+    pos = get_more_constrained_square(board)
     if not pos:
         return board # all squares are filled, so this board is the solution
     nrow, ncolumn = pos
