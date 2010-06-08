@@ -54,7 +54,7 @@ loop() {
   ITIME=$(date +%s)
   exec 3<&0
    
-  { test "$MAXTRIES" && seq $MAXTRIES || infinite_seq; } | while read TRY; do
+  while read TRY; do
     "$@" <&3 && RETVAL=0 || RETVAL=$?
     INARRAY=$(tobool word_in_list "$BREAK_RETVALS" $RETVAL)
     debug "try=$TRY, retval: $RETVAL (break retvals: $BREAK_RETVALS, negate: $NEGATE)"
@@ -63,10 +63,9 @@ loop() {
     test "$TIMEOUT" && expr $(date +%s) - $ITIME + $LOOPWAIT \> $TIMEOUT >/dev/null && {
       debug "timeout reached: $TIMEOUT"
       return 3
-  } 
-  sleep $LOOPWAIT
-  done
-  
+    } 
+    sleep $LOOPWAIT
+  done < <(test "$MAXTRIES" && seq $MAXTRIES || infinite_seq)
   debug "max retries reached: $MAXTRIES"  
   return 4
 }  

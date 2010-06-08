@@ -4,6 +4,9 @@ set -e
 debug() { echo "$@" >&2; }
 repeat_string() { printf -v f "%$1s" ; printf "%s\n" "${f// /$2}"; }
 
+debug_state() { debug -n -e "\r$1$(repeat_string ${#1} '\b')"; }
+
+
 BINARY=0
 test "$1" = "--binary" -o "$1" = "-b" && BINARY=1
 
@@ -23,10 +26,10 @@ while read LINE; do
   if test $ELAPSED -ne $LAST_SPEED_TIME; then
     SPEED_LINES=$(($NLINES / $ELAPSED))
     SPEED_CHARS=$(($NCHARS / $ELAPSED))
-    LAST_SPEED_TIME=$ELAPSED      
-  fi       
-  LOG="$NCHARS (${SPEED_CHARS:--} chars/sec) - $NLINES (${SPEED_LINES:--} lines/sec)"
-  debug -n -e "\r$LOG$(repeat_string ${#LOG} '\b')"
+    LAST_SPEED_TIME=$ELAPSED
+  fi
+  debug_state "$NCHARS (${SPEED_CHARS:--} chars/sec) - $NLINES (${SPEED_LINES:--} lines/sec)"  
   echo $LINE
 done
+
 debug
