@@ -2,7 +2,7 @@
 #
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot, xz-utils
+# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot, xz
 # Author: Arnau Sanchez <tokland@gmail.com>
 # Bug tracker: http://code.google.com/p/tokland/issues
 #
@@ -37,7 +37,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 ### Main
 
 BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
-                pacman-mirrorlist xz-utils zlib)
+                pacman-mirrorlist xz zlib)
 EXTRA_PACKAGES=(filesystem coreutils bash grep awk file tar)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
@@ -98,7 +98,7 @@ debug "using core repository: $REPO"
 debug "create package directory: $PACKDIR"
 mkdir -p "$PACKDIR"
 
-LIST_HTML_FILE="$PACKDIR/core_os-index.html"
+LIST_HTML_FILE="$PACKDIR/core_os_$ARCH-index.html"
 test -s "$LIST_HTML_FILE" || { 
   debug "fetch packages list: $REPO/"
   # Force trailing '/' needed by FTP servers.
@@ -138,4 +138,4 @@ debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)"
 configure_pacman "$DEST" "$ARCH"
 minimal_configuration "$DEST"
 
-debug "done! you can now use the system (i.e. chroot \"$DEST\")"
+debug "done! you can now use the system (chroot \"$DEST\")"
