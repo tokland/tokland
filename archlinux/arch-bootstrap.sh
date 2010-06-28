@@ -131,7 +131,7 @@ debug "configure DNS and pacman"
 configure_pacman "$DEST" "$ARCH"
 
 debug "re-install basic packages and install extra packages: ${EXTRA_PACKAGES[*]}"
-chroot "$DEST" /usr/bin/pacman --noconfirm \
+chroot "$DEST" /usr/bin/pacman --noconfirm --arch $ARCH \
   -Syf ${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}
 
 debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
