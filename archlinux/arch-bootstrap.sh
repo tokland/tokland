@@ -2,9 +2,9 @@
 #
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Depends: bash, coreutils, wget, sed, awk, tar, gzip, chroot, xz
-# Author: Arnau Sanchez <tokland@gmail.com>
+# Depends: coreutils, wget, sed, awk, tar, gzip, chroot, xz
 # Bug tracker: http://code.google.com/p/tokland/issues
+# Author: Arnau Sanchez <tokland@gmail.com>
 #
 # Some examples:
 #
@@ -12,7 +12,7 @@
 # $ bash arch-bootstrap.sh myarch x86_64 
 # $ bash arch-bootstrap.sh myarch x86_64 "ftp://ftp.archlinux.org"
 # 
-# Packages needed by pacman can be obtained this way:
+# Packages needed by pacman (BASIC_PACKAGES) can be obtained this way:
 # 
 # $ for PACKAGE in $(ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}'); do 
 #     pacman -Qo $PACKAGE 
@@ -51,7 +51,7 @@ configure_pacman() {
 minimal_configuration() {
   local DEST=$1
   echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
-  # root/root
+  # user root, password root
   echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
@@ -83,7 +83,7 @@ uncompress() {
 ### Main
 
 test $# -ge 1 || { 
-  stderr "Usage: $(basename "$0") DESTDIR [i686|x86_64] [REPO_URL]"
+  stderr "Usage: $(basename "$0") DEST_DIR [i686|x86_64] [REPO_URL]"
   exit 2
 }
    
