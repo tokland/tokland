@@ -72,27 +72,32 @@ get_images_url() {
     OUTPUT="$BASE.page$(printf "%03d" $NPAGE).png"
     debug "Image URL: $IMAGE_URL"
     #echo "$PAGE" > "$OUTPUT.html" # debug
-    echo "$NPAGE" "$COOKIES" "$IMAGE_URL" "$OUTPUT"
+    if test -e "$OUTPUT" -a -s "$OUTPUT"; then
+      debug "File exists, skip download: $OUTPUT"
+    else
+      echo "$NPAGE" "$COOKIES" "$IMAGE_URL" "$OUTPUT"
+    fi
   done
   rm -f $COOKIES
 }
 
-download_images() {
-  while read NPAGE COOKIES IMAGE_URL OUTPUT; do
-    debug "start image download (page $NPAGE): $IMAGE_URL"
-    download -b "$COOKIES" "$IMAGE_URL" > "$OUTPUT" && RETVAL=0 || RETVAL=$?
-    case $RETVAL in
-    0) echo $OUTPUT;;
-    22) debug "warning: server reported this image is not downloadable (page $NPAGE)";;
-    *) debug "error downloading image";;
-    esac
-  done    
+download_image() {
+  local NPAGE=$1; local COOKIES=$2; local IMAGE_URL=$3; local OUTPUT=$4
+  debug "start image download (page $NPAGE): $IMAGE_URL"
+  download -b "$COOKIES" "$IMAGE_URL" > "$OUTPUT" && RETVAL=0 || RETVAL=$?
+  case $RETVAL in
+  0) echo $OUTPUT;;
+  22) debug "warning: server reported this image is not downloadable (page $NPAGE)";;
+  *) debug "error downloading image";;
+  esac
 }
 
 download_gbook() {
   # There was no real need to split those functions (get/download), but the 
   # shell pipe parallelizes the process at cost 0. I just love UNIX.
-  get_images_url "$@" | download_images
+  get_images_url "$@" | while read NPAGE COOKIES IMAGE_URL OUTPUT; do
+    download_image $NPAGE $COOKIES $IMAGE_URL "$OUTPUT"
+  done
 }
 
 ### Main
