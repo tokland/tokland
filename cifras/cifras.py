@@ -1,42 +1,38 @@
 #!/usr/bin/python
 """
-Based on a simple math game: given a list of numbers, and using the basic 
-operations (+, -, /, *)  between them, find (or be as close as possible to) 
+Based on a simple math game: given a list of numbers use the four basic 
+operations (+, -, /, *)  between them to find (or be as close as possible to) 
 another given number.
+
+Functional approach, use generators and function. Class Num used solely as
+data container, no logic methods are used.
+
+Spanish users will recall it as the famous "Cifras y Letras" TV quiz-show
 
 Author: Arnau Sanchez <tokland@gmail.com>
 """
-
-import operator
 import sys
+import operator
+import itertools
 
-# Best current approximation
-best = None
-
-def show_approximation(final, (x, strx)):
-    """Calculate difference with the current best approximation. 
-    Uses a global variable (best)"""
-    global best
-    if best is None or abs(final-x) < abs(final-best):
-        best = x
-        print "approx: %d = %s [delta=%d]" % (best, strx, abs(final-x))
-
-def get_strnum(num):
-    """Get pair (integer_value, string_representation) for num.
+class Num:
+    """Number class with value and string representation."""
+    def __init__(self, value, string=None):
+        self.value = value
+        self.string = string or str(value)
+        
+    def __repr__(self):
+        return "Num(%s, %s)" % (str(self.value), repr(self.string))
     
-    >>> get_strnum(8)
-    (8, '8')
-    """
-    return (num, str(num))
-
-def makeop(op, (num1, str1), (num2, str2)):
-    """Make operation op between two string numbers.
-    
-    Return a tuple with the numerical result and the string representation 
-    of that operation
-    
-    >>> makeop(operator.mul, (2, "(1+1)"), (6, "(2*3)"))
-    (12, '((1+1)*(2*3))')
+def first(it, default=None):
+    """Return first element in iterator. Return 'default' if exhausted."""
+    return next(it, default)
+        
+def makeop(op, num1, num2):
+    """Make operation between two Nums.
+        
+    >>> makeop(operator.mul, Num(2, "(1+1)"), Num(6, "(2*3)"))
+    Num(12, '((1+1)*(2*3))')
     """
     operator_string = {
         operator.add: "+", 
@@ -44,53 +40,52 @@ def makeop(op, (num1, str1), (num2, str2)):
         operator.mul: "*", 
         operator.div: "/"
     }
-    outstr = "(" + str1 + operator_string[op] + str2 + ")"
-    return op(num1, num2), outstr     
+    outstr = "(" + num1.string + operator_string[op] + num2.string + ")"
+    return Num(op(num1.value, num2.value), outstr)     
 
-def process_pair(numstr1, numstr2):
+def process_pair(ns1, ns2):
     """Yield all possible results from operating two values. 
     
-    Allowed operations are n1, n2, n1*n2, n1+n2, n1-n2, n1/n2.
+    Valid operations are: n1+2, n1*n2, n1-n2 (if n1 > n2), n2-n1 (if n2 > n1), 
+        n1/n2 (if n1 is divisible by n2), n2/n1 (if n2 is divisible by n1).
     
-    >>> list(process_pair((7, "7"), (3, "3")))
-    [(7, '7'), (3, '3'), (10, '(7+3)'), (21, '(7*3)'), (4, '(7-3)')]
+    >>> list(process_pair(Num(7, "7"), Num(3, "3")))
+    [Num(10, '(7+3)'), Num(4, '(7-3)'), Num(21, '(7*3)')]
     """
-    if numstr1[0] < numstr2[0]:
-        numstr1, numstr2 = numstr2, numstr1
-    num1, num2 = numstr1[0], numstr2[0]
-    get = lambda op: makeop(op, numstr1, numstr2)
-    for numstr in (numstr1, numstr2, get(operator.add), get(operator.mul)):
-        yield numstr
-    if num1 > num2:
-        yield get(operator.sub)
-    if (num1 % num2) == 0:
-        yield get(operator.div)
+    def _process(ns1, ns2, op, conditionfunc=None):
+        if not conditionfunc or conditionfunc(ns1.value, ns2.value):
+            return makeop(op, ns1, ns2)
+    def _generator(ns1, ns2):
+        yield _process(ns1, ns2, operator.add)
+        yield _process(ns1, ns2, operator.sub, lambda x, y: x > y) 
+        yield _process(ns1, ns2, operator.mul)
+        yield _process(ns1, ns2, operator.div, lambda x, y: x % y == 0)
+    return itertools.ifilter(bool, _generator(ns1, ns2) if ns1.value > ns2.value 
+                                                        else _generator(ns2, ns1))
           
-def process(final, numstrs, show_approx=False):
-    """Recursive function to search 'final', making operations on numstrs.
-    
-    Numstrings are tuples containing (integer_value, operation_string)
-    
-    >>> process(576, map(get_strnum, [1, 2, 3, 4, 5, 6]))
+def process(numstrs):
+    """Yield all possible numbers combinating pairs.
+        
+    >>> result = first(n for n in process(map(Num, [1,2,3,4,5,6])) if n.value == 576)
+    >>> result.value, result.string    
     (576, '(((4*(2+1))*6)*(5+3))')
     """
+    for x in numstrs:
+        yield x
+    # We could use itertools.combinations with py>=2.6 
     for i1 in xrange(len(numstrs)):
         for i2 in xrange(i1+1, len(numstrs)):
             other_numstrs = numstrs[:i1] + numstrs[i1+1:i2] + numstrs[i2+1:] 
             for numstr in process_pair(numstrs[i1], numstrs[i2]):
-                if show_approx:
-                    show_approximation(final, numstr)
-                if numstr[0] == final:
-                    return numstr
-                numstr = process(final, [numstr] + other_numstrs, show_approx)
-                if numstr:
-                    return numstr         
+                yield numstr
+                for x in process([numstr] + other_numstrs):
+                    yield x
         
 def _test():
     """Run tests on docstrings"""
     import doctest
     return doctest.testmod(verbose=True)
-    
+        
 def _main(args0):
     """Process options and arguments"""
     import optparse
@@ -103,16 +98,16 @@ def _main(args0):
     options, args = parser.parse_args(args0)
     if options.test:
         return _test()
-    nums0 = map(int, args)
     if len(args) < 2:
         parser.print_help()
         return 1    
+    nums0 = map(int, args)
     nums, final = nums0[:-1], nums0[-1]
-    result = process(final, map(get_strnum, nums), show_approx=options.verbose)
+    result = first(n for n in process(map(Num, nums)) if n.value == final)
     if not result:
-        print "Couldn't find the number %d" % final
+        print "Couldn't find number %d" % final
         return 2
-    print "%d = %s" % (final, result[1])
+    print "%d = %s" % (result.value, result.string)
                 
 if __name__ == "__main__":
     sys.exit(_main(sys.argv[1:]))
