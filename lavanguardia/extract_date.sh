@@ -11,4 +11,5 @@ read DAY MONTH YEAR <<< "$STRDATE"
 NMONTH=$(echo ${MONTHS[*]} | xargs -n1 | cat -n | awk "\$2 == \"$MONTH\"" | \
          awk '{print $1}' | xargs)
 
-printf "%d-%02d-%02d %s\n" $YEAR $NMONTH $DAY "$STRDATE"
+DAY2=$(echo $DAY | cut -d"-" -f1)
+printf "%d-%02d-%02d %s\n" $YEAR $NMONTH $DAY2 "$STRDATE"

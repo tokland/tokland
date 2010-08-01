@@ -9,10 +9,10 @@ CROP2="675x600+2600+3050"
 CROP3="500x425+2050+3425"
 
 FMT=png
-IMG0=$(mktemp --suffix=".$FMT")
-IMG1=$(mktemp --suffix=".$FMT")
-IMG2=$(mktemp --suffix=".$FMT")
-IMG3=$(mktemp --suffix=".$FMT")
+IMG0=$(tempfile --suffix=".$FMT")
+IMG1=$(tempfile --suffix=".$FMT")
+IMG2=$(tempfile --suffix=".$FMT")
+IMG3=$(tempfile --suffix=".$FMT")
 
 convert -density 300 "$PDF" $IMG0
 convert $IMG0 -crop "$CROP1" $IMG1
