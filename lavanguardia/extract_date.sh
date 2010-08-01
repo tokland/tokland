@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-MONTHS=(enero febrero marzo abril mayo junio julio agosto septiembre agosto
-        septiembre octubre noviembre diciembre)
+MONTHS=(enero febrero marzo abril mayo junio julio agosto septiembre 
+        octubre noviembre diciembre)
 
 PDF=$1
 STRDATE=$(pdftohtml -xml -stdout "$PDF" | grep '<text top="1"' | tail -n1 | \
