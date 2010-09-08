@@ -61,9 +61,10 @@ def process_pair(num1, num2):
         (operator.mul, None),
         (operator.div, lambda x, y: x % y == 0),
     ]
-    # we could also remove duplicated in candidates
-    return compact(makeop(op, num1a, num2a) for (op, condition) in candidates
-        if not condition or condition(num1a.value, num2a.value))
+    # is it worth to remove duplicates?
+    for (op, condition) in candidates:
+        if not condition or condition(num1a.value, num2a.value):
+            yield makeop(op, num1a, num2a)
                   
 def process(ints):
     """Yield all possible numbers combinating pairs.
