@@ -1,13 +1,15 @@
 #!/usr/bin/python
 """
-Based on a simple math game: given a list of numbers use the four basic 
-operations (+, -, /, *)  between them to find (or be as close as possible to) 
+Simple math game: given a list of numbers, use the four basic 
+operations (+, -, /, *)  to find (or be as close as possible to) 
 another given number.
 
-This code takes a functional (FP) approach. Class Num is used solely as
-data container, no logic methods (more than repr) are implemented.
+This code takes a functional (FP) approach. The Num class is used as
+data container but no logic methods (more than repr) are implemented inside.
 
-Spanish users will recall it as the widely known "Cifras y Letras" TV quiz-show
+This problem was popularize first by the TV quiz-show "Des Chiffres et 
+des Lettres" at France, and has travelled around ("Countdown" in the UK, 
+"Cifras y Letras" in Spain, ...).
 
 Author: Arnau Sanchez <tokland@gmail.com>
 """
@@ -15,7 +17,8 @@ import sys
 import operator
 import itertools
 
-# Data model
+# Data model: an orthodox implementation would build a binary-tree,
+# let's just save the string representation of the operation for simplicity.
 
 class Num:
     """Number class with value and string representation."""
@@ -39,8 +42,11 @@ def makeop(operation, num1, num2):
     string = "(" + num1.string + operator_string[operation] + num2.string + ")"
     return Num(operation(num1.value, num2.value), string)     
 
-def process_pair(ns1, ns2):
-    """Yield all possible results from operating two values. 
+def compact(it):
+    return itertools.ifilter(bool, it)
+
+def process_pair(num1, num2):
+    """Yield all possible results from operating two nums. 
     
     Valid operations are: n1+2, n1*n2, n1-n2 (if n1 > n2), n2-n1 (if n2 > n1), 
         n1/n2 (if n1 is divisible by n2), n2/n1 (if n2 is divisible by n1).
@@ -48,23 +54,22 @@ def process_pair(ns1, ns2):
     >>> list(process_pair(Num(7, "7"), Num(3, "3")))
     [Num(10, '(7+3)'), Num(4, '(7-3)'), Num(21, '(7*3)')]
     """
-    def _process(ns1, ns2, op, conditionfunc=None):
-        if not conditionfunc or conditionfunc(ns1.value, ns2.value):
-            return makeop(op, ns1, ns2)
-    def _generator(ns1, ns2):
-        yield _process(ns1, ns2, operator.add)
-        yield _process(ns1, ns2, operator.sub, lambda x, y: x > y) 
-        yield _process(ns1, ns2, operator.mul)
-        yield _process(ns1, ns2, operator.div, lambda x, y: x % y == 0)
-    return itertools.ifilter(bool, 
-        (_generator(ns1, ns2) if ns1.value > ns2.value else _generator(ns2, ns1)))
-          
+    num1a, num2a = ((num1, num2) if num1.value >= num2.value else (num2, num1))
+    candidates = [
+        (operator.add, None),
+        (operator.sub, lambda x, y: x > y), 
+        (operator.mul, None),
+        (operator.div, lambda x, y: x % y == 0),
+    ]
+    # we could also remove duplicated in candidates
+    return compact(makeop(op, num1a, num2a) for (op, condition) in candidates
+        if not condition or condition(num1a.value, num2a.value))
+                  
 def process(ints):
     """Yield all possible numbers combinating pairs.
         
-    >>> result = next(n for n in process([1,2,3,4,5,6]) if n.value == 576)
-    >>> result.value, result.string    
-    (576, '(((4*(2+1))*6)*(5+3))')
+    >>> next(n for n in process([1,2,3,4,5,6]) if n.value == 576)
+    Num(576, '(((4*(2+1))*6)*(5+3))')
     """
     def _process(nums):
         for i1, i2 in itertools.combinations(range(len(nums)), 2): 
@@ -75,8 +80,7 @@ def process(ints):
                     yield x
     nums = map(Num, ints)
     for x in itertools.chain(nums, _process(nums)):
-        yield x
-                            
+        yield x                     
             
 def _test():
     """Run tests on docstrings"""
@@ -97,11 +101,11 @@ def _main(args0):
     options, args = parser.parse_args(args0)
     if options.test:
         return _test()
-    if len(args) < 2:
+    elif len(args) < 2:
         parser.print_help()
         return 1    
-    nums0 = map(int, args)
-    nums, final = nums0[:-1], nums0[-1]
+    all_nums = map(int, args)
+    nums, final = all_nums[:-1], all_nums[-1]
     solutions = (res for res in process(nums) if res.value == final)
     for index, result in enumerate(itertools.islice(solutions, options.nsolutions or None)):
          print "%s. %d = %s" % (index+1, result.value, result.string)
