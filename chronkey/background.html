@@ -1,0 +1,37 @@
+<html>
+<head>
+  <script type="text/javascript">
+    function on_submit(info, tab) {
+      var url = info.linkUrl;
+      if (!url.replace("\/*\?.*$", "").match(/\.torrent$/)) {
+        alert("This url does not seem a torrent link: " + url);
+        return;
+      }
+      var xhr = new XMLHttpRequest();
+      xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4) {
+          if (xhr.status == 200) {
+            tmp = document.createElement("div");
+            tmp.innerHTML = xhr.responseText;
+            div_cs = tmp.getElementsByClassName("cs")[0];
+            alert(div_cs.innerHTML); 
+          } else {
+            alert('wrong status: ' + xhr.status);
+          }
+        }
+      };
+      xhr.open("GET", localStorage.mldonkey_url + "/submit?q=" + escape(url), true);
+      xhr.send();
+    }
+    
+    chrome.contextMenus.create({
+      title: "Send to Mldonkey",
+      contexts: ["link"],
+      onclick: on_submit,
+    });  
+  </script>
+</head>
+
+<body>
+</body>
+</html>

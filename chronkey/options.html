@@ -1,0 +1,51 @@
+<html>
+  <head>
+    <title>Chronkey options</title>
+    <script type="text/javascript">
+      function feedback() {
+        var status = document.getElementById("status");
+        status.innerHTML = "<i>Options saved</i>";
+        setTimeout(function() {
+          status.innerHTML = "";
+        }, 750);
+      }
+            
+      function save_options() {
+        function save_boolean(name) {
+          var checkbox = document.getElementById(name);
+          localStorage[name] = checkbox.checked ? '1': '0';
+        }
+        function save_string(name) {
+          var field = document.getElementById(name);
+          localStorage[name] = field.value || '';
+        }
+        save_string("mldonkey_url");
+        feedback();
+      }
+
+      function restore_options() {
+        function restore_boolean(name) {
+          var checkbox = document.getElementById(name);
+          checkbox.checked = localStorage[name] == '1';
+        }
+        function restore_string(name) {
+          var field = document.getElementById(name);
+          field.value = localStorage[name] || '';
+        }
+        restore_string("mldonkey_url");
+      }
+    </script>
+  </head>
+    
+  <body onload="restore_options()">
+    <h2>Options</h2>
+        
+    <div id="options">
+      <label for="mldonkey_url">Base URL for mldonkey server</label><br />
+      <input type="text" size="128" id="mldonkey_url"></input>
+      <br /><br />
+      <button onclick="save_options()">Save</button>
+      &nbsp;<span id="status"></span>
+    </div>    
+  </body>
+</html>

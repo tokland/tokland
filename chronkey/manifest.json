@@ -1,0 +1,17 @@
+{
+  "name": "Chronkey",
+  "description": "Send links to mldonkey",
+  "version": "0.0.1",
+  "background_page": "background.html",
+  "options_page": "options.html",
+   "permissions": [
+    "contextMenus",
+    "tabs",
+    "http://*/*"
+  ],
+  
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png"
+  }
+}
