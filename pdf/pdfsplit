@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# Split a pdf file (with fixed pages per pdf part)
+# 
+# Dependencies: poppler, ghostscript
+# Author: Arnau Sanchez <tokland@gmail.com>
+#
+set -e
+
+debug() { 
+  echo "$@" >&2 
+}
+
+test $# -eq 2 || {
+  debug -e "Usage: $(basename $0) SOURCE_PDF PAGES_PER_PDF" "\n"
+  debug "Split a PDF file (with fixed pages per split)"
+  exit 1
+}
+
+SOURCE_PDF=$1
+NPAGES=$2
+TOTAL_PAGES=$(pdfinfo "$SOURCE_PDF" | grep "^[Pp]ages:" | awk '{print $2}')
+debug "creating: $TOTAL_PAGES"
+
+for STARTPAGE in $(seq 1 $NPAGES $TOTAL_PAGES); do
+  ENDPAGE=$((STARTPAGE+NPAGES-1))
+  OUTPUT_PDF="$(basename "$SOURCE_PDF" ".pdf")-${STARTPAGE}_${ENDPAGE}.pdf"
+  debug "start process: $OUTPUT_PDF"
+  gs -sDEVICE=pdfwrite -q -dNOPAUSE -dBATCH -sOutputFile="$OUTPUT_PDF" \
+     -dFirstPage=$STARTPAGE -dLastPage=$ENDPAGE "$SOURCE_PDF"
+  echo $OUTPUT_PDF
+done
