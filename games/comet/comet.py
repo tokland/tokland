@@ -87,10 +87,17 @@ def add_vectors(*vectors):
 def multiply_vector(k, vector):
     return tuple(k*x for x in vector)
 
-def process_state(state, mouse_position, now, dt):
-    x, y = state.comet.position
-    traces = state.comet.traces
-    mouse_x, mouse_y = mouse_position
+def process_game(game, mouse, now, dt):
+    if game.state == "wait_start":
+        if mouse.buttons[0]:
+            game.state = "playing"
+            game.meteors = []
+            game.comet = Comet(position=(320, 400), traces=[], size=5, trace_memory_time=0, 
+                energy=100, fscore=0.0, score=0)
+        return
+    x, y = game.comet.position
+    traces = game.comet.traces
+    mouse_x, mouse_y = mouse.position
     dx, dy = mouse_x - x, mouse_y - y
     angle = math.atan2(dy, dx)
     k = 250.0 * dt
@@ -101,36 +108,42 @@ def process_state(state, mouse_position, now, dt):
         # an abrupt change of angle means that the comet overtook the mouse pointer 
         new_x, new_y = mouse_x, mouse_y
         
-    new_traces = process_traces(traces, state.comet, now, dt, new_x, new_y)
+    new_traces = process_traces(traces, game.comet, now, dt, new_x, new_y)
     
-    for meteor in state.meteors[:]:
+    for meteor in game.meteors[:]:
         mx, my = meteor.position
         meteor.position = mx + dt*meteor.speed[0], my + dt*meteor.speed[1]
         new_mx, new_my = meteor.position
-        if (new_mx - meteor.size > state.screen[0] or
-                new_my - meteor.size > state.screen[1]):
-            state.meteors.remove(meteor)
-        for comet in itertools.chain(take_every(10, state.comet.traces), [state.comet]):
-            if collide(meteor, comet):
-                print "collide", now
+        if (new_mx - meteor.size > game.screen[0] or
+                new_my - meteor.size > game.screen[1]):
+            game.meteors.remove(meteor)
+        collision = any(collide(meteor, comet) for comet in 
+            itertools.chain(take_every(10, game.comet.traces), [game.comet]))
+        if collision:            
+            game.comet.energy -= 150.0*dt
+            if game.comet.energy < 0:
+                game.state = "wait_start"
 
-    if random.random() < 0.03: 
-        sw, sh = state.screen
+    game.comet.fscore += 100.0 * dt
+    game.comet.score = ((int(game.comet.fscore)/50)*50)
+    
+    if random.random() < 0.05: 
+        sw, sh = game.screen
         perimeter = 2 * (sw + sh)
         lst = [((0, 0), (+1, 0)), ((sw, 0), (0, +1)), ((sw, sh), (-1, 0)), ((0, sh), (0, -1))] 
         #div, mod = divmod(random.uniform(0, perimeter), sw)
         #mod = 0
-        div, mod = random.uniform(0, sw), 0
+        div, mod = random.uniform(0, sw), random.choice(range(4))
         point, vector = lst[int(mod)]
         position = add_vectors(point, multiply_vector(div, vector))
         new_meteor = Meteor(position=position, size=int(random.uniform(5, 20)), 
-            speed=(random.uniform(0, -0), random.choice([250, 300])))
-        state.meteors.append(new_meteor)
+            speed=(random.uniform(-150, 250), random.choice([-150, 200])))
+        game.meteors.append(new_meteor)
        
 
-    state.comet.position = (new_x, new_y)
-    state.comet.traces = new_traces
-    return state
+    game.comet.position = (new_x, new_y)
+    game.comet.traces = new_traces
+    return game
 
 Trace = struct("Trace", 
     position=(float, float),
@@ -144,6 +157,7 @@ Comet = struct("Comet",
     traces=[Trace],     
     trace_memory_time=float,
     energy=int,
+    fscore=float,
     score=int,
 )
 Meteor = struct("Meteor", 
@@ -151,44 +165,59 @@ Meteor = struct("Meteor",
     speed=(float, float), 
     size=int,
 )
-State = struct("State", comet=Comet, meteors=[Meteor], screen=(float, float))
-Game = struct("Game", state=State, config=dict)
+Mouse = struct("Mouse", position=(int, int), buttons=[bool])
+
+Game = struct("Game", comet=Comet, meteors=[Meteor], screen=(float, float), state=str)
     
 def main(args):
     screen = create_screen((640, 480), "Comet")
-    meteor = Meteor(position=(100, 100), speed=(50, 70), size=30)
-    meteor2 = Meteor(position=(500, 200), speed=(-10, 10), size=25)
-    comet = Comet(position=(320, 400), traces=[], size=5, trace_memory_time=0)
-    state = State(comet=comet, meteors=[], screen=screen.get_size())
+    comet = Comet(position=(320, 400), traces=[], size=5, trace_memory_time=0, 
+        energy=100.0, fscore=0.0, score=0)
+    game = Game(comet=comet, meteors=[], screen=screen.get_size(), state="wait_start")
     itime = time.time()
-    fps_value, fps_temp, fps_itime = None, 0, itime
+    fps_value, fps_temp, fps_itime = 0, 0, itime
+    pygame.font.init()
+    fontname = pygame.font.get_default_font()
+    font = pygame.font.SysFont(fontname, 24)
     while 1:
         # Draw
         screen.fill((0, 0, 0))
-        for trace in state.comet.traces:
+        screen.blit(font.render("fps: %0.0f" % fps_value, False, (0,255,0)), (10, 10))
+        for trace in game.comet.traces:
             color = (255, min(255, 500*(itime-trace.timestamp)), 0)
             pygame.draw.circle(screen, color, map(int, trace.position), 5)
         color = (255,128+127*math.sin(itime*5.0),0)
-        pygame.draw.circle(screen, color, map(int, state.comet.position), 6)
-        for meteor in state.meteors:
+        pygame.draw.circle(screen, color, map(int, game.comet.position), 6)
+        for meteor in game.meteors:
             color = (155, 255, 255)
             pygame.draw.circle(screen, color, map(int, meteor.position), meteor.size)
+        
+        if game.state == "wait_start":
+            text = font.render("Press mouse button to start", False, (255,255,255))
+            w, h = text.get_size()
+            screen.blit(text, ((640-w)/2, (480-h)/2))    
+            
+        # Energy
+        #pygame.draw.rect(screen, (0,0,0), (0, 480-30, 640, 30), 0)
+        screen.blit(font.render("Score: %d" % game.comet.score, False, 
+            (255,255,255)), (640-120, 480-40))
+        pygame.draw.rect(screen, (255,0,0), (640-120, 480-20, game.comet.energy, 10), 0)
         pygame.display.flip()
         
         # Events    
         if not process_events():
             break
-        mouse_position = pygame.mouse.get_pos()
+        mouse = Mouse(position=pygame.mouse.get_pos(), buttons=pygame.mouse.get_pressed())
         
-        # Process state
+        # Process game
         dt, itime = update_time(itime)
-        state = process_state(state, mouse_position, itime, dt)
+        process_game(game, mouse, itime, dt)
+        
         fps_temp += 1
         if itime > fps_itime + 1.0:
             fps_itime = itime
             fps_value = fps_temp
             fps_temp = 0
-            print fps_value
         
 if __name__ == '__main__':
     sys.exit(main(sys.argv[1:]))
