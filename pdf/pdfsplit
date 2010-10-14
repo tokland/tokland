@@ -2,8 +2,9 @@
 #
 # Split a pdf file (with fixed pages per pdf part)
 # 
-# Dependencies: poppler, ghostscript
+# Dependencies: poppler, ghostscript.
 # Author: Arnau Sanchez <tokland@gmail.com>
+# Website: http://code.google.com/p/tokland
 #
 set -e
 
@@ -11,8 +12,14 @@ debug() {
   echo "$@" >&2 
 }
 
+minimum() {
+  local A=$1; local B=$2
+  test $A -lt $B && echo $A || echo $B
+}
+
 test $# -eq 2 || {
-  debug -e "Usage: $(basename $0) SOURCE_PDF PAGES_PER_PDF" "\n"
+  debug "Usage: $(basename $0) SOURCE_PDF PAGES_PER_PDF"
+  debug
   debug "Split a PDF file (with fixed pages per split)"
   exit 1
 }
@@ -20,12 +27,12 @@ test $# -eq 2 || {
 SOURCE_PDF=$1
 NPAGES=$2
 TOTAL_PAGES=$(pdfinfo "$SOURCE_PDF" | grep "^[Pp]ages:" | awk '{print $2}')
-debug "creating: $TOTAL_PAGES"
+debug "total pages: $TOTAL_PAGES"
 
 for STARTPAGE in $(seq 1 $NPAGES $TOTAL_PAGES); do
-  ENDPAGE=$((STARTPAGE+NPAGES-1))
+  ENDPAGE=$(minimum $((STARTPAGE+NPAGES-1)) $TOTAL_PAGES)
   OUTPUT_PDF="$(basename "$SOURCE_PDF" ".pdf")-${STARTPAGE}_${ENDPAGE}.pdf"
-  debug "start process: $OUTPUT_PDF"
+  debug "splitting pages $STARTPAGE-$ENDPAGE: $OUTPUT_PDF"
   gs -sDEVICE=pdfwrite -q -dNOPAUSE -dBATCH -sOutputFile="$OUTPUT_PDF" \
      -dFirstPage=$STARTPAGE -dLastPage=$ENDPAGE "$SOURCE_PDF"
   echo $OUTPUT_PDF
