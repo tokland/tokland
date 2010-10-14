@@ -7,10 +7,11 @@ debug() {
 
 OUTPUTDIR="html/"
 mkdir -p "$OUTPUTDIR"
-START_URL="http://www.diccionari.cat/cgi-bin/AppDLC3.exe?APP=CERCADLC&GECART=0"
+START_URL=${1:-"http://www.diccionari.cat/cgi-bin/AppDLC3.exe?APP=CERCADLC&GECART=0"}
 URL=$START_URL
 while true; do
   debug "page: $URL"
+  echo "$URL"
   PAGE=$(curl "$URL")
   echo "$PAGE" | sed "s#\(</[^>]*>\)#\1\n#g" | grep 'LLISTA_D' | 
       sed -n 's/^.*href="\(.*\)".*CLASS.*>\(.*\)<.*$/\1 \2/p' | while read URL WORD; do
