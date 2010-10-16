@@ -30,6 +30,7 @@
         });
         localStorage["services"] = JSON.stringify(config);
         feedback();
+        chrome.extension.sendRequest({'update_menus': true})
       }
       
       function onload() {
@@ -44,10 +45,8 @@
 
       function restore_options() {
         config = JSON.parse(localStorage["services"]);
-        console.log(config);
         for (index in config) {
           options = config[index];
-          console.log(options);
           add(options);
         }
       }
@@ -82,7 +81,7 @@
       <div id="services">
       </div>
       <span id="status"></span>
-      <br /><br />
+      <br />
       <button onclick="save_options()">Save</button>
     </div>    
   </body>

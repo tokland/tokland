@@ -1,6 +1,5 @@
 function on_submit(info, tab, options) {
   var url = info.linkUrl;
-  console.log(options);
   var template_url = options.template_url;
   if (!template_url) {
     alert("No template URL configured");
@@ -33,18 +32,31 @@ function on_submit(info, tab, options) {
   }
 }
 
-main = chrome.contextMenus.create({
-  title: "Submit to service",
-  contexts: ["link"],
-});
 
-var config = JSON.parse(localStorage["services"]);
-for (index in config) {
-  var options = config[index];
-  chrome.contextMenus.create({
-    title: options.service,
+function add_menus() {
+  var main = chrome.contextMenus.create({
+    title: "Submit to service",
     contexts: ["link"],
-    parentId: main,
-    onclick: function(info, tab) { on_submit(info, tab, options); }
   });
+  var config = JSON.parse(localStorage["services"]);
+  for (index in config) {
+    var options = config[index];
+    chrome.contextMenus.create({
+      title: options.service,
+      contexts: ["link"],
+      parentId: main,
+      onclick: function(info, tab) { on_submit(info, tab, options); }
+    });
+  }
 }
+
+chrome.extension.onRequest.addListener(
+  function(request, sender, sendResponse) {
+    if (request.update_menus) {
+      chrome.contextMenus.removeAll()
+      add_menus();
+    }
+  }
+);
+
+add_menus();
