@@ -1,6 +1,6 @@
 {
   "name": "Chronkey",
-  "description": "Send links to mldonkey",
+  "description": "Submit links to mldonkey",
   "version": "0.0.1",
   "background_page": "background.html",
   "options_page": "options.html",

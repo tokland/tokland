@@ -1,7 +1,12 @@
 <html>
   <head>
     <title>Chronkey options</title>
+    <script type="text/javascript" src="config.js"></script>
     <script type="text/javascript">
+      $ = function(id) {
+        return document.getElementById(id);
+      }
+            
       function feedback() {
         var status = document.getElementById("status");
         status.innerHTML = "<i>Options saved</i>";
@@ -9,43 +14,76 @@
           status.innerHTML = "";
         }, 750);
       }
-            
+         
+      function toArray(object) {
+        return([].slice.call(object, 0));
+      }
+      
       function save_options() {
-        function save_boolean(name) {
-          var checkbox = document.getElementById(name);
-          localStorage[name] = checkbox.checked ? '1': '0';
-        }
-        function save_string(name) {
-          var field = document.getElementById(name);
-          localStorage[name] = field.value || '';
-        }
-        save_string("mldonkey_url");
+        config = {}
+        toArray(document.getElementById("services").getElementsByClassName("service")).forEach(function(div, index) {
+          var inputs = div.getElementsByTagName("input");
+          var service = inputs[0].value, template_url = inputs[1].value;
+          if (service && template_url) {
+            config[index] = {service:service, template_url: template_url};
+          }
+        });
+        localStorage["services"] = JSON.stringify(config);
         feedback();
+      }
+      
+      function onload() {
+        for (key in services) {
+          var option = document.createElement("option");
+          option.text = key;
+          option.value = key;        
+          $('add').options.add(option);
+        }
+        restore_options();
       }
 
       function restore_options() {
-        function restore_boolean(name) {
-          var checkbox = document.getElementById(name);
-          checkbox.checked = localStorage[name] == '1';
+        config = JSON.parse(localStorage["services"]);
+        console.log(config);
+        for (index in config) {
+          options = config[index];
+          console.log(options);
+          add(options);
         }
-        function restore_string(name) {
-          var field = document.getElementById(name);
-          field.value = localStorage[name] || '';
-        }
-        restore_string("mldonkey_url");
+      }
+      
+      function add(options) {
+        div = document.createElement("div");
+        div.innerHTML = $('service_template').innerHTML.replace(/%service/g, options.service).replace(/%template_url/g, options.template_url || "");
+        $('services').appendChild(div); 
+      }
+      
+      function remove(link) {
+        parent = link.parentElement;
+        parent.parentElement.removeChild(parent);
       }
     </script>
   </head>
     
-  <body onload="restore_options()">
+  <body onload="onload()">
     <h2>Options</h2>
+    <div id="service_template" style="display: none">
+      <div class="service">
+        <label>%service</label>:
+        <input type="hidden" name="service" value="%service"></input>
+        <input type="text" size="64" name="template_url" value="%template_url"></input>
+        <a href="#" onclick="remove(this)">remove</a>
+      </div>      
+    </div>
         
     <div id="options">
-      <label for="mldonkey_url">Base URL for mldonkey server</label><br />
-      <input type="text" size="128" id="mldonkey_url"></input>
+      <select id="add" name="add"></select>
+      <button onclick="add({service: $('add').value})">Add</button>
+      <div id="services">
+      </div>
+      <span id="status"></span>
       <br /><br />
       <button onclick="save_options()">Save</button>
-      &nbsp;<span id="status"></span>
     </div>    
   </body>
 </html>
