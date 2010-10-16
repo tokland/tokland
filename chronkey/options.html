@@ -21,11 +21,13 @@
       
       function save_options() {
         config = {}
-        toArray(document.getElementById("services").getElementsByClassName("service")).forEach(function(div, index) {
-          var inputs = div.getElementsByTagName("input");
-          var service = inputs[0].value, template_url = inputs[1].value;
-          if (service && template_url) {
-            config[index] = {service:service, template_url: template_url};
+        toArray(document.getElementById("services").getElementsByClassName("service")).forEach(function(form, index) {
+          if (form.name.value && form.template_url.value) {
+            config[index] = {
+              service: form.service.value, 
+              name: form.name.value, 
+              template_url: form.template_url.value,
+            };
           }
         });
         localStorage["services"] = JSON.stringify(config);
@@ -53,7 +55,7 @@
       
       function add(options) {
         div = document.createElement("div");
-        div.innerHTML = $('service_template').innerHTML.replace(/%service/g, options.service).replace(/%template_url/g, options.template_url || "");
+        div.innerHTML = $('service_template').innerHTML.replace(/%service/g, options.service).replace(/%name/g, options.name || "").replace(/%template_url/g, options.template_url || "");
         $('services').appendChild(div); 
       }
       
@@ -67,12 +69,13 @@
   <body onload="onload()">
     <h2>Options</h2>
     <div id="service_template" style="display: none">
-      <div class="service">
+      <form class="service">
         <label>%service</label>:
         <input type="hidden" name="service" value="%service"></input>
+        <input type="text" size="20" name="name" value="%name"></input>
         <input type="text" size="64" name="template_url" value="%template_url"></input>
         <a href="#" onclick="remove(this)">remove</a>
-      </div>      
+      </form>      
     </div>
         
     <div id="options">

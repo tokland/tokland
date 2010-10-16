@@ -32,7 +32,6 @@ function on_submit(info, tab, options) {
   }
 }
 
-
 function add_menus() {
   var main = chrome.contextMenus.create({
     title: "Submit to service",
@@ -42,7 +41,7 @@ function add_menus() {
   for (index in config) {
     var options = config[index];
     chrome.contextMenus.create({
-      title: options.service,
+      title: options.name,
       contexts: ["link"],
       parentId: main,
       onclick: function(info, tab) { on_submit(info, tab, options); }
