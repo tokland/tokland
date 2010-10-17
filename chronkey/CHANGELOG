@@ -1,3 +1,9 @@
+chronkey (0.0.2) unstable; urgency=low
+
+  * Fix background javascript
+
+ --  <tokland@gmail.com>  Sun, 17 Oct 2010 22:15:38 +0200
+
 chronkey (0.0.1) unstable; urgency=high
 
   * First upload: support for mldonkey and qbittotrrent

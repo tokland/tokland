@@ -1,7 +1,7 @@
 {
   "name": "Chronkey",
-  "description": "Submit links to external service(MLDonkey, QBitTorrent, ...)",
-  "version": "0.0.1",
+  "description": "Submit links to P2P clients (MLDonkey, QBitTorrent, ...)",
+  "version": "0.0.2",
   "background_page": "background.html",
   "options_page": "options.html",
    "permissions": [
