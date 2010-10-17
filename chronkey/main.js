@@ -1,6 +1,6 @@
 function on_submit(info, tab, options) {
   var url = info.linkUrl;
-  var template_url = options.template_url;
+  var template_url = options.url;
   if (!template_url) {
     alert("No template URL configured");
     return;

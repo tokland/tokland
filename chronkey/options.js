@@ -7,7 +7,7 @@ function set_feedback(msg) {
   feedback.innerHTML = "<i>" + msg + "</i>";
   setTimeout(function() {
     feedback.innerHTML = "";
-  }, 750);
+  }, 1000);
 }
    
 function toArray(object) {
@@ -17,18 +17,34 @@ function toArray(object) {
 function save_options() {
   config = {}
   var services = document.getElementById("services").getElementsByClassName("service");
+  var errors = false;
   toArray(services).forEach(function(form, index) {
-    if (form.name.value && form.template_url.value) {
-      config[index] = {
-        service: form.service.value, 
-        name: form.name.value, 
-        template_url: form.template_url.value,
-      };
+    function check_field(input) {
+      if (!input.value) {
+        input.className = "error";
+        return false;
+      } else {
+        input.className = "";
+        return true;
+      }   
     }
+    if (!check_field(form.name))
+      errors = true;
+    if (!check_field(form.url))
+      errors = true;
+    config[index] = {
+      service: form.service.value, 
+      name: form.name.value, 
+      url: form.url.value,
+    };
   });
-  localStorage["services"] = JSON.stringify(config);
-  set_feedback("Options saved");
-  chrome.extension.sendRequest({'update_menus': true})
+  if (!errors) {
+    localStorage["services"] = JSON.stringify(config);
+    set_feedback("Options saved");
+    chrome.extension.sendRequest({'update_menus': true})
+  } else {
+    set_feedback("Errors found, cannot save");
+  }
 }
 
 function onload() {
@@ -52,7 +68,7 @@ function add(options) {
   var div = document.createElement("div");
   console.log(options);
   var service_name = services[options.service].human_name;
-  div.innerHTML = $('service_template').innerHTML.replace(/%service_name%/g, service_name).replace(/%service%/, options.service).replace(/%name%/g, options.name || "").replace(/%template_url%/g, options.template_url || "");
+  div.innerHTML = $('service_template').innerHTML.replace(/%service_name%/g, service_name).replace(/%service%/, options.service).replace(/%name%/g, options.name || "").replace(/%url%/g, options.url || "");
   $('services').appendChild(div); 
 }
 
