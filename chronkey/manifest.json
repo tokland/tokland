@@ -1,6 +1,6 @@
 {
   "name": "Chronkey",
-  "description": "Submit links to mldonkey",
+  "description": "Submit links to external service(MLDonkey, QBitTorrent, ...)",
   "version": "0.0.1",
   "background_page": "background.html",
   "options_page": "options.html",
