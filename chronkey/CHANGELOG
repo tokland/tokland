@@ -1,0 +1,5 @@
+chronkey (0.0.1) unstable; urgency=high
+
+  * First upload: support for mldonkey and qbittotrrent
+
+ --  <tokland@gmail.com>  Sun, 17 October 2010 19:49:02 +0100
