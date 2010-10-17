@@ -2,79 +2,23 @@
   <head>
     <title>Chronkey options</title>
     <script type="text/javascript" src="config.js"></script>
-    <script type="text/javascript">
-      $ = function(id) {
-        return document.getElementById(id);
-      }
-            
-      function feedback() {
-        var status = document.getElementById("status");
-        status.innerHTML = "<i>Options saved</i>";
-        setTimeout(function() {
-          status.innerHTML = "";
-        }, 750);
-      }
-         
-      function toArray(object) {
-        return([].slice.call(object, 0));
-      }
-      
-      function save_options() {
-        config = {}
-        toArray(document.getElementById("services").getElementsByClassName("service")).forEach(function(form, index) {
-          if (form.name.value && form.template_url.value) {
-            config[index] = {
-              service: form.service.value, 
-              name: form.name.value, 
-              template_url: form.template_url.value,
-            };
-          }
-        });
-        localStorage["services"] = JSON.stringify(config);
-        feedback();
-        chrome.extension.sendRequest({'update_menus': true})
-      }
-      
-      function onload() {
-        for (key in services) {
-          var option = document.createElement("option");
-          option.text = key;
-          option.value = key;        
-          $('add').options.add(option);
-        }
-        restore_options();
-      }
-
-      function restore_options() {
-        config = JSON.parse(localStorage["services"]);
-        for (index in config) {
-          options = config[index];
-          add(options);
-        }
-      }
-      
-      function add(options) {
-        div = document.createElement("div");
-        div.innerHTML = $('service_template').innerHTML.replace(/%service/g, options.service).replace(/%name/g, options.name || "").replace(/%template_url/g, options.template_url || "");
-        $('services').appendChild(div); 
-      }
-      
-      function remove(link) {
-        parent = link.parentElement;
-        parent.parentElement.removeChild(parent);
-      }
-    </script>
+    <script type="text/javascript" src="options.js"></script>
+    <style>
+      form { margin: 0px; }
+    </style>
   </head>
     
   <body onload="onload()">
     <h2>Options</h2>
     <div id="service_template" style="display: none">
       <form class="service">
-        <label>%service</label>:
-        <input type="hidden" name="service" value="%service"></input>
-        <input type="text" size="20" name="name" value="%name"></input>
-        <input type="text" size="64" name="template_url" value="%template_url"></input>
-        <a href="#" onclick="remove(this)">remove</a>
+        <br />
+        <input type="hidden" name="service" value="%service%"></input>
+        Name: <input type="text" size="20" name="name" value="%name%"></input>
+        (%service_name%)
+        <br />
+        URL: <input type="text" size="64" name="template_url" value="%template_url%"></input>
+        <a href="#" onclick="remove(this)">remove</a>        
       </form>      
     </div>
         
@@ -83,9 +27,14 @@
       <button onclick="add({service: $('add').value})">Add</button>
       <div id="services">
       </div>
-      <span id="status"></span>
       <br />
       <button onclick="save_options()">Save</button>
+      <span id="feedback"></span>
+    </div>
+
+    <hr />    
+    <div id="help">
+      URL example: <i>http://user:password@somewhere.far.beyond.com:4080</i>
     </div>    
   </body>
 </html>
