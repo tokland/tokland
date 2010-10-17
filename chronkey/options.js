@@ -65,10 +65,19 @@ function restore_options() {
 }
 
 function add(options) {
+  var namespace = {
+    name: options.name || "",
+    url: options.url || "http://user:password@server:port",
+    service_name: services[options.service].human_name, 
+    service: options.service,
+  };
+  
+  var html = $('service_template').innerHTML;
+  for (key in namespace) {
+    html = html.replace(new RegExp("%"+key+"%", "g"), namespace[key]);
+  }
   var div = document.createElement("div");
-  console.log(options);
-  var service_name = services[options.service].human_name;
-  div.innerHTML = $('service_template').innerHTML.replace(/%service_name%/g, service_name).replace(/%service%/, options.service).replace(/%name%/g, options.name || "").replace(/%url%/g, options.url || "");
+  div.innerHTML = html;
   $('services').appendChild(div); 
 }
 
