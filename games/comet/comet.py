@@ -59,22 +59,6 @@ def collide(obj1, obj2):
     else:
         return True    
 
-def process_traces(traces, comet, now, dt, new_x, new_y):
-    def _pop():
-        if len(traces) > 20 or comet.trace_memory_time > 0.025:
-            comet.trace_memory_time = 0.0
-            return True
-        else:
-            comet.trace_memory_time += dt
-            return False
-    def _append():
-        if not traces:
-            return True
-        else:
-            return module2(substract_vectors(traces[-1].position, (new_x, new_y))) >= 20.0
-    return (traces[1 if _pop() else 0:] + 
-        ([Trace(timestamp=now, position=comet.position, size=5)] if _append() else []))
-
 def module2(vector):
     return sum(x**2 for x in vector)
     
@@ -87,14 +71,36 @@ def add_vectors(*vectors):
 def multiply_vector(k, vector):
     return tuple(k*x for x in vector)
 
+def process_traces(traces, comet, now, dt, space_speed):
+    def _pop():
+        if len(traces) > 20 or comet.trace_memory_time > 0.025:
+            comet.trace_memory_time = 0.0
+            return True
+        else:
+            comet.trace_memory_time += dt
+            return False
+    def _append():
+        if len(traces) < 10:
+            return True
+        else:
+            return (module2(substract_vectors(traces[-1].position, comet.position)) >= 20.0)
+    if _pop():
+        traces.pop(0)
+    if _append():
+        trace = Trace(timestamp=now, position=comet.position, size=5)
+        traces.append(trace)
+    for trace in traces:
+        trace.position = add_vectors(trace.position, multiply_vector(dt, space_speed))
+    return traces        
+
 def process_game(game, mouse, now, dt):
     if game.state == "wait_start":
-        if mouse.buttons[0]:
-            game.state = "playing"
-            game.meteors = []
-            game.comet = Comet(position=(320, 400), traces=[], size=5, trace_memory_time=0, 
-                energy=100, fscore=0.0, score=0)
-        return
+        if not mouse.buttons[0]:
+            return
+        game.state = "playing"
+        game.meteors = []
+        game.comet = Comet(position=(320, 400), traces=[], size=5, trace_memory_time=0, 
+            energy=100, fscore=0.0, score=0, collision=False)
     x, y = game.comet.position
     traces = game.comet.traces
     mouse_x, mouse_y = mouse.position
@@ -107,9 +113,10 @@ def process_game(game, mouse, now, dt):
     if substract_angles(angle, new_angle) > math.pi / 2:
         # an abrupt change of angle means that the comet overtook the mouse pointer 
         new_x, new_y = mouse_x, mouse_y
-        
-    new_traces = process_traces(traces, game.comet, now, dt, new_x, new_y)
     
+    new_traces = process_traces(traces, game.comet, now, dt, (0, 100))
+    
+    game.comet.collision = False
     for meteor in game.meteors[:]:
         mx, my = meteor.position
         meteor.position = mx + dt*meteor.speed[0], my + dt*meteor.speed[1]
@@ -120,6 +127,7 @@ def process_game(game, mouse, now, dt):
         collision = any(collide(meteor, comet) for comet in 
             itertools.chain(take_every(10, game.comet.traces), [game.comet]))
         if collision:            
+            game.comet.collision = True
             game.comet.energy -= 150.0*dt
             if game.comet.energy < 0:
                 game.state = "wait_start"
@@ -127,19 +135,17 @@ def process_game(game, mouse, now, dt):
     game.comet.fscore += 100.0 * dt
     game.comet.score = ((int(game.comet.fscore)/50)*50)
     
-    if random.random() < 0.05: 
+    if game.state == "playing" and random.random() < 0.03: 
         sw, sh = game.screen
         perimeter = 2 * (sw + sh)
         lst = [((0, 0), (+1, 0)), ((sw, 0), (0, +1)), ((sw, sh), (-1, 0)), ((0, sh), (0, -1))] 
-        #div, mod = divmod(random.uniform(0, perimeter), sw)
-        #mod = 0
         div, mod = random.uniform(0, sw), random.choice(range(4))
+        mod = 0
         point, vector = lst[int(mod)]
         position = add_vectors(point, multiply_vector(div, vector))
-        new_meteor = Meteor(position=position, size=int(random.uniform(5, 20)), 
-            speed=(random.uniform(-150, 250), random.choice([-150, 200])))
+        new_meteor = Meteor(position=position, size=int(random.uniform(5, 10)), 
+            speed=(random.uniform(-45, 45), random.choice([300, 400])))
         game.meteors.append(new_meteor)
-       
 
     game.comet.position = (new_x, new_y)
     game.comet.traces = new_traces
@@ -159,6 +165,7 @@ Comet = struct("Comet",
     energy=int,
     fscore=float,
     score=int,
+    collision=bool,
 )
 Meteor = struct("Meteor", 
     position=(float, float), 
@@ -172,8 +179,9 @@ Game = struct("Game", comet=Comet, meteors=[Meteor], screen=(float, float), stat
 def main(args):
     screen = create_screen((640, 480), "Comet")
     comet = Comet(position=(320, 400), traces=[], size=5, trace_memory_time=0, 
-        energy=100.0, fscore=0.0, score=0)
+        energy=100.0, fscore=0.0, score=0, collision=False)
     game = Game(comet=comet, meteors=[], screen=screen.get_size(), state="wait_start")
+    #game = Game(comet=comet, meteors=[], screen=screen.get_size(), state="only_meteor")
     itime = time.time()
     fps_value, fps_temp, fps_itime = 0, 0, itime
     pygame.font.init()
@@ -181,15 +189,17 @@ def main(args):
     font = pygame.font.SysFont(fontname, 24)
     while 1:
         # Draw
+        game.comet.collision
         screen.fill((0, 0, 0))
         screen.blit(font.render("fps: %0.0f" % fps_value, False, (0,255,0)), (10, 10))
         for trace in game.comet.traces:
-            color = (255, min(255, 500*(itime-trace.timestamp)), 0)
+            color0 = (255, min(255, 500*(itime-trace.timestamp)), 0)
+            color = ((255,255,255) if game.comet.collision else color0)
             pygame.draw.circle(screen, color, map(int, trace.position), 5)
         color = (255,128+127*math.sin(itime*5.0),0)
         pygame.draw.circle(screen, color, map(int, game.comet.position), 6)
         for meteor in game.meteors:
-            color = (155, 255, 255)
+            color = (200, 255, 155)
             pygame.draw.circle(screen, color, map(int, meteor.position), meteor.size)
         
         if game.state == "wait_start":
@@ -201,7 +211,8 @@ def main(args):
         #pygame.draw.rect(screen, (0,0,0), (0, 480-30, 640, 30), 0)
         screen.blit(font.render("Score: %d" % game.comet.score, False, 
             (255,255,255)), (640-120, 480-40))
-        pygame.draw.rect(screen, (255,0,0), (640-120, 480-20, game.comet.energy, 10), 0)
+        color = ((255,255,255) if game.comet.collision else (255,0,0))
+        pygame.draw.rect(screen, color, (640-120, 480-20, game.comet.energy, 10), 0)
         pygame.display.flip()
         
         # Events    
