@@ -7,13 +7,15 @@
 # Contact: Arnau Sanchez <tokland@gmail.com>.
 # License: GNU GPL v3.0: http://www.gnu.org/licenses/gpl-3.0-standalone.html
 #
-# Exit status: 
-#   0: Download successful
-#   1: Arguments error
-#   2: Dead link
-#   3: Parsing error
-#   4: Network problems
-#   5: Generic error
+# Exit status:
+#    
+#   0 - Download successful
+#   1 - Arguments error
+#   2 - Dead link
+#   3 - Parsing error
+#   4 - Network problems
+#   5 - Generic error
+#   6 - Link problem 
 
 # Echo a message to stderr
 stderr() { echo "$@" >&2; }
@@ -38,7 +40,7 @@ show_ascii_image() {
   aview --version &>/dev/null || 
     { debug "Install package aview to see the captcha"; return 1; } 
   convert $1 -negate -depth 8 pnm:- |
-    aview -width 60 -height 20 -kbddriver stdin -driver stdout <(cat) 2>/dev/null <<< "q" |
+    aview -width 60 -height 20 -kbddriver stdin <(cat) 2>/dev/null <<< "q" |
     sed -e '1d;/\x0C/,/\x0C/d' | grep -v "^[[:space:]]*$" >&2
 }
 
@@ -63,6 +65,8 @@ megaupload_download() {
       { error "downloading main page"; return 4; }
     match "the link you have clicked is not available" "$PAGE" && 
       { info "Dead link"; return 2; }
+    MSG=$(echo "$PAGE" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<\/center>' 2>/dev/null) &&
+      { error "Server reported this problem: $MSG"; return 6; }
     CAPTCHACODE=$(echo "$PAGE" | parse_form_input captchacode) ||
       { error "parsing captchacode field"; return 3; }
     MEGAVAR=$(echo "$PAGE" | parse_form_input megavar) ||
@@ -70,26 +74,26 @@ megaupload_download() {
     CAPTCHA_URL=$(echo "$PAGE" | parse "gencap.php" 'img src="\([^"]*\)') ||
       { error "parsing captcha image"; return 3; }
     info "GET $CAPTCHA_URL"
-    CAPTCHA=$(curl -s "$CAPTCHA_URL" | convert - +matte gif:- | 
-              ocr | head -n1 | tr -d -c "[0-9a-zA-Z]") ||
-      { error "decoding captcha (are imagemagick and tesseract installed?)"; return 5; }
+    CAPTCHA=$(curl -s "$CAPTCHA_URL" | convert - +matte gif:- | ocr | 
+              head -n1 | tr -d -c "[0-9a-zA-Z]") ||
+      { error "decoding captcha (imagemagick/tesseract installed?)"; return 5; }
     info "POST $CAPTCHA_URL (captcha=$CAPTCHA)"
     WAITPAGE=$(curl -s -F "captchacode=$CAPTCHACODE" -F "megavar=$MEGAVAR" \
                        -F "captcha=$CAPTCHA" "$URL") ||
       { error "in captcha form POST"; return 4; }
     WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" \
                                         "count=\([[:digit:]]\+\);" 2>/dev/null) ||
-      { info "cannot get wait time (probably wrong captcha), retrying"; continue; }
+      { info "Wait time not found (wrong captcha?), retrying"; continue; }
     break
   done
      
-  info "Waiting $WAITTIME seconds"
+  info "Valida captcha, waiting $WAITTIME seconds"
   FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
     { error "getting download link"; return 3; }
   sleep $WAITTIME
   FILENAME=$(basename "$FILEURL" | recode html..utf8) ||
-    { error "recoding file name (is recode installed?)"; return 5; }
-  info "GET $FILEURL" 
+    { error "recoding file name (recode installed?)"; return 5; }
+  info "GET $FILEURL (save to $FILENAME)" 
   curl --globoff -o "$FILENAME" -C - "$FILEURL" ||
     { error "getting file"; return 4; }
   echo "$FILENAME"
