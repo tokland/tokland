@@ -47,8 +47,8 @@ tobool() { "$@" > /dev/null && echo 1 || echo 0; }
 #   4: Max retries reached
 loop() {
   local MAXTRIES=$1; local LOOPWAIT=$2; local TIMEOUT=$3; 
-  local BREAK_RETVALS=${4:-0}; local NEGATE=${5:-0}
-  shift 5
+  local BREAK_RETVALS=${4:-0}; local NEGATE=${5:-0}; local FOREVER=$6
+  shift 6
   
   BREAK_RETVALS=$(eval echo $BREAK_RETVALS)
   ITIME=$(date +%s)
@@ -56,8 +56,9 @@ loop() {
    
   while read TRY; do
     "$@" <&3 && RETVAL=0 || RETVAL=$?
+    debug "try=$TRY, retval: $RETVAL (break retvals: $BREAK_RETVALS, negate: $NEGATE, forever: $FOREVER)"
+    test "$FOREVER" = 1 && continue
     INARRAY=$(tobool word_in_list "$BREAK_RETVALS" $RETVAL)
-    debug "try=$TRY, retval: $RETVAL (break retvals: $BREAK_RETVALS, negate: $NEGATE)"
     test \( $INARRAY -eq 1 -a "$NEGATE" -eq 0 \) -o \
          \( $INARRAY -eq 0 -a "$NEGATE" -eq 1 \) && return 0
     test "$TIMEOUT" && expr $(date +%s) - $ITIME + $LOOPWAIT \> $TIMEOUT >/dev/null && {
@@ -71,8 +72,15 @@ loop() {
 }  
 
 usage() {
-  stderr "Usage: $(basename $0) [-q] [-n] [-b BREAK_RETVALS (default: 0)] [-m MAXTRIES]  
-           [-w LOOPWAIT] [-t TIMEOUT] COMMAND [ARGS]"
+  stderr -e "Usage: $(basename $0) [OPTIONS] COMMAND [COMMAND_ARGS]\n"
+  stderr "Options:"
+  stderr "  -q: Be quiet"
+  stderr "  -n: Negate the break statuses (see -b)"
+  stderr "  -f: Force a never-ending loop"
+  stderr "  -b STRING: Space-separated list of status that break loop (defaults to '0')"
+  stderr "  -t SECONDS: maximum execution time before abortin the loop"
+  stderr "  -m MAXTRIES: Maximum tries before aborting the loop"
+  stderr "  -w SECONDS: time to wait between loop executions"
 }
 
 ### Main
@@ -80,10 +88,11 @@ usage() {
 MAXTRIES=
 LOOPWAIT=1 
 NEGATE=0
+FOREVER=0
 TIMEOUT=
 BREAK_RETVALS=
 test $# -eq 0 && set -- "-h"
-while getopts "t:m:w:b:nqh" ARG; do
+while getopts "t:m:w:b:nqfh" ARG; do
   case "$ARG" in
   q) QUIET=1;;
   m) MAXTRIES=$OPTARG;;
@@ -91,10 +100,11 @@ while getopts "t:m:w:b:nqh" ARG; do
   t) TIMEOUT=$OPTARG;;
   b) BREAK_RETVALS=$OPTARG;;
   n) NEGATE=1;;
+  f) FOREVER=1;;
   h) usage; exit 2;;
 	*) usage; exit 2;;
 	esac
 done
 shift $(($OPTIND-1))
 
-loop "$MAXTRIES" "$LOOPWAIT" "$TIMEOUT" "$BREAK_RETVALS" "$NEGATE" "$@"
+loop "$MAXTRIES" "$LOOPWAIT" "$TIMEOUT" "$BREAK_RETVALS" "$NEGATE" "$FOREVER" "$@"
