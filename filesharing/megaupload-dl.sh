@@ -1,11 +1,17 @@
 #!/bin/bash
 #
-# Download a file from Megaupload with automatic captcha decoding
+# Download a file from Megaupload (free-download) with automatic captcha 
+# decoding (uses tesseract OCR), and output the downloaded filename to stdout.
 #
 # Dependencies: bash, curl, recode, imagemagick, tesseract-ocr (optional: aview)
 # Web: http://code.google.com/p/tokland
 # Contact: Arnau Sanchez <tokland@gmail.com>.
 # License: GNU GPL v3.0: http://www.gnu.org/licenses/gpl-3.0-standalone.html
+#
+# Usage example:
+# 
+#   $ megaupload-dl http://megaupload.com/?d=710JVG89
+#   03.Crazy Man Michael.mp3
 #
 # Exit status:
 #    
@@ -15,7 +21,7 @@
 #   3 - Parsing error
 #   4 - Network problems
 #   5 - Generic error
-#   6 - Link problem 
+#   6 - Link problem (not available, blocked, ...) 
 
 # Echo a message to stderr
 stderr() { echo "$@" >&2; }
@@ -41,7 +47,7 @@ show_ascii_image() {
     { debug "Install package aview to see the captcha"; return 1; } 
   convert $1 -negate -depth 8 pnm:- |
     aview -width 60 -height 20 -kbddriver stdin <(cat) 2>/dev/null <<< "q" |
-    sed -e '1d;/\x0C/,/\x0C/d' | grep -v "^[[:space:]]*$" >&2
+    sed -e '1d;/\x0C/,/\x0C/d' | grep -v "^[[:space:]]*$"
 }
 
 # Convert image to text
@@ -49,7 +55,7 @@ ocr() {
   local TIFF=$(tempfile --suffix=".tif")
   local TEXT=$(tempfile --suffix=".txt")
   convert - tif:- > $TIFF
-  show_ascii_image $TIFF || true
+  show_ascii_image $TIFF 1>&2 || true
   tesseract $TIFF ${TEXT/%.txt}
   cat $TEXT
   rm -f $TIFF $TEXT
@@ -87,7 +93,7 @@ megaupload_download() {
     break
   done
      
-  info "Valida captcha, waiting $WAITTIME seconds"
+  info "Valid captcha, waiting $WAITTIME seconds before downloading"
   FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
     { error "getting download link"; return 3; }
   sleep $WAITTIME
