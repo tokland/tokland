@@ -61,7 +61,7 @@ loop() {
     if test \( $INARRAY -eq 1 -a "$COMPLEMENT" -eq 0 \) -o \
          \( $INARRAY -eq 0 -a "$COMPLEMENT" -eq 1 \); then
       return 0
-    elif test "$TIMEOUT" -a $(($(date +%s) - $ITIME + $LOOPWAIT)) -gt $TIMEOUT; then
+    elif test "$TIMEOUT" && test $(($(date +%s) - $ITIME + $LOOPWAIT)) -gt $TIMEOUT; then
       debug "timeout reached: $TIMEOUT"
       return 3
     fi
