@@ -5,24 +5,33 @@ debug() {
   echo "$@" >&2; 
 }
 
-OUTPUTDIR="html/"
+scurl() {
+  for TRY in $(seq 10); do
+    curl "$@" && return 0
+  done
+  debug "error: curl $@"
+  return 1     
+}
+
+OUTPUTDIR="html"
 mkdir -p "$OUTPUTDIR"
 START_URL=${1:-"http://www.diccionari.cat/cgi-bin/AppDLC3.exe?APP=CERCADLC&GECART=0"}
 URL=$START_URL
 while true; do
   debug "page: $URL"
   echo "$URL"
-  PAGE=$(curl "$URL")
-  echo "$PAGE" | sed "s#\(</[^>]*>\)#\1\n#g" | grep 'LLISTA_D' | 
+  PAGE=$(scurl "$URL")
+  echo "$PAGE" | sed "s#\(</[^>]*>\)#\1\n#g" | grep 'LLISTA_D' | recode html..utf8 | 
       sed -n 's/^.*href="\(.*\)".*CLASS.*>\(.*\)<.*$/\1 \2/p' | while read URL WORD; do
+    test "$URL" -a "$WORD" || continue
     debug "$WORD: $URL"
     FILE="$OUTPUTDIR/$WORD.html"
     test -e "$FILE" -a -s "$FILE" && 
       { debug "skip existing file: $FILE"; continue; }
-    curl -o "$FILE" "$URL"
+    scurl -o "$FILE" "$URL"
     echo $FILE
   done
-  P=$(echo "$PAGE" | grep -o 'javascript:seguents([^;]*' | cut -d"(" -f2 | tr -d ')') || true
+  P=$(echo "$PAGE" | grep -o 'javascript:seguents([^)]*' | cut -d"(" -f2) || true
   test "$P" || break
   URL="http://www.diccionari.cat/cgi-bin/AppDLC3.exe?APP=SEGUENTS&P=$P"
 done
