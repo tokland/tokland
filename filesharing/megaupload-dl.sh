@@ -3,8 +3,8 @@
 # Download a file from Megaupload (free download, no account required) with 
 # automatic captcha recognition. 
 #
-# Dependencies: bash, curl, recode, imagemagick, tesseract-ocr (optional: aview)
-# License: GNU GPL v3.0: http://www.gnu.org/licenses/gpl-3.0-standalone.html
+# Dependencies: bash, curl, imagemagick, tesseract-ocr (optional: recode, aview)
+# License: GNU/GPL3: http://www.gnu.org/licenses/gpl-3.0-standalone.html
 #
 # = Install
 #
@@ -16,18 +16,18 @@
 #   $ megaupload-dl http://megaupload.com/?d=710JVG89
 #   03.Crazy Man Michael.mp3
 #
-#   $ xargs -n1 megaupload-dl < file_with_links.txt
+#   $ xargs -n1 megaupload-dl < file_with_one_link_per_line.txt
 #   [...]
 #
 # = Exit status
 #    
-# 0 - Download successful
-# 1 - Arguments error
-# 2 - Dead link
-# 3 - Parsing error
-# 4 - Network problems
-# 5 - Generic error
-# 6 - Some problem with the link (not available, blocked, ...)
+#   0 - Download successful
+#   1 - Arguments error
+#   2 - Dead link
+#   3 - Parsing error
+#   4 - Network problems
+#   5 - Generic error
+#   6 - Some problem with the link (not available, blocked, ...)
 # 
 # = Feedback
 #
@@ -81,32 +81,23 @@ ocr() {
   rm -f $TIFF $TEXT
 }
 
-# Recode string (safe execution, it won't fail if recode is not installed)
-safe_recode() {
-  if recode --version </dev/null &>/dev/null; then   
-    recode "$@"
-  else
-    info "no recode executable found (is package recode installed?)"
-    cat 
-  fi
-}
-
-# Echo an error message to stderr
+# Print an error with key $1 (see EXIT_STATUSES) and message $2. 
+# Return numeric status code
 error() {
   ERROR_KEY=$1
   ERROR_MSG=$2 
-  for ((I=0; I<${#EXIT_STATUSES[@]}; I++)); do
-    if test "${EXIT_STATUSES[$I]}" = "$ERROR_KEY"; then
+  for ((SC=0; SC<${#EXIT_STATUSES[@]}; SC++)); do
+    if test "${EXIT_STATUSES[$SC]}" = "$ERROR_KEY"; then
       stderr "ERROR [$ERROR_KEY]: $ERROR_MSG"
-      echo $I
+      echo $SC
       return
     fi 
   done
-  stderr "unknown error key: $ERROR_KEY"
+  stderr "ERROR [bug]: unknown error key: $ERROR_KEY ($ERROR_MSG)"
   return 255
 }
 
-# Download a Megaupload link $1 
+# Download a Megaupload link ($1) and return download file path 
 megaupload_download() {
   URL=$1
   
@@ -138,12 +129,12 @@ megaupload_download() {
     break
   done
 
-  info "Valid captcha, waiting $WAITTIME seconds before starting download"
   FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
     return $(error parsing "download link not found")
-  FILENAME=$(basename "$FILEURL" | safe_recode html..utf8)
+  FILENAME=$(basename "$FILEURL" | { recode2 html..utf8 || cat; })
+  info "Valid captcha, waiting $WAITTIME seconds before starting download"
   sleep $WAITTIME
-  info "GET $FILEURL"
+  info "GET $FILEURL (=> $FILENAME)"
   curl --globoff -o "$FILENAME" -C - "$FILEURL" ||
     return $(error network "getting file")
   echo "$FILENAME"
@@ -156,5 +147,5 @@ if ! match "bash" "$0"; then
     stderr "Usage: $(basename $0) MEGAUPLOAD_URL"
     exit 1
   fi
-  FILENAME=$(megaupload_download "$1") && echo $FILENAME
+  FILENAME=$(megaupload_download "$1") && echo "$FILENAME"
 fi
