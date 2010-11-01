@@ -1,30 +1,10 @@
 #!/bin/bash
 #
-# Download a file from Megaupload (free download, no account required) with 
-# automatic captcha recognition. 
+# megaupload-dl: Download a file from Megaupload (free download, no account 
+# required) with automatic captcha recognition. 
 #
-# Dependencies: bash, curl, imagemagick, tesseract-ocr (optional: recode, aview)
-# License: GNU/GPL3: http://www.gnu.org/licenses/gpl-3.0-standalone.html
-#
-# = Install
-#
-#   $ cp megaupload-dl.sh /usr/local/bin/megaupload-dl
-#   $ chmod +x /usr/local/bin/megaupload-dl
-#
-# = Usage examples
-# 
-#   $ megaupload-dl http://megaupload.com/?d=710JVG89
-#   03.Crazy Man Michael.mp3
-#
-#   $ xargs -n1 megaupload-dl < file_with_one_link_per_line.txt
-#   some_file
-#   another_file
-#   ...
-#
-# = Feedback
-#
-# Author: Arnau Sanchez <tokland@gmail.com>.
-# Report bugs: http://code.google.com/p/tokland/issues/list
+# Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
+# Author: (2010) Arnau Sanchez <tokland@gmail.com>
 
 EXIT_STATUSES=(
   [0]=ok 
