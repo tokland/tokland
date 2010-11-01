@@ -17,18 +17,10 @@
 #   03.Crazy Man Michael.mp3
 #
 #   $ xargs -n1 megaupload-dl < file_with_one_link_per_line.txt
-#   [...]
+#   some_file
+#   another_file
+#   ...
 #
-# = Exit status
-#    
-#   0 - Download successful
-#   1 - Arguments error
-#   2 - Dead link
-#   3 - Parsing error
-#   4 - Network problems
-#   5 - Generic error
-#   6 - Some problem with the link (not available, blocked, ...)
-# 
 # = Feedback
 #
 # Author: Arnau Sanchez <tokland@gmail.com>.
@@ -38,14 +30,16 @@ EXIT_STATUSES=(
   [0]=ok 
   [1]=arguments 
   [2]=deadlink 
-  [3]=parsing 
-  [4]=network 
-  [5]=generic 
-  [6]=link_problem
+  [3]=link_problem 
+  [4]=ocr
+  [5]=parse 
+  [6]=network
+  [7]=unknown_link
+  [255]=runtime
 )
 
 # Echo a message to stderr
-stderr() { echo "$@" >&2; }
+stderr() { echo -e "$@" >&2; }
 
 # Echo an info message to stderr
 info() { stderr "--- $@"; }
@@ -84,22 +78,24 @@ ocr() {
 # Print an error with key $1 (see EXIT_STATUSES) and message $2. 
 # Return numeric status code
 error() {
-  ERROR_KEY=$1
-  ERROR_MSG=$2 
+  local KEY=$1; local MSG=$2 
   for ((SC=0; SC<${#EXIT_STATUSES[@]}; SC++)); do
-    if test "${EXIT_STATUSES[$SC]}" = "$ERROR_KEY"; then
-      stderr "ERROR [$ERROR_KEY]: $ERROR_MSG"
+    if test "${EXIT_STATUSES[$SC]}" = "$KEY"; then
+      stderr "ERROR [$KEY]: $MSG"
       echo $SC
       return
     fi 
   done
-  stderr "ERROR [bug]: unknown error key: $ERROR_KEY ($ERROR_MSG)"
-  return 255
+  stderr "ERROR [runtime]: unknown error key: $KEY ($MSG)"
+  echo 255
 }
 
 # Download a Megaupload link ($1) and return download file path 
 megaupload_download() {
   URL=$1
+  
+  match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
+    return $(error unknown_link "this does not seem a megaupload link: $URL")
   
   while true; do 
     info "GET $URL"
@@ -107,18 +103,18 @@ megaupload_download() {
       return $(error network "downloading main page")
     match "the link you have clicked is not available" "$PAGE" && 
       return $(error deadlink "Link is dead")
-    MSG=$(echo "$PAGE" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<\/center>' 2>/dev/null) &&
+    MSG=$(echo "$PAGE" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<' 2>/dev/null) &&
       return $(error link_problem "server says: '$MSG'")
     CAPTCHACODE=$(echo "$PAGE" | parse_form_input captchacode) ||
-      return $(error parsing "captchacode field")
+      return $(error parse "captchacode field")
     MEGAVAR=$(echo "$PAGE" | parse_form_input megavar) ||
-      return $(error parsing "megavar field")      
+      return $(error parse "megavar field")      
     CAPTCHA_URL=$(echo "$PAGE" | parse "gencap.php" 'img src="\([^"]*\)') ||
-      return $(error parsing "captcha image")
+      return $(error parse "captcha image")
     info "GET $CAPTCHA_URL"
     CAPTCHA=$(curl -s "$CAPTCHA_URL" | convert - +matte gif:- | ocr | 
               head -n1 | tr -d -c "[0-9a-zA-Z]") ||
-      return $(error generic "decoding captcha (imagemagick/tesseract installed?)")
+      return $(error ocr "decoding captcha (are imagemagick/tesseract installed?)")
     info "POST $URL (captcha=$CAPTCHA)"
     WAITPAGE=$(curl -s -F "captchacode=$CAPTCHACODE" -F "megavar=$MEGAVAR" \
                        -F "captcha=$CAPTCHA" "$URL") ||
@@ -130,8 +126,8 @@ megaupload_download() {
   done
 
   FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
-    return $(error parsing "download link not found")
-  FILENAME=$(basename "$FILEURL" | { recode2 html..utf8 || cat; })
+    return $(error parse "download link not found")
+  FILENAME=$(basename "$FILEURL" | { recode html..utf8 || cat; })
   info "Valid captcha, waiting $WAITTIME seconds before starting download"
   sleep $WAITTIME
   info "GET $FILEURL (=> $FILENAME)"
@@ -144,8 +140,9 @@ megaupload_download() {
 if ! match "bash" "$0"; then
   set -e -u -o pipefail
   if test $# -ne 1; then
-    stderr "Usage: $(basename $0) MEGAUPLOAD_URL"
+    stderr "Usage: $(basename $0) MEGAUPLOAD_URL\n"
+    stderr "  Download a Megaupload file (path is written to stdout)"
     exit 1
   fi
-  FILENAME=$(megaupload_download "$1") && echo "$FILENAME"
+  megaupload_download "$1"
 fi
