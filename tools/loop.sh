@@ -100,7 +100,7 @@ while getopts "t:m:w:b:cqfh" ARG; do
   w) LOOPWAIT=$OPTARG;;
   t) TIMEOUT=$OPTARG;;
   b) BREAK_RETVALS=$OPTARG;;
-  n) COMPLEMENT=1;;
+  c) COMPLEMENT=1;;
   f) FOREVER=1;;
   h) usage; exit 2;;
 	*) usage; exit 2;;
