@@ -7,14 +7,14 @@
 # Author: (2010) Arnau Sanchez <tokland@gmail.com>
 
 EXIT_STATUSES=(
-  [0]=ok 
-  [1]=arguments 
-  [2]=deadlink 
-  [3]=link_problem 
-  [4]=ocr
-  [5]=parse 
-  [6]=network
-  [7]=unknown_link
+  [0]=ok            
+  [1]=arguments
+  [2]=unknown_link
+  [3]=deadlink
+  [4]=link_problem
+  [5]=ocr
+  [6]=parse
+  [100]=network
   [255]=runtime
 )
 
@@ -52,14 +52,14 @@ ocr() {
   done
   tesseract $TIFF ${TEXT/%.txt}
   cat $TEXT
-  rm -f $TIFF $TEXT
+  #rm -f $TIFF $TEXT
 }
 
 # Print an error with key $1 (see EXIT_STATUSES) and message $2. 
 # Return numeric status code
 error() {
   local KEY=$1; local MSG=$2 
-  for ((SC=0; SC<${#EXIT_STATUSES[@]}; SC++)); do
+  for SC in ${!EXIT_STATUSES[@]}; do
     if test "${EXIT_STATUSES[$SC]}" = "$KEY"; then
       stderr "ERROR [$KEY]: $MSG"
       echo $SC
@@ -72,8 +72,7 @@ error() {
 
 # Download a Megaupload link ($1) and return download file path 
 megaupload_download() {
-  URL=$1
-  
+  URL=$1  
   match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
     return $(error unknown_link "this does not seem a megaupload link: $URL")
   
@@ -92,9 +91,14 @@ megaupload_download() {
     CAPTCHA_URL=$(echo "$PAGE" | parse "gencap.php" 'img src="\([^"]*\)') ||
       return $(error parse "captcha image")
     info "GET $CAPTCHA_URL"
-    CAPTCHA=$(curl -s "$CAPTCHA_URL" | convert - +matte gif:- | ocr | 
-              head -n1 | tr -d -c "[0-9a-zA-Z]") ||
-      return $(error ocr "decoding captcha (are imagemagick/tesseract installed?)")
+    CAPTCHA_IMG=$(tempfile) 
+    curl -s -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
+      return $(error network "getting captcha image")
+    CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | tr -d -c "[0-9a-zA-Z]") || {
+      rm -f "$CAPTCHA_IMG"
+      return $(error ocr "imagemagick/tesseract installed?") 
+    }
+    rm -f "$CAPTCHA_IMG"
     info "POST $URL (captcha=$CAPTCHA)"
     WAITPAGE=$(curl -s -F "captchacode=$CAPTCHACODE" -F "megavar=$MEGAVAR" \
                        -F "captcha=$CAPTCHA" "$URL") ||
@@ -102,18 +106,32 @@ megaupload_download() {
     WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" \
                                         "count=\([[:digit:]]\+\);" 2>/dev/null) ||
       { info "Wait time not found in response (wrong captcha?), retrying"; continue; }
+    FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
+      return $(error parse "download link not found")
+    FILENAME=$(basename "$FILEURL" | { recode html..utf8 || cat; })
+    info "Valid captcha, waiting $WAITTIME seconds before starting download"
+    sleep $WAITTIME
+    info "GET $FILEURL"
+    HTTP_CODE=$(curl -w "%{http_code}" --globoff -o "$FILENAME" "$FILEURL") ||
+      return $(error network "getting file")
+    if ! match "2.." "$HTTP_CODE"; then
+      info "HTTP code: $HTTP_CODE"
+      if grep -iq "limit exceeded" "$FILENAME"; then        
+        URL=$(cat "$FILENAME" | parse "url=" "url=\([^\"]*\)") ||
+          return $(error parse "limit URL")
+        MINUTES0=$(curl -s "$URL" | parse "Please wait" "wait \([[:digit:]]\+\) minutes") ||
+          return $(error parse "limit time wait")
+        MINUTES=${MINUTES0:-5}
+        info "Download limit exceeded: waiting $MINUTES minutes by server request"
+        sleep $((MINUTES*60))
+      else
+        info "no limit message was found. Retry"
+      fi
+      continue
+    fi
+    echo "$FILENAME"
     break
   done
-
-  FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
-    return $(error parse "download link not found")
-  FILENAME=$(basename "$FILEURL" | { recode html..utf8 || cat; })
-  info "Valid captcha, waiting $WAITTIME seconds before starting download"
-  sleep $WAITTIME
-  info "GET $FILEURL (=> $FILENAME)"
-  curl --globoff -o "$FILENAME" -C - "$FILEURL" ||
-    return $(error network "getting file")
-  echo "$FILENAME"
 }
 
 # Main
