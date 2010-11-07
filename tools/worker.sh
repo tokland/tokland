@@ -29,7 +29,7 @@ worker() {
       else
         CODE=$(test $RV -ne 0 && echo $RV || true)
         info "mark file: $FILE"
-        sed -i "s@^[[:space:]]*\($ARG\)[[:space:]]*\$@\#$CODE \1@" "$FILE"      
+        replace "$ARG" "#$CODE $ARG" -- "$FILE"      
       fi
     done < <(grep -v "^#" $FILE)
   done 
