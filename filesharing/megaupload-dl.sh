@@ -1,15 +1,16 @@
 #!/bin/bash
 #
-# megaupload-dl: Download a file from Megaupload (free download, no account 
-# required) with automatic captcha recognition. 
+# Download a file from Megaupload (free download, no account required) with 
+# automatic captcha recognition. 
 #
 # Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
 # Author: Arnau Sanchez <tokland@gmail.com>
+#
 
 EXIT_STATUSES=(
   [0]=ok     
   # Non-retryable       
-  [1]=unknown_link
+  [1]=link_unknown
   [2]=arguments
   [3]=link_dead
   [4]=link_problem
@@ -19,7 +20,7 @@ EXIT_STATUSES=(
   [8]=password_error
   # Retryable
   [100]=network
-  [101]=temporally_unavailable
+  [101]=link_temporally_unavailable
 )
 
 # Set EXIT_STATUS_key variables (poor man's associative array for Bash)
@@ -64,21 +65,20 @@ ocr() {
   rm -f $TIFF $TEXT
 }
 
-# Print an error with key $1 (see EXIT_STATUSES) and message $2. Return numeric status code
+# Echo error with key $1 (see EXIT_STATUSES) and message $2. Return numeric status code.
 error() {
   local KEY=$1; local MSG=$2
-  local VAR=EXIT_STATUS_$KEY
-  local VALUE=${!VAR}
   stderr -n "ERROR [$KEY]"
   test "$MSG" && stderr ": $MSG" || stderr
-  echo $VALUE
+  local VAR="EXIT_STATUS_$KEY"
+  echo ${!VAR}
 }
 
-# Search info message in HTML page $1 (temporally_unavailable, ...)
+# Search info message in HTML page $1 (link_temporally_unavailable, ...)
 check_link_problems() {
   local MSG=$(echo "$1" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<' 2>/dev/null) || true
   match "temporarily unavailable" "$MSG" &&
-    return $(error temporally_unavailable "File is temporarily unavailable")
+    return $(error link_temporally_unavailable "File is temporarily unavailable")
   test "$MSG" && return $(error link_problem "server says: '$MSG'")
   return 0
 }
@@ -88,7 +88,7 @@ megaupload_download() {
   URL=$1
   PASSWORD=$2
   match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
-    return $(error unknown_link "'$URL' does not seem a megaupload link")
+    return $(error link_unknown "'$URL' does not seem a megaupload link")
   
   while true; do 
     info "GET $URL"
@@ -116,7 +116,8 @@ megaupload_download() {
       CAPTCHA_IMG=$(tempfile) 
       curl -s -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
         return $(error network "getting captcha image")
-      CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | tr -d -c "[0-9a-zA-Z]") || {
+      CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | 
+                tr -d -c "[0-9a-zA-Z]") || {
         rm -f "$CAPTCHA_IMG"
         return $(error ocr "are imagemagick and/or tesseract installed?") 
       }
@@ -140,7 +141,7 @@ megaupload_download() {
       return $(error network "getting file")
     if match "503" "$HTTP_CODE"; then
       grep -iq "limit exceeded" "$FILENAME" ||
-        return $(error parsing "unsuccessful http_code ($HTTP_CODE) but no limit message found")
+        return $(error parsing "unsuccessful http code ($HTTP_CODE) but no message found")
       MINUTES=$(<"$FILENAME" parse "url=" "url=\([^\"]*\)" | xargs -r curl -s | 
                 parse "Please wait" "wait \([[:digit:]]\+\) min") || true
       if test "$MINUTES"; then 
