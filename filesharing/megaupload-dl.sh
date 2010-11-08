@@ -4,10 +4,11 @@
 # required) with automatic captcha recognition. 
 #
 # Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
-# Author: (2010) Arnau Sanchez <tokland@gmail.com>
+# Author: Arnau Sanchez <tokland@gmail.com>
 
 EXIT_STATUSES=(
-  [0]=ok            
+  [0]=ok     
+  # Non-retryable       
   [1]=unknown_link
   [2]=arguments
   [3]=link_dead
@@ -16,10 +17,15 @@ EXIT_STATUSES=(
   [6]=parse
   [7]=password_required
   [8]=password_error
+  # Retryable
   [100]=network
   [101]=temporally_unavailable
-  [110]=runtime
 )
+
+# Set EXIT_STATUS_key variables (poor man's associative array for Bash)
+for SC in ${!EXIT_STATUSES[@]}; do 
+  eval "EXIT_STATUS_${EXIT_STATUSES[$SC]}=$SC"
+done
 
 # Echo a message to stderr
 stderr() { echo -e "$@" >&2; }
@@ -58,21 +64,17 @@ ocr() {
   rm -f $TIFF $TEXT
 }
 
-# Print an error with key $1 (see EXIT_STATUSES) and message $2. 
-# Return numeric status code
+# Print an error with key $1 (see EXIT_STATUSES) and message $2. Return numeric status code
 error() {
-  local KEY=$1; local MSG=$2 
-  for SC in ${!EXIT_STATUSES[@]}; do
-    if test "${EXIT_STATUSES[$SC]}" = "$KEY"; then
-      stderr "ERROR [$KEY]: $MSG"
-      echo $SC
-      return
-    fi 
-  done
-  stderr "ERROR [runtime]: unknown error key: $KEY ($MSG)"
-  echo 255
+  local KEY=$1; local MSG=$2
+  local VAR=EXIT_STATUS_$KEY
+  local VALUE=${!VAR}
+  stderr -n "ERROR [$KEY]"
+  test "$MSG" && stderr ": $MSG" || stderr
+  echo $VALUE
 }
 
+# Search info message in HTML page $1 (temporally_unavailable, ...)
 check_link_problems() {
   local MSG=$(echo "$1" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<' 2>/dev/null) || true
   match "temporarily unavailable" "$MSG" &&
@@ -81,12 +83,12 @@ check_link_problems() {
   return 0
 }
 
-# Download a Megaupload link ($1) and return download file path with optional password ($2) 
+# Download a Megaupload link ($1) with optional password ($2) and echo file path 
 megaupload_download() {
   URL=$1
   PASSWORD=$2
   match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
-    return $(error unknown_link "this does not seem a megaupload link: $URL")
+    return $(error unknown_link "'$URL' does not seem a megaupload link")
   
   while true; do 
     info "GET $URL"
@@ -116,7 +118,7 @@ megaupload_download() {
         return $(error network "getting captcha image")
       CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | tr -d -c "[0-9a-zA-Z]") || {
         rm -f "$CAPTCHA_IMG"
-        return $(error ocr "imagemagick/tesseract installed?") 
+        return $(error ocr "are imagemagick and/or tesseract installed?") 
       }
       rm -f "$CAPTCHA_IMG"
       info "POST $URL (captcha=$CAPTCHA)"
@@ -132,11 +134,11 @@ megaupload_download() {
     FILENAME=$(basename "$FILEURL" | { recode html..utf8 || cat; })
     info "Waiting $WAITTIME seconds before starting download"
     sleep $WAITTIME
+    
     info "GET $FILEURL"
     HTTP_CODE=$(curl -w "%{http_code}" --globoff -o "$FILENAME" "$FILEURL") ||
       return $(error network "getting file")
-    if ! match "2.." "$HTTP_CODE"; then
-      info "unsuccessful HTTP code: $HTTP_CODE"
+    if match "503" "$HTTP_CODE"; then
       grep -iq "limit exceeded" "$FILENAME" ||
         return $(error parsing "unsuccessful http_code ($HTTP_CODE) but no limit message found")
       MINUTES=$(<"$FILENAME" parse "url=" "url=\([^\"]*\)" | xargs -r curl -s | 
@@ -145,10 +147,12 @@ megaupload_download() {
         info "Download limit exceeded: waiting $MINUTES minutes by server request"
         sleep $((MINUTES*60))
       else
-        info "No wait time found, let's wait 10 minutes before retrying"
-        sleep 600
+        info "HTTP 503 but no wait time found, let's wait 10 minutes before retrying"
+        sleep $((10*60))
       fi
       continue
+    elif ! match "2.." "$HTTP_CODE"; then
+      return $(error network "unsuccessful HTTP code: $HTTP_CODE")
     fi
     echo "$FILENAME"
     break
@@ -160,8 +164,8 @@ if ! match "bash" "$0"; then
   set -e -u -o pipefail
   if test $# -ne 1; then
     stderr "Usage: $(basename $0) MEGAUPLOAD_URL[@PASSWORD]\n"
-    stderr "  Download a Megaupload file (path is written to stdout)"
-    exit 1
+    stderr "  Download a Megaupload file (path echoed to stdout)"
+    exit 2
   fi  
   IFS="@" read URL PASSWORD <<< "$1"
   megaupload_download "$URL" "$PASSWORD" 
