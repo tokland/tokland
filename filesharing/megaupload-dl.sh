@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Download a file from Megaupload (free download, no account required) with 
-# automatic captcha recognition. 
+# automatic captcha recognition.
 #
 # Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
 # Author: Arnau Sanchez <tokland@gmail.com>
@@ -10,7 +10,7 @@
 EXIT_STATUSES=(
   [0]=ok     
   # Non-retryable       
-  [1]=link_unknown
+  [1]=link_invalid
   [2]=arguments
   [3]=link_dead
   [4]=link_problem
@@ -23,7 +23,7 @@ EXIT_STATUSES=(
   [101]=link_temporally_unavailable
 )
 
-# Set EXIT_STATUS_key variables (poor man's associative array for Bash)
+# Set EXIT_STATUS_$KEY variables (poor man's associative array for Bash)
 for SC in ${!EXIT_STATUSES[@]}; do 
   eval "EXIT_STATUS_${EXIT_STATUSES[$SC]}=$SC"
 done
@@ -67,9 +67,11 @@ ocr() {
 
 # Echo error with key $1 (see EXIT_STATUSES) and message $2. Return numeric status code.
 error() {
-  local KEY=$1; local MSG=$2
-  stderr -n "ERROR [$KEY]"
-  test "$MSG" && stderr ": $MSG" || stderr
+  local KEY=$1; local MSG=${2:-""}
+  if test "$MSG" != "#skip_log"; then 
+    stderr -n "ERROR [$KEY]"
+    test "$MSG" && stderr ": $MSG" || stderr
+  fi
   local VAR="EXIT_STATUS_$KEY"
   echo ${!VAR}
 }
@@ -88,7 +90,7 @@ megaupload_download() {
   URL=$1
   PASSWORD=$2
   match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
-    return $(error link_unknown "'$URL' does not seem a megaupload link")
+    return $(error link_invalid "'$URL' does not seem a valid megaupload URL")
   
   while true; do 
     info "GET $URL"
@@ -140,17 +142,13 @@ megaupload_download() {
     HTTP_CODE=$(curl -w "%{http_code}" --globoff -o "$FILENAME" "$FILEURL") ||
       return $(error network "getting file")
     if match "503" "$HTTP_CODE"; then
-      grep -iq "limit exceeded" "$FILENAME" ||
-        return $(error parsing "unsuccessful http code ($HTTP_CODE) but no message found")
-      MINUTES=$(<"$FILENAME" parse "url=" "url=\([^\"]*\)" | xargs -r curl -s | 
-                parse "Please wait" "wait \([[:digit:]]\+\) min") || true
-      if test "$MINUTES"; then 
-        info "Download limit exceeded: waiting $MINUTES minutes by server request"
-        sleep $((MINUTES*60))
-      else
-        info "HTTP 503 but no wait time found, let's wait 10 minutes before retrying"
-        sleep $((10*60))
-      fi
+      LIMIT_URL=$(<"$FILENAME" parse "url=" "url=\([^\"]*\)") ||
+        return $(error parse "url in limit exceeded page")
+      LIMIT_PAGE=$(curl -s "$LIMIT_URL") || return $(error network)      
+      MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") || 
+        return $(error parse "wait time in limit page")
+      info "Download limit exceeded, waiting $MINUTES minutes by server request"
+      sleep $((MINUTES*60))
       continue
     elif ! match "2.." "$HTTP_CODE"; then
       return $(error network "unsuccessful HTTP code: $HTTP_CODE")
@@ -165,8 +163,8 @@ if ! match "bash" "$0"; then
   set -e -u -o pipefail
   if test $# -ne 1; then
     stderr "Usage: $(basename $0) MEGAUPLOAD_URL[@PASSWORD]\n"
-    stderr "  Download a Megaupload file (path echoed to stdout)"
-    exit 2
+    stderr "    Download a Megaupload file (path of file is written to stdout)"
+    exit $(error arguments "#skip_log")
   fi  
   IFS="@" read URL PASSWORD <<< "$1"
   megaupload_download "$URL" "$PASSWORD" 
