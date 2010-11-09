@@ -4,13 +4,13 @@
 #
 # - Simple example: Run 'myapp arg1 arg2' until it succeeds:
 #
-# $ loop myapp arg1 arg2
+# $ loop command arg1 arg2
 #
-# - Complex example: Run 'myapp arg1 arg2' until the return value is NOT  
+# - Complex example: Run 'command arg1 arg2' until the return value is NOT  
 #   1, 2, 3 or 10. In addition, loop over the command at most 5 times and never 
 #   not for more than 2 minutes.
 #
-# $ loop -n -b "{1..3} 10" -m 5 -t 2m myapp arg1 arg2
+# $ loop -n -b "{1..3} 10" -m 5 -t 2m command arg1 arg2
 # 
 # Note that you can use the Bash intervals syntax {START..END} for statuses. 
 #
@@ -55,7 +55,7 @@ loop() {
    
   while read TRY; do
     "$@" <&3 && RETVAL=0 || RETVAL=$?
-    debug "try=$TRY, retval: $RETVAL (break retvals: $BREAK_RETVALS, complement: $COMPLEMENT, forever: $FOREVER)"
+    debug "try=$TRY, retval: $RETVAL (break on: $BREAK_RETVALS, comp: $COMPLEMENT)"
     test "$FOREVER" = 1 && continue
     INARRAY=$(tobool word_in_list "$BREAK_RETVALS" $RETVAL)
     if test \( $INARRAY -eq 1 -a "$COMPLEMENT" -eq 0 \) -o \
@@ -78,7 +78,7 @@ usage() {
   stderr "  -q:          Be quiet"
   stderr "  -c:          Complement the break statuses (see -b)."
   stderr "  -f:          Force a never-ending loop."
-  stderr "  -b STRING:   Space-separated list of statuses that break the loop."
+  stderr "  -b STATUSES: Space-separated list of statuses that break the loop."
   stderr "  -t SECONDS:  Maximum execution time before aborting the loop."
   stderr "  -m MAXTRIES: Maximum tries before aborting the loop."
   stderr "  -w SECONDS:  Time to wait between loop executions."
@@ -102,7 +102,7 @@ while getopts "t:m:w:b:cqfh" ARG; do
   b) BREAK_RETVALS=$OPTARG;;
   c) COMPLEMENT=1;;
   f) FOREVER=1;;
-  h) usage; exit 2;;
+  h) usage; exit 0;;
 	*) usage; exit 2;;
 	esac
 done

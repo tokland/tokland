@@ -9,7 +9,7 @@
 #   file1
 #   file2
 #   file3
-#
+
 #   $ worker process "3 4" file.txt
 #
 #   $ cat file.txt
@@ -38,9 +38,10 @@ word_in_list() { grep -qw "$1" <<< "$2"; }
 
 worker() {
   local EXECUTABLE=$1
-  local RETRYABLE=$2
+  local RETRYABLE0=$2
   shift 2
   
+  local RETRYABLE=$(eval echo $RETRYABLE0)  
   local RETVAL=0
   for FILE in "$@"; do 
     while read ARGS; do
