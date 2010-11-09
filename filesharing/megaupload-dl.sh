@@ -34,7 +34,7 @@ stderr() { echo -e "$@" >&2; }
 # Echo an info message to stderr
 info() { stderr "--- $@"; }
 
-# Check if regular expression $1 matches string $2
+# Check if regular expression $1 is found in string $2
 match() { grep -q "$1" <<< "$2"; }
 
 # Get first line that matches regular expression $1 and parse string $2
@@ -88,7 +88,7 @@ check_link_problems() {
 # Download a Megaupload link ($1) with optional password ($2) and echo file path 
 megaupload_download() {
   URL=$1
-  PASSWORD=$2
+  PASSWORD=${2:-""}
   match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
     return $(error link_invalid "'$URL' does not seem a valid megaupload URL")
   
@@ -117,12 +117,10 @@ megaupload_download() {
       info "GET $CAPTCHA_URL"
       CAPTCHA_IMG=$(tempfile) 
       curl -s -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
-        return $(error network "getting captcha image")
+        { rm -f "$CAPTCHA_IMG"; return $(error network "getting captcha image"); }
       CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | 
-                tr -d -c "[0-9a-zA-Z]") || {
-        rm -f "$CAPTCHA_IMG"
-        return $(error ocr "are imagemagick and/or tesseract installed?") 
-      }
+                tr -d -c "[0-9a-zA-Z]") || 
+        { rm -f "$CAPTCHA_IMG"; return $(error ocr "are imagemagick/tesseract installed?"); } 
       rm -f "$CAPTCHA_IMG"
       info "POST $URL (captcha=$CAPTCHA)"
       WAITPAGE=$(curl -s -F "captchacode=$CAPTCHACODE" -F "megavar=$MEGAVAR" \
