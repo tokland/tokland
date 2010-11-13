@@ -79,7 +79,7 @@ usage() {
   stderr -e "Usage: $(basename $0) [OPTIONS] COMMAND [ARGS ...]\n"
   stderr -e "Run command until the command is successful.\n"
   stderr "Options:"
-  stderr "  -q:          Be quiet"
+  stderr "  -q:          Be quiet."
   stderr "  -c:          Complement the break statuses (see -b)."
   stderr "  -f:          Force a never-ending loop."
   stderr "  -k COMMAND:  Run command and use its output as status code" 
