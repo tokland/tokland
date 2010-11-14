@@ -174,7 +174,7 @@ megaupload_download() {
 }
 
 # Main
-if ! match "bash" "$0"; then
+if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
   set -e -u -o pipefail
   if test $# -ne 1; then
     stderr "Usage: $(basename $0) MEGAUPLOAD_URL[@PASSWORD]\n"
