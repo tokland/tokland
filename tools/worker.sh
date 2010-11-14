@@ -37,21 +37,25 @@ match() { grep -q "$1" <<< "$2"; }
 word_in_list() { grep -qw "$1" <<< "$2"; }
 
 worker() {
-  local EXECUTABLE=$1
+  local COMMAND=$1
   local RETRYABLE0=$2
-  shift 2
+  eval "RETVAL_KEYS=$3"
+  shift 3
   
   local RETRYABLE=$(eval echo $RETRYABLE0)  
   local RETVAL=0
   for FILE in "$@"; do 
     while read ARGS; do
-      info "run: $EXECUTABLE $ARGS"
-      $EXECUTABLE $ARGS && RV=0 || RV=$?
+      info "run: $COMMAND $ARGS"
+      "$COMMAND" $ARGS && RV=0 || RV=$?
       info "exit status: $RV"    
       if word_in_list $RV "$RETRYABLE"; then
         RETVAL=2
       else
-        CODE=$(test $RV -ne 0 && echo $RV || true)
+        CODE=$(if test $RV -ne 0; then
+          local S=${RETVAL_KEYS[$RV]}
+          test "$S" && echo "$S" || echo "$RV" 
+        fi)
         info "mark file with exit status: $FILE (#$CODE)"
         sed -i "s|$ARGS|#$CODE $ARGS|" "$FILE"      
       fi
@@ -60,12 +64,24 @@ worker() {
   return $RETVAL
 }
 
-if ! match "bash" "$0"; then
-  set -e -u -o pipefail
-  if test $# -eq 0; then
-    stderr "Usage: $(basename $0) EXECUTABLE RETRYABLE_CODES FILE_WITH_ARGS1 [FILE ...]\n"
-    stderr "  Run executable using lines in files as arguments and mark the exit code"
-    exit 1
-  fi
-  worker "$@"
-fi
+usage() {
+  stderr "Usage: $(basename $0) [-r RETRYABLE_CODES] COMMAND FILE_WITH_ARGS [FILE_WITH_ARGS..]\n"
+  stderr "  Run executable using lines in files as arguments and mark the exit code"
+}
+
+# Main
+set -e -u -o pipefail
+RETRYABLE_RETVALS=
+test $# -eq 0 && set -- "-h"
+while getopts "r:s:h" ARG; do
+  case "$ARG" in
+  r) RETRYABLE_RETVALS=$OPTARG;;
+  s) RETVAL_KEYS=$OPTARG;;
+  h) usage; exit 0;;    
+  *) usage; exit 2;;
+  esac
+done
+shift $(($OPTIND-1))
+COMMAND=$1
+shift 1
+worker "$COMMAND" "$RETRYABLE_RETVALS" "$RETVAL_KEYS" "$@"

@@ -10,9 +10,9 @@
 #   1, 2, 3 or 10. In addition, loop over the command at most 5 times and never 
 #   for more than 2 minutes.
 #
-# $ loop -n -b "{1..3} 10" -m 5 -t 2m command arg1 arg2
+# $ loop -c -b "{1..3} 10" -m 5 -t 2m command arg1 arg2
 # 
-# You can use Bash intervals syntax {START..END} for statuses, but make sure you quote them. 
+# You can use Bash intervals syntax {START..END} for statuses (quoted). 
 #
 set -e
 
