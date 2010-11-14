@@ -1,24 +1,23 @@
 #!/bin/bash
-#
 # Download a file from Megaupload (free download, no account required) with 
 # automatic captcha recognition.
 #
-# Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
 # Author: Arnau Sanchez <tokland@gmail.com>
-#
+# Website: http://code.google.com/p/tokland/wiki/MegauploadDownloader
+
 EXIT_STATUSES=(
   [0]=ok
   # Non-retryable
   [1]=link_invalid
   [2]=arguments
   [3]=link_dead
-  [4]=unknown_link_problem
+  [4]=link_unknown_problem
   [5]=ocr
   [6]=parse
   [7]=password_required
   [8]=password_error
   # Retryable
-  [100]=nonfatal_parse
+  [100]=parse_nonfatal
   [101]=network
   [102]=link_temporally_unavailable
 )
@@ -52,6 +51,9 @@ show_ascii_image() {
     sed -e '1d;/\x0C/,/\x0C/d' | grep -v "^[[:space:]]*$"
 }
 
+# Curl wrapper
+curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 "$@"; }
+
 # convert image (stdin) to text (stdout)
 ocr() {
   local TIFF=$(tempfile --suffix=".tif")
@@ -77,11 +79,11 @@ error() {
 }
 
 # Search info message in HTML page $1 (link_temporally_unavailable, ...)
-check_unknown_link_problems() {
+check_link_unknown_problems() {
   local MSG=$(echo "$1" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<' 2>/dev/null) || true
   match "temporarily unavailable" "$MSG" &&
     return $(error link_temporally_unavailable "File is temporarily unavailable")
-  test "$MSG" && return $(error unknown_link_problem "server says: '$MSG'")
+  test "$MSG" && return $(error link_unknown_problem "server says: '$MSG'")
   return 0
 }
 
@@ -94,21 +96,21 @@ megaupload_download() {
   while true; do
     # Link page
     info "GET $URL"
-    PAGE=$(curl -s $URL) || 
+    PAGE=$(curlw -Ss $URL) || 
       return $(error network "downloading main page")
     match "the link you have clicked is not available" "$PAGE" && 
       return $(error link_dead "Link is dead")
-    check_unknown_link_problems "$PAGE" || return $?
+    check_link_unknown_problems "$PAGE" || return $?
     PASSRE='name="filepassword"'
     
     if match "$PASSRE" "$PAGE"; then
       # Password-protected link
       test "$PASSWORD" || return $(error password_required "No password provided")
       info "POST $URL (filepassword=$PASSWORD)"
-      WAITPAGE=$(curl -F "filepassword=$PASSWORD" "$URL") ||
+      WAITPAGE=$(curlw -F "filepassword=$PASSWORD" "$URL") ||
         return $(error network "posting password form")
       match "$PASSRE" "$WAITPAGE" && return $(error password_error "Password error")
-      check_unknown_link_problems "$WAITPAGE" || return $?
+      check_link_unknown_problems "$WAITPAGE" || return $?
     else 
       # Normal link, we need to resolve the captcha
       CAPTCHACODE=$(echo "$PAGE" | parse_form_input captchacode) ||
@@ -119,21 +121,21 @@ megaupload_download() {
         return $(error parse "captcha image URL")
       info "GET $CAPTCHA_URL"
       CAPTCHA_IMG=$(tempfile) 
-      curl -s -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
+      curlw -Ss -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
         { rm -f "$CAPTCHA_IMG"; return $(error network "getting captcha image"); }
       CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | 
                 tr -d -c "[0-9a-zA-Z]") || 
         { rm -f "$CAPTCHA_IMG"; return $(error ocr "are imagemagick/tesseract installed?"); } 
       rm -f "$CAPTCHA_IMG"
       info "POST $URL (captcha=$CAPTCHA)"
-      WAITPAGE=$(curl -s -F "captchacode=$CAPTCHACODE" -F "megavar=$MEGAVAR" \
-                         -F "captcha=$CAPTCHA" "$URL") ||
+      WAITPAGE=$(curlw -Ss -F "captchacode=$CAPTCHACODE" \
+                           -F "megavar=$MEGAVAR" \
+                           -F "captcha=$CAPTCHA" "$URL") ||
         return $(error network "posting captcha form")
     fi
     
     # Get download link and wait
-    WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" \
-                                        "count=\([[:digit:]]\+\);" 2>/dev/null) ||
+    WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" "count=\([[:digit:]]\+\);" 2>/dev/null) ||
       { info "Wait time not found in response (wrong captcha?), retrying"; continue; }
     FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
       return $(error parse "download link not found")
@@ -143,23 +145,23 @@ megaupload_download() {
     
     # Download the file
     info "GET $FILEURL"
-    INFO=$(curl -w "%{http_code} %{size_download}" -g -C - -o "$FILENAME" "$FILEURL") ||
-      return $(error network "getting file")
+    INFO=$(curlw -w "%{http_code} %{size_download}" -g -C - -o "$FILENAME" "$FILEURL") ||
+      return $(error network "downloading file")
     read HTTP_CODE SIZE_DOWNLOAD <<< "$INFO"
     
     if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
-      # This is tricky: if we got an unsuccessful code yet some HTML was 
+      # This is tricky: if we got an unsuccessful code but something was 
       # downloaded, the output file will now contain a page regarding the error.
-      # Since this content would mess with the next resume, we better get rid of it. 
+      # Since this content would interfere on the next loop, we better get rid of it. 
       rm -f "$FILENAME"
     fi
     
     if match "503" "$HTTP_CODE"; then
-      # Megaupload uses HTTP code 503 to signal download limit exceeded
-      LIMIT_PAGE=$(curl -s "http://www.megaupload.com/?c=premium&l=1") || 
+      # Megaupload uses HTTP code 503 to signal the download limit exceeded error
+      LIMIT_PAGE=$(curlw -Ss "http://www.megaupload.com/?c=premium&l=1") || 
         return $(error network)      
       MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") || 
-        return $(error nonfatal_parse "wait time in limit page")
+        return $(error parse_nonfatal "wait time in limit page")
       info "Download limit exceeded, waiting $MINUTES minutes by server request"
       sleep $((MINUTES*60))
       continue
