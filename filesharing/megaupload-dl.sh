@@ -15,7 +15,7 @@ EXIT_STATUSES=(
   [5]=ocr
   [6]=parse
   [7]=password_required
-  [8]=password_error
+  [8]=password_wrong
   # Retryable
   [100]=parse_nonfatal
   [101]=network
@@ -96,7 +96,7 @@ megaupload_download() {
   while true; do
     # Link page
     info "GET $URL"
-    PAGE=$(curlw -Ss $URL) || 
+    PAGE=$(curlw -sS "$URL") || 
       return $(error network "downloading main page")
     match "the link you have clicked is not available" "$PAGE" && 
       return $(error link_dead "Link is dead")
@@ -109,7 +109,7 @@ megaupload_download() {
       info "POST $URL (filepassword=$PASSWORD)"
       WAITPAGE=$(curlw -F "filepassword=$PASSWORD" "$URL") ||
         return $(error network "posting password form")
-      match "$PASSRE" "$WAITPAGE" && return $(error password_error "Password error")
+      match "$PASSRE" "$WAITPAGE" && return $(error password_wrong "Password error")
       check_link_unknown_problems "$WAITPAGE" || return $?
     else 
       # Normal link, we need to resolve the captcha
@@ -121,14 +121,14 @@ megaupload_download() {
         return $(error parse "captcha image URL")
       info "GET $CAPTCHA_URL"
       CAPTCHA_IMG=$(tempfile) 
-      curlw -Ss -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
+      curlw -sS -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
         { rm -f "$CAPTCHA_IMG"; return $(error network "getting captcha image"); }
       CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | 
                 tr -d -c "[0-9a-zA-Z]") || 
         { rm -f "$CAPTCHA_IMG"; return $(error ocr "are imagemagick/tesseract installed?"); } 
       rm -f "$CAPTCHA_IMG"
       info "POST $URL (captcha=$CAPTCHA)"
-      WAITPAGE=$(curlw -Ss -F "captchacode=$CAPTCHACODE" \
+      WAITPAGE=$(curlw -sS -F "captchacode=$CAPTCHACODE" \
                            -F "megavar=$MEGAVAR" \
                            -F "captcha=$CAPTCHA" "$URL") ||
         return $(error network "posting captcha form")
@@ -158,7 +158,7 @@ megaupload_download() {
     
     if match "503" "$HTTP_CODE"; then
       # Megaupload uses HTTP code 503 to signal the download limit exceeded error
-      LIMIT_PAGE=$(curlw -Ss "http://www.megaupload.com/?c=premium&l=1") || 
+      LIMIT_PAGE=$(curlw -sS "http://www.megaupload.com/?c=premium&l=1") || 
         return $(error network)      
       MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") || 
         return $(error parse_nonfatal "wait time in limit page")
