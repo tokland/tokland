@@ -69,10 +69,15 @@ ocr() {
 
 # Echo numeric error (to stdout) with key $1 (see EXIT_STATUSES) and message $2
 error() {
-  local KEY=$1; local MSG=${2:-""}
+  local KEY=$1; local MSG=${2:-""}; local DEBUGCONTENT=${3:-""}
   if test "$MSG" != "#skip_log"; then 
     stderr -n "ERROR [$KEY]"
     test "$MSG" && stderr ": $MSG" || stderr
+  fi
+  if test "$DEBUGCONTENT"; then
+    local TEMP=$(tempfile)
+    echo "$DEBUGCONTENT" > $TEMP
+    stderr "debug content saved: $TEMP"
   fi
   local VAR="EXIT_STATUS_$KEY"
   echo ${!VAR}
@@ -123,11 +128,11 @@ megaupload_download() {
     else 
       # Normal link, resolve the captcha
       CODE=$(echo "$PAGE" | parse_form_input captchacode) ||
-        return $(error parse "captchacode field")
+        return $(error parse "captchacode field" "$PAGE")
       MVAR=$(echo "$PAGE" | parse_form_input megavar) ||
-        return $(error parse "megavar field")      
+        return $(error parse "megavar field" "$PAGE")      
       CAPTCHA_URL=$(echo "$PAGE" | parse "gencap.php" 'img src="\([^"]*\)') ||
-        return $(error parse "captcha image URL")
+        return $(error parse "captcha image URL""$PAGE")
       info "GET $CAPTCHA_URL"
       CAPTCHA_IMG=$(tempfile) 
       curlw -sS -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
@@ -145,7 +150,7 @@ megaupload_download() {
     WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" "count=\([[:digit:]]\+\);") ||
       { info "Wait time not found in response (wrong captcha?), retrying"; continue; }
     FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
-      return $(error parse "download link not found")
+      return $(error parse "download link not found" "$WAITPAGE")
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
     info "Waiting $WAITTIME seconds before starting download"
     sleep $WAITTIME
@@ -168,7 +173,7 @@ megaupload_download() {
       LIMIT_PAGE=$(curlw -sS "http://www.megaupload.com/?c=premium&l=1") || 
         return $(error network "Downloading error page")      
       MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") || 
-        return $(error parse_nonfatal "wait time in limit page")
+        return $(error parse_nonfatal "wait time in limit page" "$LIMIT_PAGE")
       info "Download limit exceeded, waiting $MINUTES minutes by server request"
       sleep $((MINUTES*60))
       continue
