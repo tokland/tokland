@@ -19,7 +19,7 @@ EXIT_STATUSES=(
   # Retryable
   [100]=parse_nonfatal
   [101]=network
-  #[102]=link_temporally_unavailable
+  [102]=link_temporally_unavailable
 )
 
 # Set EXIT_STATUS_$KEY variables (poor man's associative array for Bash)
@@ -93,6 +93,7 @@ get_main_page() {
   local URL=$1
   
   while true; do 
+    info "GET $URL"
     local PAGE=$(curlw -sS "$URL") || return $(error network "downloading page: $URL")
     local ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
     local MSG=$(echo "$PAGE" | parse_quiet 'middle.*color:#FF6700;' '<center>\(.*\)<') || true
@@ -105,12 +106,10 @@ get_main_page() {
       info "The server told us off for making too much requests, waiting $WAIT minutes"
       sleep $((WAIT*60))
       continue
+    elif match "the link you have clicked is not available" "$PAGE"; then
+      return $(error link_dead "Link is dead")    
     elif match "temporarily unavailable" "$MSG"; then
-      local WAITTIME=10
-      info "link temporarily unavailable, wait an arbitrary time: $WAITTIME minutes"
-      sleep $(($WAITTIME*60))
-      continue
-      #return $(error link_temporally_unavailable "File is temporarily unavailable")
+      return $(error link_temporally_unavailable "File is temporarily unavailable")
     elif test "$MSG"; then
       return $(error link_unknown_problem "server says: '$MSG'")
     else
@@ -127,11 +126,8 @@ megaupload_download() {
     return $(error link_invalid "'$URL' does not seem a valid megaupload URL")
   
   while true; do
-    # Get link page
-    info "GET $URL"
+    # Get main link page
     PAGE=$(get_main_page "$URL") || return $?
-    match "the link you have clicked is not available" "$PAGE" &&
-      return $(error link_dead "Link is dead")    
 
     # Get wait page
     PASSRE='name="filepassword"'
@@ -182,8 +178,8 @@ megaupload_download() {
     
     if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
       # This is tricky: if we got an unsuccessful code (probably a 503), but 
-      # something was downloaded, the output file will now contain an error page.
-      # Since this content would interfere on resuming, we better get rid of it. 
+      # something was downloaded, the output file will contain this data (the error page).
+      # Since this content would interfere with the next loop, we better get rid of it. 
       rm -f "$FILENAME"
     fi
     

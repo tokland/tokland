@@ -2,6 +2,14 @@
 set -e
 source "$(dirname $0)/lib.sh"
 
+md5() { md5sum "$1" | awk '{print $1}'; }
+
+download() {
+  loop -w 5m -c -b "{100..110}" ./megaupload-dl.sh "$@" 
+}
+
+###
+
 MU_URL1="http://www.megaupload.com/?d=1FPK9QPM"
 MU_URL1_FILENAME=xkcd1.jpg
 MU_URL1_MD5="ba8ad157b1d5c233580b7ea6be53f1fd"
@@ -10,18 +18,6 @@ MU_URL2="http://www.megaupload.com/?d=FDPAE94B"
 MU_URL2_PASSWORD=tokland
 MU_URL2_FILENAME=xkcd2.jpg
 MU_URL2_MD5="bcf9aec4d5e9a92ad22cd42d52f11fcc"
-
-md5() { md5sum "$1" | awk '{print $1}'; }
-
-download() {
-  while true; do
-    local RV=0
-    ./megaupload-dl.sh "$@" || RV=$?
-    grep -wq "10." <<< $RV || return $RV
-  done
-}
-
-###
 
 test_0syntax_error() {
   assert_return 2 download
@@ -50,8 +46,7 @@ test_download_with_resume() {
 
 test_link_with_password() {
   rm -f $MU_URL2_FILENAME
-  assert_equal "$MU_URL2_FILENAME" \
-               $(download "$MU_URL2@$MU_URL2_PASSWORD")
+  assert_equal "$MU_URL2_FILENAME" $(download "$MU_URL2@$MU_URL2_PASSWORD")
   assert_equal "$MU_URL2_MD5" $(md5 $MU_URL2_FILENAME)
 }
 
