@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -e -o pipefail
 
 indent() { sed -u "s/^/  /"; }
 
@@ -29,12 +29,20 @@ all() {
 # Main
 
 PAGE="wiki/MegauploadDownloader.wiki"
-TESTS_OUTPUT="TESTSLOG"
-svn up "$PAGE" || exit 1
-{
+svn revert "$PAGE" || exit 1
+TESTS=$(tempfile)
+
+if ! all | tee $TESTS; then
+  rm -f "$TESTS"
+  exit 2
+fi
+
+CONTENT=$({ 
   sed -n '1,/^= Status/p' < "$PAGE"
   echo "{{{"
-  all | tee /dev/tty || true
+  cat $TESTS 
   echo "}}}"
-} > "$PAGE"
-svn ci -m "[megaupload-dl] automatic status update" "$PAGE"
+})
+rm -f $TESTS
+echo "$CONTENT" > "$PAGE"
+echo svn ci -m "[megaupload-dl] automatic status update" "$PAGE"

@@ -19,7 +19,7 @@ EXIT_STATUSES=(
   # Retryable
   [100]=parse_nonfatal
   [101]=network
-  [102]=link_temporally_unavailable
+  #[102]=link_temporally_unavailable
 )
 
 # Set EXIT_STATUS_$KEY variables (poor man's associative array for Bash)
@@ -37,7 +37,10 @@ info() { stderr "--- $@"; }
 match() { grep -q "$1" <<< "$2"; }
 
 # Get first line that matches regular expression $1 and parse string $2
-parse() { local S=$(sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1) && test "$S" && echo "$S"; }
+parse() { local S=$(sed -n "/$1/I s/^.*$2.*$/\1/ip" | head -n1) && test "$S" && echo "$S"; }
+
+# Like parse but do not write errors to stderr
+parse_quiet() { parse "$@" 2>/dev/null; }
 
 # Parse form input 'value' attribute from its name ($1)
 parse_form_input() { parse "name=\"$1\"" 'value="\([^"]*\)'; }
@@ -86,15 +89,35 @@ error() {
 ### 
 
 # Search info message in HTML $1 (temporally_unavailable/unknown_problem)
-check_link_unknown_problems() {
-  local MSG=$(echo "$1" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<' 2>/dev/null) || true
-  if match "temporarily unavailable" "$MSG"; then
-    return $(error link_temporally_unavailable "File is temporarily unavailable")
-  elif test "$MSG"; then
-    return $(error link_unknown_problem "server says: '$MSG'")
-  else
-    return 0
-  fi
+get_main_page() {
+  local URL=$1
+  
+  while true; do 
+    local PAGE=$(curlw -sS "$URL") || return $(error network "downloading page: $URL")
+    local ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
+    local MSG=$(echo "$PAGE" | parse_quiet 'middle.*color:#FF6700;' '<center>\(.*\)<') || true
+    
+    if test "$ERROR_URL"; then
+      local ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
+        return $(error network "downloading error page") 
+      local WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "back in \([[:digit:]]\+\) min") ||
+        return $(error parse "error page detected, but wait time not found" "$PAGE")
+      info "The server told us off for making too much requests, waiting $WAIT minutes"
+      sleep $((WAIT*60))
+      continue
+    elif match "temporarily unavailable" "$MSG"; then
+      local WAITTIME=10
+      info "link temporarily unavailable, wait an arbitrary time: $WAITTIME minutes"
+      sleep $(($WAITTIME*60))
+      continue
+      #return $(error link_temporally_unavailable "File is temporarily unavailable")
+    elif test "$MSG"; then
+      return $(error link_unknown_problem "server says: '$MSG'")
+    else
+      echo "$PAGE"
+      break
+    fi
+  done
 }
 
 # Download a Megaupload link ($1) with optional password ($2) and echo file path (stdout) 
@@ -106,11 +129,9 @@ megaupload_download() {
   while true; do
     # Get link page
     info "GET $URL"
-    PAGE=$(curlw -sS "$URL") ||
-      return $(error network "downloading main page")
+    PAGE=$(get_main_page "$URL") || return $?
     match "the link you have clicked is not available" "$PAGE" &&
-      return $(error link_dead "Link is dead")
-    check_link_unknown_problems "$PAGE" || return $?
+      return $(error link_dead "Link is dead")    
 
     # Get wait page
     PASSRE='name="filepassword"'
@@ -118,12 +139,10 @@ megaupload_download() {
       # Password-protected link
       test "$PASSWORD" || return $(error password_required "No password provided")
       info "POST $URL (filepassword=$PASSWORD)"
-      WAITPAGE=$(curlw -F "filepassword=$PASSWORD" "$URL") ||
+      WAITPAGE=$(curlw -sS -F "filepassword=$PASSWORD" "$URL") ||
         return $(error network "posting password form")
       match "$PASSRE" "$WAITPAGE" &&
         return $(error password_wrong "Password error")
-      check_link_unknown_problems "$WAITPAGE" ||
-        return $?
       echo "$WAITPAGE"
     else 
       # Normal link, resolve the captcha

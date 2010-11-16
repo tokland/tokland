@@ -3,11 +3,7 @@ set -e
 source "$(dirname $0)/lib.sh"
 
 download_batch() {
-  while true; do
-    local RV=0
-    ./megaupload-dl-batch.sh "$@" || RV=$?
-    test $RV -eq 2 || return $RV
-  done
+  ./megaupload-dl-batch.sh "$@"
 }
 
 ###
