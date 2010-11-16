@@ -8,7 +8,8 @@ info() {
   echo "kernel: $(uname -rmo)"
   echo
   echo "imagemagick: $(convert --version | head -n1 | awk '{print $3}')"
-  echo "tesseract: $(tesseract -v 2>&1 | awk '{print $2}')"
+  TESSERACT=$(tesseract -v 2>&1 | head -n1 | awk '{print $2}')
+  echo "tesseract: $(test "$TESSERACT" = imagename && echo "2.03" || echo $TESSERACT)"
   echo "curl: $(curl --version | head -n1 | awk '{print $2}')"
   echo "recode: $(recode --version | head -n1 | awk '{print $3}')"
   echo "aview: $(aview --version | head -n1 | awk '{print $5}')"
