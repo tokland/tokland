@@ -1,6 +1,6 @@
 #!/bin/bash
 # Download a file from Megaupload (free download without account) using 
-# automatic captcha recognition.
+# automatic captcha recognition. 
 #
 # Author: Arnau Sanchez <tokland@gmail.com>
 # Website: http://code.google.com/p/tokland/wiki/MegauploadDownloader
@@ -27,10 +27,10 @@ for SC in ${!EXIT_STATUSES[@]}; do
   eval "EXIT_STATUS_${EXIT_STATUSES[$SC]}=$SC"
 done
 
-# Echo a message to stderr
+# Echo a message ($@) to stderr
 stderr() { echo -e "$@" >&2; }
 
-# Echo an info message to stderr
+# Echo an info message ($@) to stderr
 info() { stderr "--- $@"; }
 
 # Check if regular expression $1 is found in string $2
@@ -39,13 +39,13 @@ match() { grep -q "$1" <<< "$2"; }
 # Get first line that matches regular expression $1 and parse string $2
 parse() { local S=$(sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1) && test "$S" && echo "$S"; }
 
-# Parse form input value from its name ($1)
+# Parse form input 'value' attribute from its name ($1)
 parse_form_input() { parse "name=\"$1\"" 'value="\([^"]*\)'; }
 
-# Curl wrapper (basically, it adds a bit of robustness)
+# Curl wrapper (goal: robustness and responsiveness)
 curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 "$@"; }
 
-# Show image ($1) using ASCII characters 
+# Show image ($1) using ASCII  
 show_ascii_image() {
   aview --version &>/dev/null || 
     { info "Install package aview to see the captcha"; return 0; } 
@@ -78,7 +78,9 @@ error() {
   echo ${!VAR}
 }
 
-# Search info message in HTML page $1 (temporally_unavailable/unknown_problem)
+### 
+
+# Search info message in HTML $1 (temporally_unavailable/unknown_problem)
 check_link_unknown_problems() {
   local MSG=$(echo "$1" | parse 'middle.*color:#FF6700;' '<center>\(.*\)<' 2>/dev/null) || true
   if match "temporarily unavailable" "$MSG"; then
@@ -171,20 +173,23 @@ megaupload_download() {
       sleep $((MINUTES*60))
       continue
     elif ! match "2.." "$HTTP_CODE"; then
-      return $(error network "unsuccessful HTTP code: $HTTP_CODE")
+      # unsuccessful code but not a 503? assume it's a transient network problem.
+      return $(error network "unsuccessful (and unexpected) HTTP code: $HTTP_CODE")
     fi
-    # File successfully downloaded, echo the path to stdout
+    
+    # File successfully downloaded: echo the path to stdout and terminate loop
     echo "$FILENAME"
     break
   done
 }
 
-# Main
+### Main
+
 if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
   set -e -u -o pipefail
   if test $# -ne 1; then
     stderr "Usage: $(basename $0) MEGAUPLOAD_URL[@PASSWORD]\n"
-    stderr "    Download a Megaupload file (path of file is written to stdout)"
+    stderr "    Download a Megaupload file (and write file path to stdout)"
     exit $(error arguments "#skip_log")
   fi
   IFS="@" read URL PASSWORD <<< "$1"
