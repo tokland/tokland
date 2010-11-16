@@ -13,10 +13,10 @@ download_batch() {
 ###
 
 test_batch_download() {
-  ORIGINAL="#this line should be ignored
+  ORIGINAL="#commented lines should be ignored
   http://www.rapidshare.com/?d=1FPK9QPM
   http://www.megaupload.com/?d=1deadlinkM"
-  EXPECTED="#this line should be ignored
+  EXPECTED="#commented lines should be ignored
   #link_invalid http://www.rapidshare.com/?d=1FPK9QPM
   # http://www.megaupload.com/?d=1FPK9QPM
   #link_dead http://www.megaupload.com/?d=1deadlinkM"

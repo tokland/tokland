@@ -22,17 +22,22 @@ assert_return() {
 
 run_tests() {
   ERROR=$(tempfile)
-  TESTS=$(set | grep "^test_" | awk '$2 == "()"' | awk '{print $1}' | xargs)
+  TESTS=$(if test $# -eq 0; then
+    set | grep "^test_" | awk '$2 == "()"' | awk '{print $1}' | xargs
+  else
+    echo "$@"
+  fi)
+  local RETVAL=0
   for TEST in $TESTS; do
-    stderr -n "$TEST: "
+    echo -n "$TEST: "
     if $TEST 2>$ERROR; then 
-      stderr "ok"
+      echo "ok"
     else
-      stderr "failed"
-      while read LINE; do
-        stderr "  $LINE"
-      done < $ERROR
+      RETVAL=1
+      echo "failed"
+      sed "s/^/  /" < $ERROR >&2
     fi
   done
   rm -f $ERROR
+  return $RETVAL 
 }
