@@ -103,7 +103,7 @@ def pdf2fen(pdffile):
     debug("to move: %s" % tomove)
     white_to_move = (tomove == "blancas")
     
-    ref_line = first(line for line in lines if 'font="5"' in line and ' JUEGAN Y' in line)
+    ref_line = first(line for line in lines if 'height="13"' in line and ' JUEGAN Y' in line)
     assert ref_line, "Error finding reference line"  
     board_lines = [line for line in lines if 'height="21"' in line][:8]
     assert (len(board_lines) == 8), "Wrong board lines: %d" % len(board_lines)

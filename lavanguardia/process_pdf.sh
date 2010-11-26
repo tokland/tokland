@@ -31,7 +31,7 @@ for PDF in "$@"; do
       </p>
       <p>
         <a href=\"http://es.wikipedia.org/wiki/Notaci%C3%B3n_de_Forsyth-Edwards\">FEN</a>:
-        <input type=\"text\" size=\"80\" onclick=\"select()\" value=\"$FEN\">
+        <input accesskey=\"s\" type=\"text\" size=\"80\" onclick=\"select()\" value=\"$FEN\">
       </p>
       <p>
         <a href=\"mailto:tokland@gmail.com\">Contactar</a>
