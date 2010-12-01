@@ -140,8 +140,10 @@ megaupload_download() {
       match "$PASSRE" "$WAITPAGE" &&
         return $(error password_wrong "Password error")
       echo "$WAITPAGE"
+    elif match "^[[:space:]]*count=" "$PAGE"; then
+      echo "$PAGE" # Happy-hour, the main page is also the wait page
     else 
-      # Normal link, resolve the captcha
+      # Normal link with no password, resolve the captcha
       CODE=$(echo "$PAGE" | parse_form_input captchacode) ||
         return $(error parse "captchacode field" "$PAGE")
       MVAR=$(echo "$PAGE" | parse_form_input megavar) ||
@@ -178,7 +180,7 @@ megaupload_download() {
     
     if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
       # This is tricky: if we got an unsuccessful code (probably a 503), but 
-      # something was downloaded, the output file will contain this data (the error page).
+      # something was downloaded, FILENAME will now contain this data (the error page).
       # Since this content would interfere with the next loop, we better get rid of it. 
       rm -f "$FILENAME"
     fi
@@ -193,7 +195,7 @@ megaupload_download() {
       sleep $((MINUTES*60))
       continue
     elif ! match "2.." "$HTTP_CODE"; then
-      # unsuccessful code but not a 503? assume it's a transient network problem.
+      # Unsuccessful code different from 503. A transient network problem? who knows.
       return $(error network "unsuccessful (and unexpected) HTTP code: $HTTP_CODE")
     fi
     

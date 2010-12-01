@@ -5,7 +5,12 @@ source "$(dirname $0)/lib.sh"
 md5() { md5sum "$1" | awk '{print $1}'; }
 
 download() {
-  loop -w 5m -c -b "{100..110}" ./megaupload-dl.sh "$@" 
+  while true; do
+    local RV=0
+    ./megaupload-dl.sh "$@" || RV=$?
+    grep -wq "10." <<< $RV || return $RV
+    sleep 10m
+  done
 }
 
 ###
@@ -21,7 +26,7 @@ MU_URL2_MD5="bcf9aec4d5e9a92ad22cd42d52f11fcc"
 
 test_0syntax_error() {
   assert_return 2 download
-  assert_return 2 download url1 url2
+  assert_return 2 download url1 only1urlisallowed
 }
 
 test_0wrong_link() {
@@ -36,18 +41,21 @@ test_download() {
   rm -f $MU_URL1_FILENAME
   assert_equal "$MU_URL1_FILENAME" $(download "$MU_URL1")
   assert_equal "$MU_URL1_MD5" $(md5 $MU_URL1_FILENAME)
+  rm -f $MU_URL1_FILENAME
 }
 
 test_download_with_resume() {
   head -c1K ${MU_URL1_FILENAME}.orig > $MU_URL1_FILENAME
   assert_equal "$MU_URL1_FILENAME" $(download "$MU_URL1")
   assert_equal "$MU_URL1_MD5" $(md5 $MU_URL1_FILENAME)
+  rm -f $MU_URL1_FILENAME
 }
 
 test_link_with_password() {
   rm -f $MU_URL2_FILENAME
   assert_equal "$MU_URL2_FILENAME" $(download "$MU_URL2@$MU_URL2_PASSWORD")
   assert_equal "$MU_URL2_MD5" $(md5 $MU_URL2_FILENAME)
+  rm -f $MU_URL2_FILENAME
 }
 
 test_link_with_password_but_no_password_provided() {
