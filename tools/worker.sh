@@ -10,7 +10,7 @@
 #   file2
 #   file3
 
-#   $ worker process "3 4" file.txt
+#   $ worker -r "3 4" file.txt process
 #
 #   $ cat file.txt
 #   # file1
@@ -20,7 +20,7 @@
 # In the example "process file1" was successful, "process file2" was not (it
 # returned error code 1), and "process file3" must have returned a retryable error
 # (either 3 or 4) because 'file3' is not marked. Running the worker again would 
-# only retry 'file3' (commented lines are ignored).
+# only try 'file3' again (commented lines are ignored).
 #
 set -e
 
@@ -64,6 +64,7 @@ usage() {
 # Main
 set -e -u -o pipefail
 RETRYABLE_RETVALS=
+RETVAL_KEYS=
 test $# -eq 0 && set -- "-h"
 while getopts "r:s:h" ARG; do
   case "$ARG" in

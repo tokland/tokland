@@ -64,7 +64,7 @@ loop() {
     INARRAY=$(tobool word_in_list "$BREAK_RETVALS" $RETVAL)
     if test \( $INARRAY -eq 1 -a "$COMPLEMENT" -eq 0 \) -o \
             \( $INARRAY -eq 0 -a "$COMPLEMENT" -eq 1 \); then
-      return 0    
+      return $RETVAL # exit with the last RETVAL from command
     elif test "$TIMEOUT" && test $(($(date +%s) - $ITIME + $LOOPWAIT)) -gt $TIMEOUT; then
       debug "timeout reached: $TIMEOUT"
       return 3
