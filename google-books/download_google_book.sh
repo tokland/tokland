@@ -35,7 +35,7 @@ get_images_url() {
   STARTPAGE=${2:-1}
   COOKIES=$(mktemp)
   
-  COVER=$(download -c "$COOKIES" "$URL")
+  COVER=$(download -b "$COOKIES" -c "$COOKIES" "$URL")
   TITLE=$(echo "$COVER" | break_html_lines | 
           parse '<h1 class=title dir=ltr' '>\(.*\)<\/h1>')
   AUTHOR=$(echo "$COVER" | break_html_lines | 
@@ -65,7 +65,7 @@ get_images_url() {
     debug "Page: $NPAGE" 
     PAGE_URL="$PREFIX&pg=$PAGEID"
     debug "Page URL: $PAGE_URL"
-    PAGE=$(download -b "$COOKIES" "$PAGE_URL")
+    PAGE=$(download -c "$COOKIES" -b "$COOKIES" "$PAGE_URL")
     IMAGE_URL=$(echo "$PAGE" | grep -o "preloadImg.src = '[^']*'" | head -n1 | 
                 awk '{print $3}' | tr -d "'") || 
       { debug "image not found"; return 1; }
@@ -84,7 +84,7 @@ get_images_url() {
 download_image() {
   local NPAGE=$1; local COOKIES=$2; local IMAGE_URL=$3; local OUTPUT=$4
   debug "start image download (page $NPAGE): $IMAGE_URL"
-  download -b "$COOKIES" "$IMAGE_URL" > "$OUTPUT" && RETVAL=0 || RETVAL=$?
+  download -o "$OUTPUT" -b "$COOKIES" -c "$COOKIES" "$IMAGE_URL" && RETVAL=0 || RETVAL=$?
   case $RETVAL in
   0) echo $OUTPUT;;
   22) debug "warning: server reported this image is not downloadable (page $NPAGE)";;
