@@ -96,12 +96,12 @@ get_main_page() {
     info "GET $URL"
     local PAGE=$(curlw -sS "$URL") || return $(error network "downloading page: $URL")
     local ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
-    local MSG=$(echo "$PAGE" | parse_quiet 'middle.*color:#FF6700;' '<center>\(.*\)<') || true
+    local MSG=$(echo "$PAGE" | parse_quiet '<center>' '<center>\(.*\)<') || true
     
     if test "$ERROR_URL"; then
       local ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
         return $(error network "downloading error page") 
-      local WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "back in \([[:digit:]]\+\) min") ||
+      local WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
         return $(error parse "error page detected, but wait time not found" "$PAGE")
       info "The server told us off for making too much requests, waiting $WAIT minutes"
       sleep $((WAIT*60))
