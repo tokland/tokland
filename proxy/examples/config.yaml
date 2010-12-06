@@ -1,0 +1,11 @@
+port: 8080
+
+urlmapping:
+  - from: "^http://apple.com/"
+    to: "http://freebsd.org/"
+  
+filters:
+  - conditions: {content_type: "javascript"}
+    command: "js-beautify"
+  - conditions: {content_type: "image/jpeg"}
+    command: "examples/change_image.sh"
