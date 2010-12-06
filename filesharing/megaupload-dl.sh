@@ -20,6 +20,7 @@ EXIT_STATUSES=(
   [100]=parse_nonfatal
   [101]=network
   [102]=link_temporally_unavailable
+  [103]=another_download_active
 )
 
 # Set EXIT_STATUS_$KEY variables (poor man's associative array for Bash)
@@ -188,7 +189,9 @@ megaupload_download() {
     if match "503" "$HTTP_CODE"; then
       # Megaupload uses HTTP code 503 to signal a download limit exceeded 
       LIMIT_PAGE=$(curlw -sS "http://www.megaupload.com/?c=premium&l=1") || 
-        return $(error network "Downloading error page")      
+        return $(error network "Downloading error page")
+      match "finish this download before" "$LIMIT_PAGE" &&
+        return $(error another_download_active)      
       MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") || 
         return $(error parse_nonfatal "wait time in limit page" "$LIMIT_PAGE")
       info "Download limit exceeded, waiting $MINUTES minutes by server request"
