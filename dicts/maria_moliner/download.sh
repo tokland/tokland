@@ -19,10 +19,9 @@ for LETTER in $(eval echo $RANGE); do
   URL=$START_URL
   while true; do
     debug "page: $URL"
-    echo "$URL"
     PAGE=$(scurl "$URL")
     echo "$PAGE" | sed "s/>/>\n/g" | parse_all "menu_blue.*show\/" 'href="\([^"]\+\)' | while read URL; do
-      WORD=$(echo "$URL" | cut -d"/" -f4)
+      WORD=$(echo "$URL" | cut -d"/" -f4 | recode html..)
       test "$URL" -a "$WORD" || continue
       debug "$WORD: $URL"
       FILE="$OUTPUTDIR/$WORD.html"
@@ -30,6 +29,7 @@ for LETTER in $(eval echo $RANGE); do
         { debug "skip existing file: $FILE"; continue; }
       scurl -o "$FILE" "$URL"
       echo $FILE
+      sleep 1 # give the server some rest
     done
     URL=$(echo "$PAGE" | sed "s/>/>\n/g" | parse_all "page=showletter" 'href="\([^"]\+\)' | head -n1) 
     test "$URL" || break
