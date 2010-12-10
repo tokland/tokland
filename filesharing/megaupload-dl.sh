@@ -34,10 +34,13 @@ stderr() { echo -e "$@" >&2; }
 # Echo an info message ($@) to stderr
 info() { stderr "--- $@"; }
 
-# Check if regular expression $1 is found in string $2
-match() { grep -q "$1" <<< "$2"; }
+# Check if regular expression $1 is found in string $2 (case insensitive)
+match() { grep -qi "$1" <<< "$2"; }
 
-# Get first line that matches regular expression $1 and parse string $2
+# Strip string
+strip() { sed "s/^[[:space:]]*//; s/[[:space:]]*$//"; }
+
+# Get first line that matches regular expression $1 and parse string $2 (case insensitive)
 parse() { local S=$(sed -n "/$1/I s/^.*$2.*$/\1/ip" | head -n1) && test "$S" && echo "$S"; }
 
 # Like parse but do not write errors to stderr
@@ -129,6 +132,11 @@ megaupload_download() {
   while true; do
     # Get main link page
     PAGE=$(get_main_page "$URL") || return $?
+    
+    # Show info
+    info "Name: $(echo "$PAGE" | parse 'File name:' '>\(.*\)<\/span' | strip)"
+    info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)<br' | strip)"
+    info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"
 
     # Get wait page
     PASSRE='name="filepassword"'
@@ -174,6 +182,7 @@ megaupload_download() {
     sleep $WAITTIME
     
     # Download the file
+    info "Output filename: $FILENAME"
     info "GET $FILEURL"
     INFO=$(curlw -w "%{http_code} %{size_download}" -g -C - -o "$FILENAME" "$FILEURL") ||
       return $(error network "downloading file")
