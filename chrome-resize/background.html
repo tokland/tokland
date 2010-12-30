@@ -1,0 +1,24 @@
+<html>
+<head>
+  <script type="text/javascript">
+    chrome.extension.onRequest.addListener(
+      function(request, sender, sendResponse) {
+        if (request.get_options) {
+          sendResponse(localStorage);
+        } else if (request.update_mod) {
+          var mods = JSON.parse(localStorage.mods || '{}');
+          mods[request.update_mod.url] = mods[request.update_mod.url] || {};
+          mods[request.update_mod.url][request.update_mod.xpath] = request.update_mod.value;
+          localStorage.mods = JSON.stringify(mods); 
+          sendResponse({mods: mods});
+        } else {
+          sendResponse({});
+        }
+      }
+    );    
+  </script>
+</head>
+
+<body>
+</body>
+</html>

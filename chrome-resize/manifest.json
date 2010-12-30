@@ -1,0 +1,19 @@
+{
+  "name": "resizer",
+  "description": "Resize elements in page",
+  "version": "0.0.1",
+  "background_page": "background.html",
+  "options_page": "options.html",
+   "permissions": [
+    "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "ftp://*/*", "file://*/*"],
+      "js": ["resize.js"]
+    }
+  ],
+  "icons": {
+    "48": "icon-48.png"
+  }
+}

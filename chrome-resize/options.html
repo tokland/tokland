@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <title>Resizer options</title>
+    <script type="text/javascript"> 
+      localStorage.hotkey = localStorage.hotkey || "<Control><Shift>A";
+       
+      function feedback() {
+        var status = document.getElementById("status");
+        status.innerHTML = "<i>Options saved</i>";
+        setTimeout(function() {
+          status.innerHTML = "";
+        }, 750);
+      }
+            
+      function save_options() {
+        function save_boolean(name) {
+          var checkbox = document.getElementById(name);
+          localStorage[name] = checkbox.checked ? '1': '0';
+        }
+        function save_string(name) {
+          var field = document.getElementById(name);
+          localStorage[name] = field.value || '';
+        }
+        save_string("hotkey");
+        feedback();
+      }
+
+      function restore_options() {
+        function restore_boolean(name) {
+          var checkbox = document.getElementById(name);
+          checkbox.checked = localStorage[name] == '1';
+        }
+        function restore_string(name) {
+          var field = document.getElementById(name);
+          field.value = localStorage[name] || '';
+        }
+        restore_string("hotkey");
+      }
+    </script>
+  </head>
+    
+  <body onload="restore_options()">
+    <h2>Options</h2>
+        
+    <div id="options">
+      <label for="hotkey">Hotkey:
+        <input id="hotkey" type="text">
+        </input>
+      </label>
+      <br />
+      <button onclick="save_options()">Save</button>
+      &nbsp;<span id="status"></span>      
+    </div>        
+  </body>
+</html>
