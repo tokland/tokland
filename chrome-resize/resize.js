@@ -96,6 +96,7 @@ var ResizeExtension = {
   },
     
   on_document_mouseover: function(ev) {
+    this.hover_element = ev.target;
     if (this.mode == "hover-select") {
       var element = ev.target;
       this.select_hover_element(element);
@@ -143,7 +144,6 @@ var ResizeExtension = {
   },
 
   on_document_mousemove: function(ev) {
-    this.hover_element = document.elementFromPoint(ev.pageX, ev.pageY);
     if (this.mode == "arrow") {
       var arrow = $("resize-arrow-br");
       var dx = ev.pageX - this.arrow_info.x; 
@@ -254,5 +254,5 @@ if (chrome.extension) {
   });
 } else {
   ResizeExtension.initialize({hotkey: "<Control><Shift>A", arrow_url: "arrow-br.png"});
-  document.addEventListener("DOMContentLoaded", ResizeExtension.update_mods.bind(ResizeExtension));
+  //document.addEventListener("DOMContentLoaded", ResizeExtension.update_mods.bind(ResizeExtension));
 }
