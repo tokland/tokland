@@ -32,11 +32,9 @@ function save_options() {
       try { 
         new RegExp(input.value) 
       } catch(e) { 
-        console.log("error");
         input.className = "error";
         return false;
       }
-      console.log("no error");
       input.className = "";
       return true;
     }

@@ -1,3 +1,9 @@
+chronkey (0.0.3) unstable; urgency=low
+
+  * New feature: add all links in page (regular expression configurable)
+
+ --  <tokland@gmail.com>  Tue, 11 Jan 2011 20:59:54 +0100
+
 chronkey (0.0.2) unstable; urgency=low
 
   * Fix background javascript

@@ -1,3 +1,13 @@
+function get_keys(obj) { 
+  var ks = []
+  for (k in obj) {
+    if (obj.hasOwnProperty(k)) {
+      ks.push(k);
+    }
+  }
+  return ks;
+};
+
 function on_submit(info, tab, options) {
   var template_url = options.url;
   if (!template_url) {
@@ -12,8 +22,13 @@ function on_submit(info, tab, options) {
     send_url(service, template_url, urls, info.linkUrl);    
   } else if (info.pageUrl) {
     chrome.tabs.sendRequest(tab.id, {action: "getLinks", regexp: options.url_regexp}, function(response) {
-      for(url in response.urls) {
-        send_url(service, template_url, response.urls, url);
+      var urls = response.urls;
+      if (get_keys(urls).length > 0) {
+        for(url in urls) {
+          send_url(service, template_url, urls, url);
+        }
+      } else {
+        alert("No URLs found matching regular expression: " + options.url_regexp);
       }
     });  
   }
@@ -61,7 +76,7 @@ function send_url(service, template_url, urls, url) {
 function add_menus() {
   var config = JSON.parse(localStorage["services"]);
   var main = chrome.contextMenus.create({
-    title: "Chronkey",  //+ (config.length == 0 ? " (no services configured)" : ""),
+    title: "Chronkey" + (get_keys(config).length == 0 ? " (go to options page to add services)" : ""),
     contexts: ["page", "link"],
   });
   for (index in config) {
