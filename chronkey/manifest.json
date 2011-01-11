@@ -9,6 +9,14 @@
     "tabs",
     "http://*/*"
   ],
+
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "ftp://*/*", "file://*/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_idle"
+    }
+  ],
   
   "icons": {
     "16": "icon-16.png",

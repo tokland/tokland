@@ -28,14 +28,30 @@ function save_options() {
         return true;
       }   
     }
+    function check_regexp(input) {
+      try { 
+        new RegExp(input.value) 
+      } catch(e) { 
+        console.log("error");
+        input.className = "error";
+        return false;
+      }
+      console.log("no error");
+      input.className = "";
+      return true;
+    }
     if (!check_field(form.name))
       errors = true;
     if (!check_field(form.url))
       errors = true;
+    if (!check_field(form.url_regexp) || !check_regexp(form.url_regexp))
+      errors = true;
+      
     config[index] = {
       service: form.service.value, 
       name: form.name.value, 
       url: form.url.value,
+      url_regexp: form.url_regexp.value,
     };
   });
   if (!errors) {
@@ -50,7 +66,7 @@ function save_options() {
 function onload() {
   for (key in services) {
     var option = document.createElement("option");
-    option.text = services[key].human_name;
+    option.text = services[key].name;
     option.value = key;        
     $('add').options.add(option);
   }
@@ -68,7 +84,8 @@ function add(options) {
   var namespace = {
     name: options.name || "",
     url: options.url || "http://user:password@server:port",
-    service_name: services[options.service].human_name, 
+    url_regexp: options.url_regexp || services[options.service].url_regexp,
+    service_name: services[options.service].name, 
     service: options.service,
   };
   

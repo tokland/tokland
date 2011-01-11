@@ -1,14 +1,17 @@
 services = {
   "mldonkey": {
-    "human_name": "MLDonkey",
+    "name": "MLDonkey",
     "method": "GET",
     "path": "/submit",
+    "url_regexp": "\\.(torrent|e2dk)$",
     "params": "q=dllink+%url",
   },
+  
   "qbittorrent": {
-    "human_name": "QBitTorrent",
+    "name": "QBitTorrent",
     "method": "POST",
     "path": "/command/download",
+    "url_regexp": "\\.(torrent|e2dk)$",
     "params": "urls=%url",
   },
 }

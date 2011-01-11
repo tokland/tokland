@@ -4,7 +4,7 @@
     <script type="text/javascript" src="services.js"></script>
     <script type="text/javascript" src="options.js"></script>
     <style>
-      form { margin: 0px; }
+      form { margin: 0px; margin: 10px; padding: 5px; width: 700px; border: 1px solid grey; }
       input.error { background-color: #FAA; }
     </style>
   </head>
@@ -13,12 +13,15 @@
     <h2>Options</h2>
     <div id="service_template" style="display: none">
       <form class="service">
-        <br />
         <input type="hidden" name="service" value="%service%"></input>
         Name: <input type="text" size="20" name="name" value="%name%"></input>
         (%service_name%)
         <br />
-        URL: <input type="text" size="64" name="url" value="%url%"></input>
+        Submit URL: <input type="text" size="64" name="url" value="%url%"></input>
+        <br />        
+        Batch URL regular expresssion: 
+        <input type="text" size="64" name="url_regexp" value="%url_regexp%"></input>
+        <br />
         <a href="#" onclick="remove(this)">remove</a>        
       </form>      
     </div>
