@@ -12,7 +12,7 @@
 
   "content_scripts": [
     {
-      "matches": ["http://*/*", "https://*/*", "ftp://*/*", "file://*/*"],
+      "matches": ["http://*/*", "https://*/*", "ftp://*/*"],
       "js": ["content_script.js"],
       "run_at": "document_idle"
     }
