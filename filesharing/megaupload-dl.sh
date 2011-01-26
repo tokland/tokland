@@ -7,16 +7,15 @@
 
 EXIT_STATUSES=(
   [0]=ok
-  # Non-retryable
+  # Non-retryable errors
   [1]=link_invalid
   [2]=arguments
   [3]=link_dead
   [4]=link_unknown_problem
-  [5]=ocr
-  [6]=parse
-  [7]=password_required
-  [8]=password_wrong
-  # Retryable
+  [5]=parse
+  [6]=password_required
+  [7]=password_wrong
+  # Retryable errors
   [100]=parse_nonfatal
   [101]=network
   [102]=link_temporally_unavailable
@@ -52,28 +51,6 @@ parse_form_input() { parse "name=\"$1\"" 'value="\([^"]*\)'; }
 # Curl wrapper (goal: robustness and responsiveness)
 curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 "$@"; }
 
-# Show image ($1) using ASCII  
-show_ascii_image() {
-  aview --version &>/dev/null || 
-    { info "Install package aview to see the captcha"; return 0; } 
-  convert "$1" -negate -depth 8 pnm:- |
-    aview -width 60 -height 20 -kbddriver stdin <(cat) 2>/dev/null <<< "q" |
-    sed -e '1d;/\x0C/,/\x0C/d' | grep -v "^[[:space:]]*$"
-}
-
-# convert image (stdin) to text (stdout)
-ocr() {
-  local TIFF=$(tempfile --suffix=".tif")
-  local TEXT=$(tempfile --suffix=".txt")
-  convert - tif:- > $TIFF
-  show_ascii_image $TIFF | while read LINE; do
-    info "$LINE"
-  done
-  tesseract $TIFF ${TEXT/%.txt}
-  cat $TEXT
-  rm -f $TIFF $TEXT
-}
-
 # Echo numeric error (to stdout) with key $1 (see EXIT_STATUSES) and message $2
 error() {
   local KEY=$1; local MSG=${2:-""}; local DEBUGCONTENT=${3:-""}
@@ -82,9 +59,10 @@ error() {
     test "$MSG" && stderr ": $MSG" || stderr
   fi
   if test "$DEBUGCONTENT"; then
-    local TEMP=$(tempfile)
-    echo "$DEBUGCONTENT" > $TEMP
-    stderr "debug content saved: $TEMP"
+    if TEMP=$(tempfile); then 
+      echo "$DEBUGCONTENT" > $TEMP
+      stderr "debug content saved: $TEMP"
+    fi
   fi
   local VAR="EXIT_STATUS_$KEY"
   echo ${!VAR}
@@ -94,18 +72,18 @@ error() {
 
 # Search info message in HTML $1 (temporally_unavailable/unknown_problem)
 get_main_page() {
-  local URL=$1
+  local URL=$1; local OPT=$2
   
   while true; do 
     info "GET $URL"
-    local PAGE=$(curlw -sS "$URL") || return $(error network "downloading page: $URL")
-    local ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
-    local MSG=$(echo "$PAGE" | parse_quiet '<center>' '<center>\(.*\)<') || true
+    PAGE=$(curlw -sS "$URL") || return $(error network "downloading page: $URL")
+    ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
+    MSG=$(echo "$PAGE" | parse_quiet '<center>' '<center>\(.*\)<') || true
     
-    if test "$ERROR_URL"; then
-      local ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
+    if test "$ERROR_URL" -a "$OPT" = "wait"; then
+      ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
         return $(error network "downloading error page") 
-      local WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
+      WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
         return $(error parse "error page detected, but wait time not found" "$PAGE")
       info "The server told us off for making too much requests, waiting $WAIT minutes"
       sleep $((WAIT*60))
@@ -117,6 +95,10 @@ get_main_page() {
     elif test "$MSG"; then
       return $(error link_unknown_problem "server says: '$MSG'")
     else
+      # file_info "$PAGE" "Name" "File name" "span"
+      info "Name: $(echo "$PAGE" | parse 'File name:' '>\(.*\)<\/span' | strip)"
+      info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)<br' | strip)"
+      info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"    
       echo "$PAGE"
       break
     fi
@@ -131,16 +113,14 @@ megaupload_download() {
   
   while true; do
     # Get main link page
-    PAGE=$(get_main_page "$URL") || return $?
+    PAGE=$(get_main_page "$URL" "wait") || return $?
     
-    # Show info
-    info "Name: $(echo "$PAGE" | parse 'File name:' '>\(.*\)<\/span' | strip)"
-    info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)<br' | strip)"
-    info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"
-
     # Get wait page
     PASSRE='name="filepassword"'
-    WAITPAGE=$(if match "$PASSRE" "$PAGE"; then
+    WAITPAGE=$(if match "^[[:space:]]*count=" "$PAGE"; then
+      # MU dropped the captcha, so the main page is also the wait page
+      echo "$PAGE" 
+    elif match "$PASSRE" "$PAGE"; then
       # Password-protected link
       test "$PASSWORD" || return $(error password_required "No password provided")
       info "POST $URL (filepassword=$PASSWORD)"
@@ -149,28 +129,9 @@ megaupload_download() {
       match "$PASSRE" "$WAITPAGE" &&
         return $(error password_wrong "Password error")
       echo "$WAITPAGE"
-    elif match "^[[:space:]]*count=" "$PAGE"; then
-      echo "$PAGE" # Happy-hour, the main page is also the wait page
     else 
-      # Normal link with no password, resolve the captcha
-      CODE=$(echo "$PAGE" | parse_form_input captchacode) ||
-        return $(error parse "captchacode field" "$PAGE")
-      MVAR=$(echo "$PAGE" | parse_form_input megavar) ||
-        return $(error parse "megavar field" "$PAGE")      
-      CAPTCHA_URL=$(echo "$PAGE" | parse "gencap.php" 'img src="\([^"]*\)') ||
-        return $(error parse "captcha image URL""$PAGE")
-      info "GET $CAPTCHA_URL"
-      CAPTCHA_IMG=$(tempfile) 
-      curlw -sS -o "$CAPTCHA_IMG" "$CAPTCHA_URL" || 
-        { rm -f "$CAPTCHA_IMG"; return $(error network "getting captcha image"); }
-      CAPTCHA=$(convert "$CAPTCHA_IMG" +matte gif:- | ocr | head -n1 | 
-                tr -d -c "[0-9a-zA-Z]") || 
-        { rm -f "$CAPTCHA_IMG"; return $(error ocr "check imagemagick/tesseract"); } 
-      rm -f "$CAPTCHA_IMG"
-      info "POST $URL (captcha=$CAPTCHA)"
-      curlw -sS -F "captchacode=$CODE" -F "megavar=$MVAR" -F "captcha=$CAPTCHA" "$URL" ||
-        return $(error network "posting captcha form")
-    fi)
+      return $(error parse "main page" "$PAGE")
+    fi) || return $?
     
     # Get download link and wait
     WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" "count=\([[:digit:]]\+\);") ||
@@ -191,7 +152,7 @@ megaupload_download() {
     if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
       # This is tricky: if we got an unsuccessful code (probably a 503), but 
       # something was downloaded, FILENAME will now contain this data (the error page).
-      # Since this content would interfere with the next loop, we better get rid of it. 
+      # Since this content would interfere with the real file, we better get rid of it now. 
       rm -f "$FILENAME"
     fi
     
@@ -217,15 +178,32 @@ megaupload_download() {
   done
 }
 
+usage() {
+  stderr "Usage: $(basename $0) [-p PASSWORD] [-c] MEGAUPLOAD_URL[@PASSWORD]\n"
+  stderr "    Download a file from megaupload.com"
+}
+
 ### Main
 
 if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
   set -e -u -o pipefail
-  if test $# -ne 1; then
-    stderr "Usage: $(basename $0) MEGAUPLOAD_URL[@PASSWORD]\n"
-    stderr "    Download a Megaupload file (and write file path to stdout)"
-    exit $(error arguments "#skip_log")
+  PASSWORD=
+  CHECKONLY=
+  test $# -eq 0 && set -- "-h"
+  while getopts "cp:h" ARG; do
+    case "$ARG" in
+    c) CHECKONLY=1;;
+    p) PASSWORD=$OPTARG;;
+	  *) usage
+	     exit 2;;
+	  esac
+  done
+  shift $(($OPTIND-1))
+  IFS="@" read URL URL_PASSWORD <<< "$1"
+  
+  if test "$CHECKONLY"; then
+    get_main_page "$URL" "nowait" > /dev/null && info "Link is alive"
+  else
+    megaupload_download "$URL" "${URL_PASSWORD:-$PASSWORD}"
   fi
-  IFS="@" read URL PASSWORD <<< "$1"
-  megaupload_download "$URL" "$PASSWORD"
 fi
