@@ -1,0 +1,25 @@
+{
+  "name": "GetLinks",
+  "description": "Get links from selected text",
+  "version": "0.0.1",
+  "background_page": "background.html",
+  //"options_page": "options.html",
+   "permissions": [
+    "contextMenus",
+    "tabs",
+    "http://*/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*", "ftp://*/*", "file://*/*"],
+      "js": ["content_script.js"],
+      "run_at": "document_start"
+    }
+  ],
+  
+  "icons": {
+    "16": "icon-16.png",
+    "48": "icon-48.png"
+  }
+}
