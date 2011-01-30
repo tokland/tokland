@@ -15,7 +15,7 @@ function toArray(object) {
 }
 
 function save_options() {
-  config = {}
+  var config = {}
   var services = document.getElementById("services").getElementsByClassName("service");
   var errors = false;
   toArray(services).forEach(function(form, index) {
@@ -44,18 +44,21 @@ function save_options() {
       errors = true;
     if (!check_field(form.url_regexp) || !check_regexp(form.url_regexp))
       errors = true;
+    if (!check_field(form.hotkey))
+      errors = true;
       
     config[index] = {
       service: form.service.value, 
       name: form.name.value, 
       url: form.url.value,
       url_regexp: form.url_regexp.value,
+      hotkey: form.hotkey.value,
     };
   });
   if (!errors) {
     localStorage["services"] = JSON.stringify(config);
     set_feedback("Options saved");
-    chrome.extension.sendRequest({'update_menus': true})
+    chrome.extension.sendRequest({action: 'updateMenus'});
   } else {
     set_feedback("Errors found, cannot save");
   }
@@ -85,6 +88,7 @@ function add(options) {
     url_regexp: options.url_regexp || services[options.service].url_regexp,
     service_name: services[options.service].name, 
     service: options.service,
+    hotkey: options.hotkey || "",
   };
   
   var html = $('service_template').innerHTML;

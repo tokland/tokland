@@ -21,7 +21,8 @@ function on_submit(info, tab, options) {
     urls[info.linkUrl] = null;
     send_url(service, template_url, urls, info.linkUrl);    
   } else if (info.pageUrl) {
-    chrome.tabs.sendRequest(tab.id, {action: "getLinks", regexp: options.url_regexp}, function(response) {
+    var request = {action: "getLinks", regexp: options.url_regexp, only_selection: !!info.selectionText};
+    chrome.tabs.sendRequest(tab.id, request, function(response) {
       var urls = response.urls;
       if (get_keys(urls).length > 0) {
         for(url in urls) {
@@ -57,8 +58,10 @@ function send_url(service, template_url, urls, url) {
           error++;
         }
       }
-      alert(urls_keys.length + " URL(s) submitted " + 
-            "(successful: " + successful + ", error: " + error + ")");
+      message = urls_keys.length + " URL(s) submitted " + 
+        "(ok: " + successful + ", error: " + error + ")" + "\n\n" + 
+        urls_keys.join("\n")
+      alert(message);        
     }
   }; 
      
@@ -73,8 +76,9 @@ function send_url(service, template_url, urls, url) {
   }
 }
 
+var config = JSON.parse(localStorage["services"]);
+
 function add_menus() {
-  var config = JSON.parse(localStorage["services"]);
   var main = chrome.contextMenus.create({
     title: "Chronkey" + (get_keys(config).length == 0 ? " (go to options page to add services)" : ""),
     contexts: ["page", "link"],
@@ -83,7 +87,7 @@ function add_menus() {
     var options = config[index];
     chrome.contextMenus.create({
       title: options.name,
-      contexts: ["page", "link"],
+      contexts: ["page", "link", "selection"],
       parentId: main,
       onclick: function(info, tab) {
         on_submit(info, tab, options); 
@@ -94,9 +98,18 @@ function add_menus() {
 
 chrome.extension.onRequest.addListener(
   function(request, sender, sendResponse) {
-    if (request.update_menus) {
+    if (request.action == "updateMenus") {
       chrome.contextMenus.removeAll()
       add_menus();
+    } else if (request.action == "getServices") {
+      sendResponse(JSON.parse(localStorage["services"]));
+    } else if (request.action == "submitLink") {
+      var options = config[request.options_key];
+      var service = services[options.service];
+      var template_url = options.url;
+      var urls = {};
+      urls[request.href] = null;      
+      send_url(service, template_url, urls, request.href);
     }
   }
 );
