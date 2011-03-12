@@ -11,8 +11,8 @@ class Tree
   def inspect
     case @type
     when :empty then "Empty"
-    when :leaf then "(Leaf #{@value})"
-    when :node then "(Node #{@value} #{@left_tree.inspect} #{@right_tree.inspect})"
+    when :leaf then "(Leaf #{@value.inspect})"
+    when :node then "(Node #{@value.inspect} #{@left_tree.inspect} #{@right_tree.inspect})"
     end    
   end
     

@@ -5,10 +5,9 @@ require 'adt_tree'
 
 class ADTTest < Test::Unit::TestCase
   def setup
-    @tree = 
-      Tree.node("1", Tree.leaf("1a"), 
-                     Tree.node("1b", Tree.empty, 
-                                     Tree.leaf("1bB")))
+    @tree = Tree.node("1", Tree.leaf("1a"), 
+                           Tree.node("1b", Tree.empty, 
+                                           Tree.leaf("1bB")))
   end
   
   def test_weight
@@ -25,7 +24,7 @@ class ADTTest < Test::Unit::TestCase
   end
   
   def test_inspect
-    assert_equal "(Node 1 (Leaf 1a) (Node 1b Empty (Leaf 1bB)))", @tree.inspect
+    assert_equal '(Node "1" (Leaf "1a") (Node "1b" Empty (Leaf "1bB")))', @tree.inspect
   end
   
   def test_tree_from_object
