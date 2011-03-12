@@ -1,10 +1,3 @@
-Tree 2 (Node 7 (Leaf 2) 
-               (Node 6 (Leaf 5) 
-                       (Leaf 11))) 
-       (Node 5 Empty 
-               (Node 9 (Leaf 4) 
-                       Empty))
-
 class Tree
   def initialize(type, value = nil, left_tree = nil, right_tree = nil)
     @type = type
