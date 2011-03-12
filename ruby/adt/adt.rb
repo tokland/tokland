@@ -1,10 +1,10 @@
 # Poor man's Algebraic Data Types for Ruby.
 #
-# Example: a tree in Haskell may be written:
+# Example: a tree in Haskell:
 #
-# data Tree a = Empty | Leaf a | Node a (Tree a) (Tree a)
+#   data Tree a = Empty | Leaf a | Node a (Tree a) (Tree a)
 # 
-# Now in Ruby we can write this (broadly) equivalent (with no type checking):
+# May be written with ADT (broadly equivalent, no type checking):
 # 
 #   class Tree
 #     include ADT
@@ -23,6 +23,7 @@
 #  >> tree = Tree.node(1, Tree.leaf(2), Tree.empty)
 #  >> tree.weight 
 #  => 2
+#
 module ADT
   def self.included(base)
     base.extend(ClassMethods)
@@ -52,6 +53,14 @@ class Tree
   constructor :empty
   constructor :leaf => :value
   constructor :node => [:value, :left_tree, :right_tree]
+  
+  def inspect
+    case @type
+    when :empty then "Empty"
+    when :leaf then "(Leaf #{@value})"
+    when :node then "(Node #{@value} #{@left_tree.inspect} #{@right_tree.inspect})"
+    end    
+  end
   
   # Return weight of tree (total number of non-empty nodes)
   def weight
@@ -89,7 +98,8 @@ if __FILE__ == $0
     Tree.node("1", Tree.leaf("1a"), 
                    Tree.node("1b", Tree.empty, 
                                    Tree.leaf("1bB")))
-  p tree.weight #=> 4
+  puts tree.inspect
+  p tree.weight #=> 4  
   p tree.values #=> ["1", "1a", "1b", "1bB"]
   p tree.fmap { |x| "v=#{x}" }.values #=> ["v=1", "v=1a", "v=1b", "v=1bB"]
 end
