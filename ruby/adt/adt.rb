@@ -37,10 +37,10 @@ module ADT
     @instance_variables = [:type] + hash_arguments.map(&:first)
   end
 
-  def ==(other_tree)
+  def ==(other)
     @instance_variables.all? do |k|
       key = "@" + k.to_s
-      self.instance_variable_get(key) == other_tree.instance_variable_get(key)
+      self.instance_variable_get(key) == other.instance_variable_get(key)
     end
   end  
     
