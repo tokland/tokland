@@ -2,6 +2,9 @@ require 'adt'
 
 # data Tree a = Empty | Leaf a | Node a (Tree a) (Tree a)
 #
+# The Leaf constructor is not strictly necessary because a leaf could  
+# be written (Node a Empty Empty), but this way it's more clear.
+#
 class Tree
   include ADT
   constructor :empty
@@ -9,7 +12,7 @@ class Tree
   constructor :node => [:value, :left_tree, :right_tree]
   
   def inspect
-    case @type
+    case self.ktype # .ktype is optional because Symbol#===(adt_type) is overridden
     when :empty then "Empty"
     when :leaf then "(Leaf #{@value.inspect})"
     when :node then "(Node #{@value.inspect} #{@left_tree.inspect} #{@right_tree.inspect})"
@@ -18,7 +21,7 @@ class Tree
     
   # Return weight of tree (total number of non-empty nodes)
   def weight
-    case @type
+    case self
     when :empty then 0
     when :leaf then 1
     when :node then 1 + @left_tree.weight + @right_tree.weight
@@ -27,7 +30,7 @@ class Tree
 
   # Return flatten array of values (from left to right) in a tree
   def values
-    case @type
+    case self
     when :empty then []
     when :leaf then [@value]
     when :node then [@value] + @left_tree.values + @right_tree.values
@@ -36,7 +39,7 @@ class Tree
     
   # Return a new tree with its values mapped by a block 
   def fmap(&block)
-    case @type
+    case self
     when :empty
       Tree.empty
     when :leaf
@@ -44,6 +47,25 @@ class Tree
     when :node
       Tree.node(yield(@value), @left_tree.fmap(&block), @right_tree.fmap(&block))
     end      
+  end
+  
+  def leaf_paths
+    case self
+    when :empty
+      []
+    when :leaf
+      [[@value]]
+    when :node
+      if @left_tree.ktype?(:empty) && @right_tree.ktype?(:empty)        
+        [[@value]] # This node was in fact a leaf
+      else
+        [@left_tree, @right_tree].map do |tree|
+          tree.leaf_paths.map do |values|
+            [@value] + values
+          end
+        end.flatten(1)
+      end
+    end            
   end
   
   # Build a tree from a Ruby object. 
@@ -63,12 +85,12 @@ class Tree
     end
   end
   
-  # Convert tree to Ruby object (reverse of Tree::from_object)
+  # Convert tree to Ruby object (inverse of Tree::from_object)
   def to_object
-    case @type
+    case self
     when :empty then nil
     when :leaf then @value
     when :node then [@value, [@left_tree.to_object, @right_tree.to_object]]
-    end          
+    end
   end
 end

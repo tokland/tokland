@@ -48,4 +48,17 @@ class ADTTest < Test::Unit::TestCase
                                            Tree.leaf(5))).to_object
                    
   end
+  
+  def test_tree_leaf_paths
+    assert_equal [], Tree.empty.leaf_paths
+    assert_equal [[1]], Tree.leaf(1).leaf_paths
+    assert_equal [[1]], Tree.node(1, Tree.empty, Tree.empty).leaf_paths
+    assert_equal [[1, 2]], Tree.node(1, Tree.leaf(2), Tree.empty).leaf_paths
+    assert_equal [[1, 2], [1, 3]], Tree.node(1, Tree.leaf(2), Tree.leaf(3)).leaf_paths
+    assert_equal [[1, 3, 4], [1, 3, 5, 6], [1, 3, 5, 7]],
+                 Tree.node(1, Tree.empty, 
+                              Tree.node(3, Tree.leaf(4), 
+                                           Tree.node(5, Tree.leaf(6),
+                                                        Tree.leaf(7)))).leaf_paths
+  end
 end
