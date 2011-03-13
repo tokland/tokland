@@ -4,7 +4,7 @@
 #
 #   data Tree a = Empty | Leaf a | Node a (Tree a) (Tree a)
 # 
-# May be written with ADT (broadly equivalent, no ktype checking):
+# May be written with ADT (broadly equivalent, noktype checking):
 # 
 #   class Tree
 #     include ADT
@@ -24,32 +24,12 @@
 #  >> tree.weight 
 #  => 2
 #
-
-# To simplify case blocks in ADT class methods
-class Symbol
-  def ===(other) 
-    other.instance_variable_get("@_adt_instance_variables") && 
-      other.ktype === self || super 
-  end
-end
-
-class Object
-  # Like obj || fallback, but you decide which method to use as guard 
-  #
-  # Example: 
-  #  [].or_if(:empty?) { ["default"] } #=> ["default"] 
-  #  [1].or_if(:empty?) { ["default"] } #=> [1]
-  def or_if(method, &block)
-    self.send(method) ? yield(self) : self
-  end
-end
-
 module ADT
-  attr_accessor :ktype
-
   def self.included(base)
     base.extend(ClassMethods)
   end
+
+  attr_accessor :ktype  
       
   def initialize(ktype, hash_arguments)
     self.ktype = ktype
@@ -57,7 +37,7 @@ module ADT
       self.class.send(:attr_accessor, key)
       self.send("#{key}=", value)
     end
-    @_adt_instance_variables = [:ktype] + hash_arguments.map(&:first)
+    @adt_instance_variables = [:ktype] + hash_arguments.map(&:first)
   end
 
   def ktype?(value)
@@ -65,19 +45,27 @@ module ADT
   end
   
   def ==(other)
-    @_adt_instance_variables.all? do |k|
-      key = "@" + k.to_s
-      self.instance_variable_get(key) == other.instance_variable_get(key)
+    @adt_instance_variables.all? do |key|
+      self.send(key) == other.send(key)
     end
   end
       
   module ClassMethods  
     def constructor(arg)
       ktype, args = arg.is_a?(Hash) ? arg.first : [arg, []]
-      self.send(:attr_accessor, ktype)      
+      self.send(:attr_accessor, ktype)
+             
+      # Define constructor in the eigenclass (define_singleton_method in Ruby 1.9)
       (class << self; self; end).send(:define_method, ktype) do |*cargs| 
         self.new(ktype, Array(args).zip(cargs))
       end
     end
+  end
+end
+ 
+class Symbol
+  def ===(other)
+    other.instance_variable_get("@adt_instance_variables") && 
+      other.ktype == self || super 
   end
 end

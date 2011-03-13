@@ -1,5 +1,16 @@
 require 'adt'
 
+class Object
+  # Like obj || fallback, but you decide which method to use as guard 
+  #
+  # Example: 
+  #  [].or_if(:empty?) { ["default"] } #=> ["default"] 
+  #  [1].or_if(:empty?) { ["default"] } #=> [1]
+  def or_if(method, &block)
+    self.send(method) ? yield(self) : self
+  end
+end
+
 # data Tree a = Empty | Leaf a | Node a (Tree a) (Tree a)
 #
 # The Leaf constructor is not strictly necessary because a leaf could  
