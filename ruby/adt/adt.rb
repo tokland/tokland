@@ -25,10 +25,22 @@
 #  => 2
 #
 
+# To simplify case blocks in ADT class methods
 class Symbol
   def ===(other) 
     other.instance_variable_get("@_adt_instance_variables") && 
       other.ktype === self || super 
+  end
+end
+
+class Object
+  # Like obj || fallback, but you decide which method to use as guard 
+  #
+  # Example: 
+  #  [].or_if(:empty?) { ["default"] } #=> ["default"] 
+  #  [1].or_if(:empty?) { ["default"] } #=> [1]
+  def or_if(method, &block)
+    self.send(method) ? yield(self) : self
   end
 end
 

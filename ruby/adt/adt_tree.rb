@@ -56,15 +56,8 @@ class Tree
     when :leaf
       [[@value]]
     when :node
-      if @left_tree.ktype?(:empty) && @right_tree.ktype?(:empty)        
-        [[@value]] # This node was in fact a leaf
-      else
-        [@left_tree, @right_tree].map do |tree|
-          tree.leaf_paths.map do |values|
-            [@value] + values
-          end
-        end.flatten(1)
-      end
+      (@left_tree.leaf_paths.map { |vs| [@value] + vs } +
+       @right_tree.leaf_paths.map { |vs| [@value] + vs }).or_if(:empty?) { [[@value]] }
     end            
   end
   
