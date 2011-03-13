@@ -4,10 +4,11 @@ class Object
   # Like obj || fallback, but you decide which method to use as guard 
   #
   # Example: 
-  #  [].or_if(:empty?) { ["default"] } #=> ["default"] 
   #  [1].or_if(:empty?) { ["default"] } #=> [1]
-  def or_if(method, &block)
-    self.send(method) ? yield(self) : self
+  #  [].or_if(:empty?, ["default1"]) #=> ["default1"] 
+  #  [].or_if(:empty?) { ["default2"] } #=> ["default2"]
+  def or_if(method, fallback = nil, &block)
+    self.send(method) ? (block_given? ? yield(self) : fallback) : self
   end
 end
 
@@ -68,7 +69,7 @@ class Tree
       [[@value]]
     when :node
       (@left_tree.leaf_paths.map { |vs| [@value] + vs } +
-       @right_tree.leaf_paths.map { |vs| [@value] + vs }).or_if(:empty?) { [[@value]] }
+       @right_tree.leaf_paths.map { |vs| [@value] + vs }).or_if(:empty?, [[@value]])
     end            
   end
   
