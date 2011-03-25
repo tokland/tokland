@@ -51,7 +51,7 @@ def download(url, opener, buffersize=256):
         
 def get_vanguardia_index(date, opener):
     """Return the main index of the newspaper for a given date (YYYYMMDD)"""
-    url = "http://www.lavanguardia.es/free/epaper/%s/index.html" % date
+    url = "http://edicionimpresa.lavanguardia.es/free/epaper/%s/index.html" % date
     return download(url, opener)
     
 def download_chess(date, cookiesfile):
