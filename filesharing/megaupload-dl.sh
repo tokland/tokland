@@ -139,7 +139,7 @@ megaupload_download() {
     FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
       return $(error parse "download link not found" "$WAITPAGE")
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
-    info "Waiting $WAITTIME seconds before starting download"
+    info "Waiting $WAITTIME seconds before download starts"
     sleep $WAITTIME
     
     # Download the file
@@ -151,8 +151,8 @@ megaupload_download() {
     
     if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
       # This is tricky: if we got an unsuccessful code (probably a 503), but 
-      # something was downloaded, FILENAME will now contain this data (the error page).
-      # Since this content would interfere with the real file, we better get rid of it now. 
+      # FILENAME contains data (the error page), we need to delete it so it
+      # does not interfere with the real file. 
       rm -f "$FILENAME"
     fi
     
@@ -194,9 +194,9 @@ if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
     case "$ARG" in
     c) CHECKONLY=1;;
     p) PASSWORD=$OPTARG;;
-	  *) usage
-	     exit 2;;
-	  esac
+    *) usage
+       exit 2;;
+    esac
   done
   shift $(($OPTIND-1))
   IFS="@" read URL URL_PASSWORD <<< "$1"
