@@ -110,8 +110,8 @@ while getopts "k:t:m:w:b:cqfh" ARG; do
   c) COMPLEMENT=1;;
   f) FOREVER=1;;
   h) usage; exit 0;;
-	*) usage; exit 2;;
-	esac
+  *) usage; exit 2;;
+  esac
 done
 shift $(($OPTIND-1))
 
