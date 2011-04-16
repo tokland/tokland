@@ -36,6 +36,7 @@ function on_submit(info, tab, options) {
 }
 
 function send_url(service, template_url, urls, url) {
+  console.log(url);
   var service_url = template_url.replace(new RegExp("/*$"), "") + 
                     service.path.replace("%url", escape(url));  
 
