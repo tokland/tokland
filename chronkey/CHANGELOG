@@ -1,3 +1,9 @@
+chronkey (0.1.0) unstable; urgency=low
+
+  * Fix regular expression for edonkey links
+
+ --  <tokland@gmail.com>  Sat, 16 Apr 2011 21:14:05 +0200
+
 chronkey (0.0.4) unstable; urgency=low
 
   * New feature: associate hotkey with link submission 
