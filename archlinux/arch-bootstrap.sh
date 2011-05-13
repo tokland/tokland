@@ -116,7 +116,7 @@ mkdir -p "$DEST"
 
 debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
-  FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]]")
+  FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]].*\(\.gz\|\.xz\)$")
   test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
   FILEPATH="$PACKDIR/$FILE"
   test -e "$FILEPATH" && check_compressed_integrity "$FILEPATH" || {
