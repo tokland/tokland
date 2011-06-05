@@ -11,7 +11,7 @@ for PDF in "$@"; do
   IMAGE="output/$BASE.png"
 
   bash extract_image.sh "$PDF" "$IMAGE"
-  FEN=$(python pdf2fen.py "$PDF")
+  FEN=$(./pdf2fen.py "$PDF")
 
   echo "
   <html>

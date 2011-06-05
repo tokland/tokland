@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python2
 import sys
 import re
 import subprocess
@@ -97,15 +97,16 @@ def pdf2fen(pdffile):
     assert (retcode == 0), "Error running pdftohtml:\n%s" % err
     lines = output.splitlines()
     
-    tomove = first(re.search(r'font="5"><b>(\w+) JUEGAN Y', line) 
+    tomove = first(re.search(r'<b>(\w+) JUEGAN Y', line) 
         for line in lines).group(1).lower()
     assert (tomove in ["blancas", "negras"]), "Error parsing whose turn is"
     debug("to move: %s" % tomove)
     white_to_move = (tomove == "blancas")
     
-    ref_line = first(line for line in lines if 'height="13"' in line and ' JUEGAN Y' in line)
-    assert ref_line, "Error finding reference line"  
-    board_lines = [line for line in lines if 'height="21"' in line][:8]
+    ref_line = first(line for line in lines if '<text' in line and ' JUEGAN Y' in line)
+    ref_index = first(idx for idx, line in enumerate(lines) if '>8</text>' in line)
+    assert ref_index, "Error finding reference line"
+    board_lines = lines[ref_index+1:(ref_index+1)+16:2]
     assert (len(board_lines) == 8), "Wrong board lines: %d" % len(board_lines)
     board = create_board(board_lines, ref_line)
     debug_board(board) 
