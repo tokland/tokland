@@ -1,6 +1,9 @@
 #!/bin/bash
-# Download a file from Megaupload (free download without account) using 
-# automatic captcha recognition. 
+#
+# Download a file from Megaupload.
+#
+# $ megaupload-dl http://www.megaupload.com/?d=XJHN1S11
+# hello.pdf
 #
 # Author: Arnau Sanchez <tokland@gmail.com>
 # Website: http://code.google.com/p/tokland/wiki/MegauploadDownloader
@@ -48,29 +51,26 @@ parse_quiet() { parse "$@" 2>/dev/null; }
 # Parse form input 'value' attribute from its name ($1)
 parse_form_input() { parse "name=\"$1\"" 'value="\([^"]*\)'; }
 
-# Curl wrapper (goal: robustness and responsiveness)
+# Wrapper over curl
 curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 "$@"; }
 
-# Echo numeric error (to stdout) with key $1 (see EXIT_STATUSES) and message $2
+# Echo error with key $1 (see EXIT_STATUSES_*), message $2 and optional debug output ($3)
 error() {
   local KEY=$1; local MSG=${2:-""}; local DEBUGCONTENT=${3:-""}
-  if test "$MSG" != "#skip_log"; then 
-    stderr -n "ERROR [$KEY]"
-    test "$MSG" && stderr ": $MSG" || stderr
-  fi
+  stderr -n "ERROR [$KEY]"
+  test "$MSG" && stderr ": $MSG" || stderr
   if test "$DEBUGCONTENT"; then
-    if TEMP=$(tempfile); then 
-      echo "$DEBUGCONTENT" > $TEMP
-      stderr "debug content saved: $TEMP"
-    fi
+    local TEMP=$(tempfile)
+    echo "$DEBUGCONTENT" > $TEMP
+    stderr "debug content saved: $TEMP"
   fi
   local VAR="EXIT_STATUS_$KEY"
   echo ${!VAR}
 }
 
-### 
+### Application-specific functions
 
-# Search info message in HTML $1 (temporally_unavailable/unknown_problem)
+# Get the page for a URL ($1) or return error (set $2 = 'wait' to loop on wait messages)
 get_main_page() {
   local URL=$1; local OPT=$2
   
@@ -84,7 +84,7 @@ get_main_page() {
       ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
         return $(error network "downloading error page") 
       WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
-        return $(error parse "error page detected, but wait time not found" "$PAGE")
+        return $(error parse "error page detected, but wait time not found" "$ERROR_PAGE")
       info "The server told us off for making too much requests, waiting $WAIT minutes"
       sleep $((WAIT*60))
       continue
@@ -95,7 +95,7 @@ get_main_page() {
     elif test "$MSG"; then
       return $(error link_unknown_problem "server says: '$MSG'")
     else
-      # file_info "$PAGE" "Name" "File name" "span"
+      # refactorize? something like: file_info "$PAGE" "Name" "File name" "span"
       info "Name: $(echo "$PAGE" | parse 'File name:' '>\(.*\)<\/span' | strip)"
       info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)<br' | strip)"
       info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"    
@@ -112,10 +112,9 @@ megaupload_download() {
     return $(error link_invalid "'$URL' does not seem a valid megaupload URL")
   
   while true; do
-    # Get main link page
     PAGE=$(get_main_page "$URL" "wait") || return $?
     
-    # Get wait page
+    # Wait page
     PASSRE='name="filepassword"'
     WAITPAGE=$(if match "^[[:space:]]*count=" "$PAGE"; then
       # MU dropped the captcha, so the main page is also the wait page
@@ -152,7 +151,7 @@ megaupload_download() {
     if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
       # This is tricky: if we got an unsuccessful code (probably a 503), but 
       # FILENAME contains data (the error page), we need to delete it so it
-      # does not interfere with the real file. 
+      # does not interfere with the real file later. 
       rm -f "$FILENAME"
     fi
     
@@ -172,15 +171,15 @@ megaupload_download() {
       return $(error network "unsuccessful (and unexpected) HTTP code: $HTTP_CODE")
     fi
     
-    # File successfully downloaded: echo the path to stdout and terminate loop
+    # File successfully downloaded: echo the path to stdout and break loop
     echo "$FILENAME"
     break
   done
 }
 
 usage() {
-  stderr "Usage: $(basename $0) [-p PASSWORD] [-c] MEGAUPLOAD_URL[@PASSWORD]\n"
-  stderr "    Download a file from megaupload.com"
+  stderr "Usage: $(basename $0) [-p PASSWORD] [-c] URL[@PASSWORD]\n"
+  stderr "  Download a file from megaupload.com"
 }
 
 ### Main
@@ -195,14 +194,15 @@ if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
     c) CHECKONLY=1;;
     p) PASSWORD=$OPTARG;;
     *) usage
-       exit 2;;
+       exit $EXIT_STATUS_arguments;;
     esac
   done
   shift $(($OPTIND-1))
   IFS="@" read URL URL_PASSWORD <<< "$1"
   
   if test "$CHECKONLY"; then
-    get_main_page "$URL" "nowait" > /dev/null && info "Link is alive"
+    get_main_page "$URL" "nowait" > /dev/null
+    info "Link is alive: $URL"
   else
     megaupload_download "$URL" "${URL_PASSWORD:-$PASSWORD}"
   fi
