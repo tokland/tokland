@@ -44,9 +44,10 @@ function save_options() {
       errors = true;
     if (!check_field(form.url_regexp) || !check_regexp(form.url_regexp))
       errors = true;
-    if (!check_field(form.hotkey))
-      errors = true;
       
+    // config[index] = ["service", "name", "url", "url_regexp", "hotkey"].mash(function(field) {
+    //   return [field, form[field].value];
+    // });
     config[index] = {
       service: form.service.value, 
       name: form.name.value, 
