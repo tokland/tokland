@@ -1,0 +1,4 @@
+1; Greg Dulli; 54; 1000
+2; John Curley; 43; 2500
+3; Rick McCollum; 22; 3000
+4; Michael Horrigan; 25; 4000

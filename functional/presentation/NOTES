@@ -1,0 +1,12 @@
+- presentation ~ 30mins
+
+- practical:
+  - quicksort: classical FP example, not the reack quicksort, non TCO
+  - parsing: simple but practical example. Discuss hash/object.
+  - cifras (notes in cifras.rb):
+    - spend time on model domain (Num)
+    - 1 solution (each -> map_detect)
+    - N solutions: eager: map + flatten(1) = flat_map
+    - N solutions: Enumerable
+    - N solutions: lazy.map
+    - N solutions: lazy.map + generate + select
