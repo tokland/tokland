@@ -72,7 +72,7 @@ def create_board(board_lines, ref_line):
         u'\uf063': 'b', u'\uf069': 'b',    
     }
     y_offset = 573 - 575
-    x_offset = 641 - 618
+    x_offset = 647 - 625
 
     ref_info = parse_text(ref_line)
     ref_top, ref_left = map(int, [ref_info["top"], ref_info["left"]])  
@@ -97,13 +97,15 @@ def pdf2fen(pdffile):
     assert (retcode == 0), "Error running pdftohtml:\n%s" % err
     lines = output.splitlines()
     
-    tomove = first(re.search(r'<b>(\w+) JUEGAN Y', line) 
+    tomove = first(re.search(r'<b>(\w+) (JUEGAN Y|JUGUEN I)', line) 
         for line in lines).group(1).lower()
-    assert (tomove in ["blancas", "negras"]), "Error parsing whose turn is"
+    assert (tomove in ["blancas", "blanques", "negras", "negres"]), \
+      "Error parsing whose turn is: %s" % tomove
     debug("to move: %s" % tomove)
-    white_to_move = (tomove == "blancas")
+    white_to_move = (tomove in ("blancas", "blanques"))
     
-    ref_line = first(line for line in lines if '<text' in line and ' JUEGAN Y' in line)
+    ref_line = first(line for line in lines if '<text' in line and 
+      (' JUEGAN Y' in line or ' JUGUEN I' in line))
     ref_index = first(idx for idx, line in enumerate(lines) if '>8</text>' in line)
     assert ref_index, "Error finding reference line"
     board_lines = lines[ref_index+1:(ref_index+1)+16:2]
