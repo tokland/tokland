@@ -148,7 +148,7 @@
 <h1>Functional Programming: the theory</h1>
 <ul class="simple">
 <li>No mutable data (= no side effects).</li>
-<li>No (implicit) state.</li>
+<li>No state (= no implicit, hidden state).</li>
 </ul>
 <p>Once assigned (value binding), a &quot;variable&quot; (a symbol) doesn't change its value.</p>
 <img alt="pics/functional-programming-joke.png" class="align-center" src="pics/functional-programming-joke.png" style="height: 300px;" />
@@ -404,19 +404,19 @@
 <div class="slide" id="higher-order-functions-inject">
 <h1>Higher-order functions: inject</h1>
 <p>No:</p>
-<div class="highlight"><pre><span class="n">sum</span> <span class="o">=</span> <span class="mi">0</span>
+<div class="highlight"><pre><span class="n">total</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
-  <span class="n">sum</span> <span class="o">+=</span> <span class="n">x</span>
+  <span class="n">total</span> <span class="o">+=</span> <span class="n">x</span>
 <span class="k">end</span>
-<span class="n">sum</span> <span class="c1"># 10</span>
+<span class="n">total</span> <span class="c1"># 10</span>
 </pre></div>
 <p>Yes:</p>
-<div class="highlight"><pre><span class="n">y</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">inject</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">acc</span><span class="p">,</span> <span class="n">x</span><span class="o">|</span>
+<div class="highlight"><pre><span class="n">total</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">inject</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">acc</span><span class="p">,</span> <span class="n">x</span><span class="o">|</span>
   <span class="n">acc</span> <span class="o">+</span> <span class="n">x</span>
 <span class="k">end</span> <span class="c1"># 10</span>
 </pre></div>
 <p>For simple cases like this:</p>
-<div class="highlight"><pre><span class="n">y</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">inject</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="ss">:+</span><span class="p">)</span>
+<div class="highlight"><pre><span class="n">total</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">inject</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="ss">:+</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="slide" id="higher-order-functions-zip">
@@ -439,7 +439,7 @@
 <div class="slide" id="higher-order-functions-each-xyz">
 <h1>Higher-order functions: each_xyz</h1>
 <ul class="simple">
-<li>Ruby's enumerable have some nice methods unfortunately designed for imperative usage. For example, <em>Enumerable#each_cons</em>:</li>
+<li>Ruby's <em>Enumerable</em> has some nice methods unfortunately designed for imperative usage. For example, <em>Enumerable#each_cons</em>:</li>
 </ul>
 <div class="highlight"><pre><span class="n">pairwise_sums</span> <span class="o">=</span> <span class="o">[]</span>
 <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">each_cons</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">|</span>
@@ -447,7 +447,7 @@
 <span class="k">end</span>
 <span class="n">pairwise_sums</span> <span class="c1">#=&gt; [3, 5, 7]</span>
 </pre></div>
-<p>From Ruby &gt;= 1.8.7 we can use enumerators:</p>
+<p>However, since Ruby &gt;= 1.8.7 we can call them without block (and return an enumerator):</p>
 <div class="highlight"><pre><span class="n">pairwise_sums</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">each_cons</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">|</span>
   <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
 <span class="k">end</span> <span class="c1">#=&gt; [3, 5, 7]</span>
@@ -517,7 +517,7 @@
 <h1>Higher-order functions: each</h1>
 <ul class="simple">
 <li><em>Enumerable#each</em> is the usual imperative <em>for</em>-loop found in every imperative language.</li>
-<li>It returns nothing (well, in Ruby returns the enumerable itself), it <em>does</em> something imperatively (= side-effect).</li>
+<li>It returns nothing (well, in Ruby returns the enumerable itself), so it <em>does</em> something imperatively (with a side-effect).</li>
 <li>While you can do <strong>everything</strong> with <em>each</em>, you should do <strong>nothing</strong> with <em>each</em>.</li>
 </ul>
 <div class="highlight"><pre><span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
@@ -527,7 +527,7 @@
 </div>
 <div class="slide" id="higher-order-functions-folds">
 <h1>Higher-order functions: folds</h1>
-<p>In functional programming <em>Enumerable#inject</em> (folds, mathematicians call them <em>catamorphism</em>) may work as the primary tool to build the rest:</p>
+<p>In functional programming <em>Enumerable#inject</em> (folds, mathematicians call them <em>catamorphisms</em>) may work as the primary tool to build the rest:</p>
 <div class="highlight"><pre><span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="p">}</span> <span class="c1">#=&gt; [2, 4, 6]</span>
 <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">inject</span><span class="p">(</span><span class="o">[]</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">acc</span><span class="p">,</span> <span class="n">x</span><span class="o">|</span> <span class="n">acc</span> <span class="o">+</span> <span class="o">[</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="o">]</span> <span class="p">}</span> <span class="c1">#=&gt; [2, 4, 6]</span>
 </pre></div>
@@ -600,6 +600,16 @@ real  0m0.017s
 <li>Tail-call optimization (TCO) avoids creating a new stack when the last call in a recursion is the function itself.</li>
 <li>TCO is optional in Ruby: you cannot rely on it in your code if you want to use it everywhere.</li>
 </ul>
+</div>
+<div class="slide" id="recursion-2">
+<h1>Recursion (2)</h1>
+<p>To enable TCO in MRI-1.9</p>
+<div class="highlight"><pre><span class="no">RubyVM</span><span class="o">::</span><span class="no">InstructionSequence</span><span class="o">.</span><span class="n">compile_option</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="ss">:tailcall_optimization</span> <span class="o">=&gt;</span> <span class="kp">true</span><span class="p">,</span>
+  <span class="ss">:trace_instruction</span> <span class="o">=&gt;</span> <span class="kp">false</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+<p>Simple example:</p>
 <div class="highlight"><pre><span class="k">module</span> <span class="nn">Math</span>
   <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">factorial_tco</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">acc</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">1</span> <span class="o">?</span> <span class="n">acc</span> <span class="p">:</span> <span class="n">factorial_tco</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">*</span><span class="n">acc</span><span class="p">)</span>
@@ -607,10 +617,10 @@ real  0m0.017s
 <span class="k">end</span>
 </pre></div>
 </div>
-<div class="slide" id="recursion-2">
-<h1>Recursion (2)</h1>
+<div class="slide" id="recursion-3">
+<h1>Recursion (3)</h1>
 <ul class="simple">
-<li>You still can use it when the recursion-depth is not large.</li>
+<li>You still can use it when the recursion-depth is very unlikely to be large.</li>
 </ul>
 <div class="highlight"><pre><span class="k">class</span> <span class="nc">Node</span>
   <span class="n">has_many</span> <span class="ss">:children</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s2">&quot;Node&quot;</span>
@@ -623,7 +633,7 @@ real  0m0.017s
 <span class="k">end</span>
 </pre></div>
 <ul class="simple">
-<li>Build abstractions that capture the intend of a recursion.</li>
+<li>Or build abstractions that capture the intend of a recursion (folds or your own)</li>
 </ul>
 </div>
 <div class="slide" id="everything-is-an-expression-1">
@@ -654,7 +664,7 @@ real  0m0.017s
 </div>
 <div class="slide" id="everything-is-an-expression-3">
 <h1>Everything is an expression (3)</h1>
-<p>In FP code are expressions, so code is also data:</p>
+<p>In FP code are expressions, so code can be used to build data:</p>
 <div class="highlight"><pre><span class="p">{</span>
   <span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s2">&quot;M.Cassatt&quot;</span><span class="p">,</span>
   <span class="ss">:paintings</span> <span class="o">=&gt;</span> <span class="n">paintings</span><span class="o">.</span><span class="n">select</span> <span class="p">{</span> <span class="o">|</span><span class="nb">p</span><span class="o">|</span> <span class="nb">p</span><span class="o">.</span><span class="n">author</span> <span class="o">==</span> <span class="s2">&quot;M.Cassatt&quot;</span> <span class="p">},</span>
@@ -731,11 +741,11 @@ real  0m0.017s
 <p>Imperative:</p>
 <div class="highlight"><pre><span class="n">n</span><span class="p">,</span> <span class="n">num_elements</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
 <span class="k">while</span> <span class="n">num_elements</span> <span class="o">&lt;</span> <span class="mi">10</span>
-  <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
   <span class="k">if</span> <span class="n">n</span><span class="o">**</span><span class="mi">2</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span>
     <span class="n">sum</span> <span class="o">+=</span> <span class="n">n</span>
     <span class="n">num_elements</span> <span class="o">+=</span> <span class="mi">1</span>
   <span class="k">end</span>
+  <span class="n">n</span> <span class="o">+=</span> <span class="mi">1</span>
 <span class="k">end</span>
 <span class="n">sum</span> <span class="c1">#=&gt; 275</span>
 </pre></div>
@@ -749,13 +759,13 @@ real  0m0.017s
 <li>Imperative programming: focus on <strong>how</strong>.</li>
 <li>Declarative (logic/dataflow/functional/...) programming: focus on <strong>what</strong></li>
 </ul>
-<p>A chemer (<em>arcus</em>) once said:</p>
+<p>A schemer (<em>arcus</em>) once said:</p>
 <blockquote>
 Functional programming is like describing your problem to a mathematician. Imperative programming is like giving instructions to an idiot.</blockquote>
 </div>
 <div class="slide" id="programming-paradigms-fp-in-oop-1">
 <h1>Programming paradigms: FP in OOP? (1)</h1>
-<p>John Armstrong (creator of Erlang) comments in <em>&quot;Coders at Work&quot;</em> about the real reusability of code in FP (as opposed to the <em>promises</em> of OOP reusability):</p>
+<p>John Armstrong (creator of Erlang) talks in <em>&quot;Coders at Work&quot;</em> about the reusability of code in FP:</p>
 <blockquote>
 &quot;<em>The problem with OO languages is they’ve got all this implicit environment that they carry around with them. You wanted a banana but what you got was a gorilla holding the banana and the entire jungle.</em>&quot;</blockquote>
 <img alt="pics/gorilla.jpg" class="center incremental align-center" src="pics/gorilla.jpg" style="height: 250px;" />
@@ -766,7 +776,7 @@ Functional programming is like describing your problem to a mathematician. Imper
 <ul class="simple">
 <li>OOP is orthogonal to FP.</li>
 <li>Well, at least in theory:<ul>
-<li>OOP emphasize change of state in objects.</li>
+<li>OOP tends to emphasize change of state in objects.</li>
 <li>OOP tends to impose tight coupling between layers (which hinders modularization).</li>
 <li>Mixture of data and code raises both conceptual and practical problems.</li>
 </ul>
@@ -781,10 +791,10 @@ Functional programming is like describing your problem to a mathematician. Imper
 </li>
 <li><p class="first">Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...).</p>
 </li>
-<li><p class="first">However, it's very unlikely that functional snippets in your code will be the bottleneck of the application (usually: network, database, disk, ...).</p>
+<li><p class="first">However, it's unlikely that the functional snippets in your code are the bottleneck of the application (usually: network, database, disk, ...).</p>
 </li>
-<li><p class="first">First write readable code and only later worry about efficiency.</p>
-<p>&quot;Premature optimization is the root of all evil&quot;</p>
+<li><p class="first">First write readable, maintainable code and only later worry about efficiency.</p>
+<p><em>&quot;Premature optimization is the root of all evil&quot;</em></p>
 </li>
 </ul>
 </div>
@@ -793,7 +803,7 @@ Functional programming is like describing your problem to a mathematician. Imper
 <ul class="simple">
 <li>Efficiency: You need to update big structures a lot.</li>
 <li>Intricate code: You cannot figure out a clean implementation (it's preferable a good imperative than bad functional).</li>
-<li>Keep state: and we cannot use recursion due to the lack of TCO</li>
+<li>Keep state: and we cannot use recursion due to the uncertainty about TCO.</li>
 </ul>
 </div>
 <div class="slide" id="breaking-the-law-2-where">
@@ -813,7 +823,8 @@ Functional programming is like describing your problem to a mathematician. Imper
 <ul class="simple">
 <li>At high-level: (but make it explicit)</li>
 </ul>
-<div class="highlight"><pre><span class="vi">@player</span> <span class="o">=</span> <span class="vi">@player</span><span class="o">.</span><span class="n">next_state</span>
+<div class="highlight"><pre><span class="n">updated_player</span> <span class="o">=</span> <span class="vi">@player</span><span class="o">.</span><span class="n">next_state</span>
+<span class="vi">@player</span> <span class="o">=</span> <span class="n">updated_player</span>
 </pre></div>
 </div>
 <div class="slide" id="we-get-it-fp-is-cool-but">
@@ -840,12 +851,12 @@ No, no, no. Only quicker, easier, more seductive.</blockquote>
 <li>(and a lot more...)</li>
 </ul>
 </div>
-<div class="slide" id="learn-at-least-one-functional-language">
-<h1>Learn at least one functional language</h1>
+<div class="slide" id="learn-at-least-one-or-even-two-functional-languages">
+<h1>Learn at least one (or even two) functional languages</h1>
 <ul class="simple">
 <li>Haskell</li>
 <li>ML family (Standard ML, Objective Caml, ...)</li>
-<li>Scheme (Lisp dialect)</li>
+<li>Scheme (minimal LISP dialect)</li>
 <li>Erlang (designed for highly-concurrent programming)</li>
 <li>Scala (runs in JVM)</li>
 <li>Clojure (LISP dialect, runs in JVM)</li>
@@ -886,7 +897,7 @@ No, no, no. Only quicker, easier, more seductive.</blockquote>
 <span class="mi">3</span><span class="p">;</span> <span class="no">Rick</span> <span class="no">McCollum</span><span class="p">;</span> <span class="mi">22</span><span class="p">;</span> <span class="mi">1200</span>
 <span class="mi">4</span><span class="p">;</span> <span class="no">Michael</span> <span class="no">Horrigan</span><span class="p">;</span> <span class="mi">25</span><span class="p">;</span> <span class="mi">4000</span>
 </pre></div>
-<p>Create a Parsing class with a <em>&#64;people</em> array and methods <em>problemX</em>:</p>
+<p>Create a <em>Parsing</em> class with <em>&#64;people</em> array and methods <em>problemX</em>:</p>
 <ol class="small arabic simple">
 <li>Is there any person with more than 1500 points?</li>
 <li>Sum of points of people over 30 years.</li>
@@ -894,23 +905,23 @@ No, no, no. Only quicker, easier, more seductive.</blockquote>
 <li>Name of the first person (ordered by age ASC) that has more than 1500 points.</li>
 <li>What are the names of the pair of people with more points difference?</li>
 <li>Idem, but now we want to know also what's this difference.</li>
-<li>Convert array of people to JSON <em>{people: [{id: {name: ..., age: ...}}]}</em></li>
-<li>Get array of people with points doubled for those with even age.</li>
+<li>Get JSON <em>{people: [{id: {name: ..., age: ...}}]}</em></li>
+<li>Get array of people with all people, but double the points for those with even age.</li>
 </ol>
 </div>
 <div class="slide" id="exercises-3-countdown-numbers">
 <h1>Exercises (3): Countdown (numbers)</h1>
 <p>In Spain: <em>Cifras</em> y Letras</p>
-<p>Cifras: <em>Combine a given group of numbers using the four basic operations and return the expression to obtain a given number.</em></p>
+<p><em>Combine a given group of numbers using the four basic operations and return the expression to obtain a given number.</em></p>
 <blockquote>
-<p>Numbers: 1, 2, 3, 4, 5, 6</p>
-<p>Number to get: 576</p>
-<p>576 = (((4*(2+1))*6)*(5+3))</p>
+<p>Numbers: 3, 7, 10, 50, 100, 8</p>
+<p>Number to get: 548</p>
+<p>548 = (100+(8*((10+50)-(7-3))))</p>
 </blockquote>
 </div>
 <div class="slide" id="id2">
 <h1>Exercises (3): Countdown (numbers)</h1>
-<p>Example of expression tree.</p>
+<p>Example expression tree:</p>
 <img alt="pics/expressionexptree.gif" class="align-center" src="pics/expressionexptree.gif" style="height: 400px;" />
 </div>
 </div>
