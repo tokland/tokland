@@ -2,13 +2,13 @@ require './extensions'
 
 class Num
   include Comparable # implement <=> and get <, >, >=, <=, ==, != for free
-  # starship operator (comes from Ruby)
-  # talk about <=> -1 (less than), 0 (, +1
-  attr_reader :value, :string # no need for a writter/accessor
+  # <=> is the starship operator (comes from Perl)
+  # -1 (less than), 0 (equal), +1 (greater than)
+  attr_reader :value, :string # no need for a writter/accessor (FP!)
    
   def initialize(value, string = nil)
     @value = value
-    # discuss 'expression tree'w as the "orthodox" solution and not strings
+    # discuss 'expression tree' as the "orthodox" solution instead of strings
     @string = string || value.to_s
   end
   
@@ -24,7 +24,7 @@ class Num
           
   def <=>(other) # needed by module Comparable
     case other
-    when Num then self.value <=> other.value # discuss about comparison of string
+    when Num then self.value <=> other.value # discuss about comparison of the string
     else self.value <=> other
     end
   end        
@@ -35,18 +35,18 @@ class Problem
   def self.combine_pair(num1, num2)
     [
       num1 + num2,
-      ((num1 - num2) if num1 > num2), # discuss (...)
-      ((num2 - num1) if num1 > num2),
+      ((num1 - num2) if num1 > num2), # discuss the use of this if, instead of ?. 
+      ((num2 - num1) if num1 > num2), # and why parenthesis are necessary (...)
       num1 * num2,
       ((num1 / num2) if num2 != 0 && (num1 % num2) == 0),
       ((num2 / num1) if num1 != 0 && (num2 % num1) == 0),
     ].compact
   end
   
-  def self.solve(nums, final)
+  def self.solve(nums, final) # then solve(nums, final) + generate(nums) 
     solution = nums.detect { |n| n == final }
-    if solution 
-      solution 
+    if solution
+      solution
     elsif nums.size > 1
       # talk about: (0..nums.size-1).to_a.combination(2).each do |i1, i2| + each + return
       (0..nums.size-1).to_a.combination(2).map_detect do |i1, i2|

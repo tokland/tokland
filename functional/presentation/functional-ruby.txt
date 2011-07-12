@@ -6,8 +6,8 @@ Functional Programming with Ruby
 
   *One lambda to rule them all*
 
-:Author: Arnau Sanchez <pyarnau@gmail.com>
-:Date: July 2011 
+Arnau Sanchez <pyarnau@gmail.com>
+
 
 Introduction (1)
 ================
@@ -158,7 +158,7 @@ Write better code!
  
 *All right... all right... but apart from referential transparency, parallelization, easier debugging or modularization... what has Functional Programming ever done for us?*
 
-You'll write elegant, easier to understand, more maintainable code. 
+You'll write elegant, concise, easier to understand, maintainable code. 
 
 You'll have to take my word for now.
 
@@ -242,7 +242,7 @@ Yes:
 Blocks as higher-order functions (1)
 ====================================
 
-* In Functional Programming functions are first-class values: you pass around them the same way you pass *normal* values.
+* In FP functions are first-class citizens: you pass around them the same way you pass *normal* values.
 * In Ruby (taken from Smalltalk) we have a wired-in mechanism to send functions: *blocks*
 
 .. sourcecode:: ruby
@@ -417,37 +417,6 @@ Yes:
   ys = [:a, :b, :c]
   output = xs.zip(ys) #=> [[1, :a], [2, :b], [3, :c]] 
 
-Higher-order functions: each
-============================
-
-* *Enumerable#each* is the usual imperative *for*-loop found in every imperative language.
-* It returns nothing (well, in Ruby returns the enumerable itself), it *does* something imperatively (= side-effect).
-* While you can do **everything** with *each*, you should do **nothing** with *each*.
-
-.. sourcecode:: ruby
-
-  [1, 2, 3].each do |x| 
-    # Write some nasty side-effect here
-  end
-
-Higher-order functions: folds
-=============================
-
-In functional programming *Enumerable#inject* (folds, mathematicians call them *catamorphism*) may work as the primary tool to build the rest:
-
-.. sourcecode:: ruby
-
-  [1, 2, 3].map { |x| 2 * x } #=> [2, 4, 6] 
-  [1, 2, 3].inject([]) { |acc, x| acc + [2*x] } #=> [2, 4, 6] 
-  
-.. sourcecode:: ruby
-
-  [1, 2, 3].select { |x| x > 1 } #=> [2, 3] 
-  [1, 2, 3].inject([]) { |acc, x| x > 1 ? acc + [x] : acc  } #=> [2, 3]
-  
-* *detect*, *zip*, *any?*, *all?*, *max*, *min*, *take_while*, *group_by*, ... all can be written with *Enumerable#inject*.  
-* So be careful and use the right abstraction, don't resort to *Enumerable#inject* as a Swiss knife.
-
 Higher-order functions: each_xyz
 ================================
 
@@ -547,6 +516,37 @@ Or with a block in a single step:
 
   ["ride", "the", "dragon"].mash { |s| [s, s.length] }
   #=> {"ride" => 4, "the" => 3, "dragon" => 6}
+
+Higher-order functions: each
+============================
+
+* *Enumerable#each* is the usual imperative *for*-loop found in every imperative language.
+* It returns nothing (well, in Ruby returns the enumerable itself), it *does* something imperatively (= side-effect).
+* While you can do **everything** with *each*, you should do **nothing** with *each*.
+
+.. sourcecode:: ruby
+
+  [1, 2, 3].each do |x| 
+    # Write some nasty side-effect here
+  end
+
+Higher-order functions: folds
+=============================
+
+In functional programming *Enumerable#inject* (folds, mathematicians call them *catamorphism*) may work as the primary tool to build the rest:
+
+.. sourcecode:: ruby
+
+  [1, 2, 3].map { |x| 2 * x } #=> [2, 4, 6] 
+  [1, 2, 3].inject([]) { |acc, x| acc + [2*x] } #=> [2, 4, 6] 
+  
+.. sourcecode:: ruby
+
+  [1, 2, 3].select { |x| x > 1 } #=> [2, 3] 
+  [1, 2, 3].inject([]) { |acc, x| x > 1 ? acc + [x] : acc  } #=> [2, 3]
+  
+* *detect*, *zip*, *any?*, *all?*, *max*, *min*, *take_while*, *group_by*, ... all can be written with *Enumerable#inject*.  
+* So be careful and use the right abstraction, don't resort to *Enumerable#inject* as a Swiss knife.
   
 Memoization (1)
 ===============
@@ -596,8 +596,8 @@ Using *simple_memoize*:
 
   real	0m0.017s
   
-Narrow down the scope by immutability
-=====================================
+Narrowing down the scope: immutability
+======================================
 
 .. sourcecode:: ruby
 
@@ -635,51 +635,18 @@ Recursion (2)
 
 .. sourcecode:: ruby
 
-  class Tree
-    has_many :children
+  class Node
+    has_many :children, :class_name => "Node"
     
     def all_children
       self.children.map do |child|
-        child.is_a?(Tree) ? child.all_children : [child]
+        [child] + child.all_children
       end.flatten(1)
     end
   end
   
 * Build abstractions that capture the intend of a recursion.
   
-Use blocks to hide infrastructure (1)
-=====================================
-
-Look at this code:
-
-.. sourcecode:: ruby
-
-  tries = 0
-  loop do 
-    begin
-      process
-    rescue Exception1, Exception2 => error
-      tries += 1
-      retry unless tries > 5
-      raise
-    end
-  end
-
-It's not bad, but loot at the relevant code, it's buried in a jumble of infrastructure.
-
-Use blocks to hide infrastructure (2)
-=====================================
-
-How about that?
-
-.. sourcecode:: ruby
-
-  retry_on_exceptions([Exception1, Exception2], :retries => 5) do
-    process
-  end
-
-The intend is now perfectly clear and we don't have variables going up and down.
-
 Everything is an expression (1)
 ===============================
 
@@ -797,12 +764,12 @@ Imperative:
 
 .. sourcecode:: ruby
 
-  n, processed, sum = 1, 0, 0
-  while processed < 10
+  n, num_elements, sum = 1, 0, 0
+  while num_elements < 10
     n += 1
     if n**2 % 5 == 0
       sum += n
-      processed += 1
+      num_elements += 1
     end
   end
   sum #=> 275
@@ -811,7 +778,7 @@ Functional:
 
 .. sourcecode:: ruby
 
-  Integer::natural.lazy.select { |x| x**2 % 5 == 0 }.take(10).inject(:+) #=> 275
+  Integer::natural.select { |x| x**2 % 5 == 0 }.take(10).inject(:+) #=> 275
   
 Programming paradigms (2)
 =========================
@@ -819,14 +786,14 @@ Programming paradigms (2)
 * Imperative programming: focus on **how**.
 * Declarative (logic/dataflow/functional/...) programming: focus on **what**
 
-A Schemer (*arcus*) once said:
+A chemer (*arcus*) once said:
 
   Functional programming is like describing your problem to a mathematician. Imperative programming is like giving instructions to an idiot.
 
 Programming paradigms: FP in OOP? (1)
 =====================================
 
-John Armstrong (creator of Erlang) talking about the re-usability of code:
+John Armstrong (creator of Erlang) comments in *"Coders at Work"* about the real reusability of code in FP (as opposed to the *promises* of OOP reusability):
 
   "*The problem with OO languages is they’ve got all this implicit environment that they carry around with them. You wanted a banana but what you got was a gorilla holding the banana and the entire jungle.*"
 
@@ -842,10 +809,12 @@ Programming paradigms: FP in OOP? (2)
 So we cannot do FP in OOP? Yes, we can!
 
 * OOP is orthogonal to FP.
-* Well, at least in theory, some flavors of OOP do:
+ 
+* Well, at least in theory:
 
-  * Emphasize change of state in objects. 
-  * Impose tight coupling between layers (which hinders modularization).
+  * OOP emphasize change of state in objects. 
+  * OOP tends to impose tight coupling between layers (which hinders modularization).
+  * Mixture of data and code raises both conceptual and practical problems. 
   
 * OOP functional languages: Scala, F#, ...
 
@@ -864,7 +833,7 @@ Breaking the law (1): Why
 
 * Efficiency: You need to update big structures a lot.
 * Intricate code: You cannot figure out a clean implementation (it's preferable a good imperative than bad functional).
-* Keep state: and we cannot use recursion for lack of TCO  
+* Keep state: and we cannot use recursion due to the lack of TCO  
 
 Breaking the law (2): Where
 ===========================
@@ -886,7 +855,7 @@ Breaking the law (2): Where
 
 .. sourcecode:: ruby
 
-  @player = @player.update
+  @player = @player.next_state
 
 We get it, FP is cool but...
 ============================
@@ -949,7 +918,7 @@ Software freelance developer (and occasional teacher).
   :height: 200
   :align: center
   
-**Email**: pyarnau@gmail.com
+**Email**: tokland@gmail.com
  
 **Professional page**: http://www.arnau-sanchez.com/en
 
@@ -962,8 +931,8 @@ Exercises (1): Quicksort
 
 .. sourcecode:: ruby
 
-  [4, 2, 5, 1, 3].quicksort
-  [2, 1, 3].quicksort + [4] + [5].quicksort
+  [4, 2, 5, 1, 3].quicksort # pivot: 4, rest: [2, 5, 1, 3]
+  [2, 1, 3].quicksort + [4] + [5].quicksort 
   ([1].quicksort + [2] + [3].quicksort) + [4] + [5].quicksort
   ([1] + [2] + [3]) + [4] + [5]
   [1, 2, 3, 4, 5]  
@@ -977,15 +946,21 @@ Input data:
 
   1; Greg Dulli; 54; 1000
   2; John Curley; 43; 2500
-  3; Rick McCollum; 22; 3000
+  3; Rick McCollum; 22; 1200
   4; Michael Horrigan; 25; 4000
 
-#) Total points of people over 30 years
-#) Is there any person with more than 1500 points
-#) Name of the first person (ordered by age ASC) that has more than 1500 points
-#) What are the names of the pair with more points difference (bonus: and what was this difference?)
+Create a Parsing class with a *@people* array and methods *problemX*:
+
+.. class:: small
+
+#) Is there any person with more than 1500 points?
+#) Sum of points of people over 30 years.
+#) Hash with total points for age in 10-year intervals (i.e. {10 => 1000, 20 => 4000, ... }) 
+#) Name of the first person (ordered by age ASC) that has more than 1500 points.
+#) What are the names of the pair of people with more points difference? 
+#) Idem, but now we want to know also what's this difference.
 #) Convert array of people to JSON *{people: [{id: {name: ..., age: ...}}]}*
-#) Array of people with duplicate points for those people with even age.
+#) Get array of people with points doubled for those with even age.
 
 Exercises (3): Countdown (numbers)
 ==================================
