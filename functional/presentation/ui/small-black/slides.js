@@ -552,7 +552,7 @@ function startup() {
 		}
 		document.onkeyup = keys;
 		document.onkeypress = trap;
-		document.onclick = clicker;
+		//document.onclick = clicker;
 	}
 }
 

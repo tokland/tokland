@@ -545,7 +545,7 @@ In functional programming *Enumerable#inject* (folds, mathematicians call them *
   [1, 2, 3].select { |x| x > 1 } #=> [2, 3] 
   [1, 2, 3].inject([]) { |acc, x| x > 1 ? acc + [x] : acc  } #=> [2, 3]
   
-* *detect*, *zip*, *any?*, *all?*, *max*, *min*, *take_while*, *group_by*, ... all can be written with *Enumerable#inject*.  
+* *detect*, *any?*, *all?*, *max*, *min*, *take_while*, *group_by*, ... all can be written with *Enumerable#inject*.  
 * So be careful and use the right abstraction, don't resort to *Enumerable#inject* as a Swiss knife.
   
 Memoization (1)
@@ -659,7 +659,7 @@ Recursion (3)
     end
   end
   
-* Or build abstractions that capture the intend of a recursion (folds or your own)
+* Or build abstractions that capture the intent of a recursion (folds or your own)
   
 Everything is an expression (1)
 ===============================
@@ -688,7 +688,7 @@ Everything is an expression (2)
   end
 
 * We don't repeat variable names unnecessarily.
-* The intend is much more clear: concentrate on what the snippet returns and forget the incidental.
+* The intent is much more clear: concentrate on what the snippet returns and forget the incidental.
 * Again, we are narrowing down the scope of our code.
 
 Everything is an expression (3)
@@ -907,11 +907,11 @@ Things we've not talked about
 * Currying
 * (and a lot more...)
 
-Learn at least one (or even two) functional languages
+Learn at least one (or better, two) functional languages
 =====================================================
 
 * Haskell
-* ML family (Standard ML, Objective Caml, ...)
+* ML (Standard ML, Objective Caml, ...)
 * Scheme (minimal LISP dialect)
 * Erlang (designed for highly-concurrent programming)
 * Scala (runs in JVM)
