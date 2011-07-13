@@ -7,11 +7,7 @@ module Enumerable
     self.inject({}) do |hash, item|
       result = block_given? ? yield(item) : item
       key, value = result
-      if result
-        hash.merge(key => value)
-      else
-        hash
-      end
+      result ? hash.merge(key => value) : hash
     end
   end
 
