@@ -6,7 +6,7 @@ Functional Programming with Ruby
 
   *One lambda to rule them all*
 
-Arnau Sanchez <pyarnau@gmail.com>
+Arnau Sanchez <tokland@gmail.com>
 
 
 Introduction (1)
@@ -89,7 +89,7 @@ That's all there is? but what comes of it?
 Referential transparency (1)
 ============================
 
-* Functions are *real* functions in the mathematical sense.
+* Functions are *pure* functions in the mathematical sense.
 * Output depends solely in the input arguments. 
 * Therefore we'll have the same output for calls with the same parameters.
 * This allow cool things as:
@@ -114,9 +114,9 @@ Parallelization
 
 .. sourcecode:: ruby
 
-  result = fun1(1, 2) + fun2(3, 4)
+  result = fun1(a, b) + fun2(a, c)
   
-We can execute *fun1* and *fun2* in parallel.
+We can execute *fun1* and *fun2* in parallel (*a* won't be modified)
 
 Concurrence
 ===========
@@ -144,19 +144,19 @@ Easier debugging
   * The steps in computation can be easily followed. 
 
 Modularity and composition
-===========================
+==========================
 
 * *Modularity*: Light coupling between modules
 * *Compositionality*: Connect modules to work cooperatively.
 * *Bottom-up programming*: Base elements first and go up in the abstraction layer.
-* *Change the way you think about the problem*: Create you own abstractions. DSL.
+* *Change the way you think about the problem*: Create you own abstractions. 
 
   *"Programming is building abstractions and expressing ideas"* Hal Abelson 
 
 Write better code!
 ==================
  
-*All right... all right... but apart from referential transparency, parallelization, easier debugging or modularization... what has Functional Programming ever done for us?*
+*All right... all right... but apart from referential transparency, parallelization, easier debugging and modularization... what has Functional Programming ever done for us?*
 
 You'll write elegant, concise, easier to understand, maintainable code. 
 
@@ -166,7 +166,7 @@ Functional programming in Ruby?
 ===============================
 
 * Ruby is an imperative language.
-* But we still can use the functional paradigm.
+* But we still can apply functional principles.
 * In Ruby you cannot assure immutability, it's basically a programmer's choice.
 
 Don't update, create
@@ -178,7 +178,7 @@ Don't update, create
 Don't update, create: strings
 =============================
 
-No:
+No (even being a name rebind and not a real update):
 
 .. sourcecode:: ruby
 
@@ -242,8 +242,9 @@ Yes:
 Blocks as higher-order functions (1)
 ====================================
 
-* In FP functions are first-class citizens: you pass around them the same way you pass *normal* values.
+* In FP functions are first-class citizens: you pass them around the same way you pass *normal* values.
 * In Ruby (taken from Smalltalk) we have a wired-in mechanism to send functions: *blocks*
+* Functions/methods are not first-class citizens in Ruby, blocks are.
 
 .. sourcecode:: ruby
 
@@ -310,7 +311,7 @@ No:
 
   output = []
   [1, 2, 3, 4].each do |x|
-    output << 2 * x 
+    output << x * 2 
   end
   output # [2, 4, 6, 8]
   
@@ -319,7 +320,7 @@ Yes:
 .. sourcecode:: ruby
 
   output = [1, 2, 3, 4].map do |x|
-    2 * x 
+    x * 2 
   end # [2, 4, 6, 8]
   
 Higher-order functions: select
@@ -463,17 +464,20 @@ We can use the (somewhat obscure) Hash constructor:
 
   values = ["ride", "the", "dragon"]
   length_pairs = values.map do |string|
-    lengths[string] = string.length
+    [string, string.length]
   end
   lengths = Hash[length_pairs] 
   lengths => {"the" => 3, "ride" => 4, "dragon" => 6}
   
-Not bad, but in a OOP-language we would want to call method on objects...
+Not bad, but:
+
+1) In a OOP-language we would want to call method on objects.
+2) We are building an intermediate array of pairs.
 
 Examples: Enumerable to hash (3)
 ================================
 
-Unsurprisingly, we can use *Enumerable#inject* to build a hash in a functional way:
+Unsurprisingly, we can use *Enumerable#inject* to build a hash on the fly:
 
 .. sourcecode:: ruby
 
@@ -485,7 +489,7 @@ Unsurprisingly, we can use *Enumerable#inject* to build a hash in a functional w
 Examples: Enumerable to hash (4)
 ================================
 
-This inject code is cool, let's abstract it to get rid of the boilerplate:
+This inject code is cool, let's abstract it to get rid of the boilerplate (see Facets):
 
 .. sourcecode:: ruby
 
@@ -498,8 +502,6 @@ This inject code is cool, let's abstract it to get rid of the boilerplate:
     end
   end
   
-* Write your own extensions and refine them while you use it in your projects.
-
 Examples: Enumerable to hash (5)
 ================================
   
@@ -516,6 +518,8 @@ Or with a block in a single step:
 
   ["ride", "the", "dragon"].mash { |s| [s, s.length] }
   #=> {"ride" => 4, "the" => 3, "dragon" => 6}
+
+Write your own extensions and refine them while you use them in your projects.
 
 Higher-order functions: each
 ============================
@@ -537,13 +541,13 @@ In functional programming *Enumerable#inject* (folds, mathematicians call them *
 
 .. sourcecode:: ruby
 
-  [1, 2, 3].map { |x| 2 * x } #=> [2, 4, 6] 
+  [1, 2, 3].map { |x| x * 2 } #=> [2, 4, 6] 
   [1, 2, 3].inject([]) { |acc, x| acc + [2*x] } #=> [2, 4, 6] 
   
 .. sourcecode:: ruby
 
   [1, 2, 3].select { |x| x > 1 } #=> [2, 3] 
-  [1, 2, 3].inject([]) { |acc, x| x > 1 ? acc + [x] : acc  } #=> [2, 3]
+  [1, 2, 3].inject([]) { |acc, x| x > 1 ? acc + [x] : acc } #=> [2, 3]
   
 * *detect*, *any?*, *all?*, *max*, *min*, *take_while*, *group_by*, ... all can be written with *Enumerable#inject*.  
 * So be careful and use the right abstraction, don't resort to *Enumerable#inject* as a Swiss knife.
@@ -596,19 +600,19 @@ Using *simple_memoize*:
 
   real	0m0.017s
   
-Narrowing down the scope: immutability
-======================================
+Narrowing down the scope by immutability
+========================================
 
 .. sourcecode:: ruby
 
   @title = "The apartment"
-  # 100-lines of code here
+  # 100 lines of code here
   render(@title)
   
-What's the value of *@title* when *render* is called? Easy: 
+If you don't honor immutability, what's the value of *@title* when *render* is called? Easy: 
 
-* Check the 100 lines between definition and usage, maybe *@title* was updated there.
-* Then check (recursively) **all** the code called in this 100-line fragment, maybe *@title* was modified somewhere else. 
+* Check these 100 lines, maybe *@title* was changed.
+* Then check (recursively) **all** the code called in this 100-line fragment, maybe *@title* was modified somewhere.
 
 Happy debugging! 
 
@@ -659,7 +663,7 @@ Recursion (3)
     end
   end
   
-* Or build abstractions that capture the intent of a recursion (folds or your own)
+* Or build abstractions that capture the intent of a recursion (either folds or your own)
   
 Everything is an expression (1)
 ===============================
@@ -673,7 +677,7 @@ Everything is an expression (1)
     message = "No luck"
   end
 
-But control-structures (*if*, *while*, *case*, ...) in Ruby also return an expression, let's take advantage of it.
+Control structures (*if*, *while*, *case*, ...) in Ruby also return an expression, let's take advantage of it.
 
 Everything is an expression (2)
 ===============================
@@ -688,13 +692,13 @@ Everything is an expression (2)
   end
 
 * We don't repeat variable names unnecessarily.
-* The intent is much more clear: concentrate on what the snippet returns and forget the incidental.
+* The intent is much more clear: concentrate on what the snippet returns and forget about the incidental.
 * Again, we are narrowing down the scope of our code.
 
 Everything is an expression (3)
 ===============================
 
-In FP code are expressions, so code can be used to build data:
+FP code, being expressions, can be used to build data:
 
 .. sourcecode:: ruby
 
@@ -708,8 +712,8 @@ In FP code are expressions, so code can be used to build data:
 Lazy evaluation
 ===============
 
-* *Lazy evaluation*: delays the evaluation of the expression until it's needed.
 * *Eager evaluation*: expressions are calculated at the moment (when variable is assigned,  function called, ...).
+* *Lazy evaluation*: delays the evaluation of the expression until it's needed.
 * *Memory efficient*: no memory used to store complete structures.
 * *CPU efficient*: no need to calculate the complete result before returning.
 * Laziness is not a requisite for FP, but it's a strategy that fits nicely on the paradigm (Haskell).
@@ -742,7 +746,7 @@ Lazy enumerators (2)
 
 .. sourcecode:: ruby
 
-  Integer.natural.map { |x| 2 * x }.take(3) 
+  Integer.natural.map { |x| x * 2 }.take(3) 
   # takes forever
 
 * *Enumerable#map* returns an array, so it must process the whole input before returning. 
@@ -764,7 +768,7 @@ Lazy methods for *Enumerator* (here *Enumerable#each* is legit!):
     end
   end 
 
-  Integer::natural.map { |x| 2 * x}.take(3) #=> [2, 4, 6]
+  Integer::natural.map { |x| x * 2 }.take(3) #=> [2, 4, 6]
   
 * Check Facets class *Denumerator*.
 * Check *issue4890* for a proposal to include laziness in Ruby.
@@ -798,7 +802,7 @@ Programming paradigms (2)
 =========================
 
 * Imperative programming: focus on **how**.
-* Declarative (logic/dataflow/functional/...) programming: focus on **what**
+* Declarative (logic/dataflow/functional/...) programming: focus on **what**.
 
 A schemer (*arcus*) once said:
 
@@ -824,10 +828,10 @@ So we cannot do FP in OOP? Yes, we can!
 
 * OOP is orthogonal to FP.
  
-* Well, at least in theory:
+* Well, at least in theory, because:
 
-  * OOP tends to emphasize change of state in objects. 
-  * OOP tends to impose tight coupling between layers (which hinders modularization).
+  * Typical OOP tends to emphasize change of state in objects. 
+  * Typical OOP tends to impose tight coupling between layers (which hinders modularization).
   * Mixture of data and code raises both conceptual and practical problems. 
   
 * OOP functional languages: Scala, F#, ...
@@ -837,7 +841,7 @@ Efficiency
 
 * Functional programming is usually very efficient... in functional programming languages.
 * Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...).
-* However, it's unlikely that the functional snippets in your code are the bottleneck of the application (usually: network, database, disk, ...).
+* However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).
 * First write readable, maintainable code and only later worry about efficiency. 
 
   *"Premature optimization is the root of all evil"*
@@ -852,7 +856,7 @@ Breaking the law (1): Why
 Breaking the law (2): Where
 ===========================
 
-* At low-level: Example with *Enumerable#mash*: *merge* -> *update*
+* At low-level: Example with *Enumerable#mash*: 
 
 .. sourcecode:: ruby
 
@@ -860,7 +864,7 @@ Breaking the law (2): Where
     def mash(&block)
       self.inject({}) do |output, item|
         key, value = block_given? ? yield(item) : item
-        output.update(key => value)
+        output.update(key => value) # merge -> update
       end
     end
   end
@@ -885,15 +889,17 @@ We get it, FP is cool but...
 .. image:: pics/yoda-lambda.png
   :height: 400
   :align: center
+  
+.. class:: incremental
+  
+  An elegant weapon for a more civilized age
 
 We get it, FP is cool but...
 ============================
 
 ... why is it harder to catch?!
 
-You must learn the basic tools first. 
-
-Like a craftsman, a programmer first learns to use the existing tools and later builds its own.
+  A programmer is a craftsman: first learn the existing tools and later build your own.
 
 .. image:: pics/violinmaker.jpg
   :height: 300
@@ -902,21 +908,93 @@ Like a craftsman, a programmer first learns to use the existing tools and later 
 Things we've not talked about
 =============================
 
-* Pattern matching 
+* Pattern matching
 * Partial functions  
 * Currying
 * (and a lot more...)
 
-Learn at least one (or better, two) functional languages
-=====================================================
+Learn at least one functional language
+======================================
 
-* Haskell
+* Haskell (pure FP, beautiful, inspiring language)
 * ML (Standard ML, Objective Caml, ...)
 * Scheme (minimal LISP dialect)
 * Erlang (designed for highly-concurrent programming)
 * Scala (runs in JVM)
 * Clojure (LISP dialect, runs in JVM)
 * F# (OCaml dialect, runs in .NET)
+
+Exercises (1): Quicksort
+========================
+
+Write *Array#quicksort* (with no in-place modifications). Example:
+ 
+:Input: [4, 2, 5, 1, 3]
+
+.. sourcecode:: ruby
+
+  [4, 2, 5, 1, 3].quicksort # pivot: 4, rest: [2, 5, 1, 3]
+  [2, 1, 3].quicksort + [4] + [5].quicksort 
+  ([1].quicksort + [2] + [3].quicksort) + [4] + [5].quicksort
+  ([1] + [2] + [3]) + [4] + [5]
+  [1, 2, 3, 4, 5]  
+
+Exercises (2): Parsing
+======================
+
+Input data:
+
+.. sourcecode:: ruby
+
+  # id; name; age; points
+  1; Greg Dulli; 54; 1000
+  2; John Curley; 43; 2500
+  3; Rick McCollum; 22; 1200
+  4; Michael Horrigan; 25; 4000
+
+Create a *Parsing* class with *@people* array and methods *problemX*:
+
+.. class:: small
+
+1) Is there any person with more than 1500 points?
+2) Sum of points of people over 30 years.
+3) Hash with total points for age in 10-year intervals (*{20 => 5200, 40 => 2500, 50 => 1000}*) 
+4) Name of the first person (ordered by age ASC) that has more than 1500 points.
+5) What are the names of the pair of people with less points difference? 
+6) Idem, but now we want to know also what's this difference.
+7) Get JSON *{people: [{id: {name: ..., age: ...}}]}*
+8) Get array of people with all people, but double the points for those with even age.
+
+Exercises (3): Countdown (numbers)
+==================================
+
+In Spain: *Cifras* y Letras.
+
+*Combine a given group of numbers using the four basic operations and return the expression to obtain a given number.*
+
+  Numbers: 3, 7, 10, 50, 100, 8
+  
+  Number to get: 548
+
+  548 = (100+(8*((10+50)-(7-3))))
+  
+Exercises (3): Countdown (numbers)
+==================================
+
+Example expression tree:
+
+.. image:: pics/expressionexptree.gif
+  :height: 400
+  :align: center
+ 
+Source code
+===========
+
+**This presentation**: http://goo.gl/M5kNf
+
+**Source code for the presentation**: http://goo.gl/H5KNg
+
+**Source code for the exercises**: http://goo.gl/Z2F9I
 
 Thanks for coming!
 ==================
@@ -938,63 +1016,3 @@ Software freelance developer (and occasional teacher).
 **Professional page**: http://www.arnau-sanchez.com/en
 
 **Free projects and writings**: http://code.google.com/p/tokland/
-
-Exercises (1): Quicksort
-========================
-
-:Input: [4, 2, 5, 1, 3]
-
-.. sourcecode:: ruby
-
-  [4, 2, 5, 1, 3].quicksort # pivot: 4, rest: [2, 5, 1, 3]
-  [2, 1, 3].quicksort + [4] + [5].quicksort 
-  ([1].quicksort + [2] + [3].quicksort) + [4] + [5].quicksort
-  ([1] + [2] + [3]) + [4] + [5]
-  [1, 2, 3, 4, 5]  
-
-Exercises (2): Parsing
-======================
-
-Input data:
-
-.. sourcecode:: ruby
-
-  1; Greg Dulli; 54; 1000
-  2; John Curley; 43; 2500
-  3; Rick McCollum; 22; 1200
-  4; Michael Horrigan; 25; 4000
-
-Create a *Parsing* class with *@people* array and methods *problemX*:
-
-.. class:: small
-
-#) Is there any person with more than 1500 points?
-#) Sum of points of people over 30 years.
-#) Hash with total points for age in 10-year intervals (i.e. {10 => 1000, 20 => 4000, ... }) 
-#) Name of the first person (ordered by age ASC) that has more than 1500 points.
-#) What are the names of the pair of people with more points difference? 
-#) Idem, but now we want to know also what's this difference.
-#) Get JSON *{people: [{id: {name: ..., age: ...}}]}*
-#) Get array of people with all people, but double the points for those with even age.
-
-Exercises (3): Countdown (numbers)
-==================================
-
-In Spain: *Cifras* y Letras
-
-*Combine a given group of numbers using the four basic operations and return the expression to obtain a given number.*
-
-  Numbers: 3, 7, 10, 50, 100, 8
-  
-  Number to get: 548
-
-  548 = (100+(8*((10+50)-(7-3))))
-  
-Exercises (3): Countdown (numbers)
-==================================
-
-Example expression tree:
-
-.. image:: pics/expressionexptree.gif
-  :height: 400
-  :align: center
