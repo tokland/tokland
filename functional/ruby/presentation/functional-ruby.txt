@@ -845,8 +845,6 @@ Efficiency
 * However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).
 * First write readable, maintainable code and only later worry about efficiency. 
 
-  *"Premature optimization is the root of all evil"*
-
 Breaking the law (1): Why
 =========================
 
