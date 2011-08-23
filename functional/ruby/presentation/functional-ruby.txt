@@ -832,6 +832,7 @@ So we cannot do FP in OOP? Yes, we can!
 
   * Typical OOP tends to emphasize change of state in objects. 
   * Typical OOP tends to impose tight coupling between layers (which hinders modularization).
+  * Typical OOP mixes the concepts of identity and state.
   * Mixture of data and code raises both conceptual and practical problems. 
   
 * OOP functional languages: Scala, F#, ...
@@ -840,7 +841,7 @@ Efficiency
 ==========
 
 * Functional programming is usually very efficient... in functional programming languages.
-* Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...).
+* Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...). Ruby cannot.
 * However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).
 * First write readable, maintainable code and only later worry about efficiency. 
 
@@ -850,8 +851,8 @@ Breaking the law (1): Why
 =========================
 
 * Efficiency: You need to update big structures a lot.
-* Intricate code: You cannot figure out a clean implementation (it's preferable a good imperative than bad functional).
-* Keep state: and we cannot use recursion due to the uncertainty about TCO.  
+* Intricate code: You cannot figure out a clean implementation (it's preferable good imperative than bad functional).
+* Keep state: and we cannot use recursion due to the uncertainty about TCO.
 
 Breaking the law (2): Where
 ===========================
@@ -892,14 +893,14 @@ We get it, FP is cool but...
   
 .. class:: incremental
   
-  An elegant weapon for a more civilized age
+  "An elegant weapon for a more civilized age."
 
 We get it, FP is cool but...
 ============================
 
 ... why is it harder to catch?!
 
-  A programmer is a craftsman: first learn the existing tools and later build your own.
+  Be a craftsman: first learn the existing tools and later build your own.
 
 .. image:: pics/violinmaker.jpg
   :height: 300
@@ -952,7 +953,7 @@ Input data:
   3; Rick McCollum; 22; 1200
   4; Michael Horrigan; 25; 4000
 
-Create a *Parsing* class with *@people* array and methods *problemX*:
+Create a *Parsing* class with a *@people* array and methods *problemX*:
 
 .. class:: small
 
@@ -1016,3 +1017,18 @@ Software freelance developer (and occasional teacher).
 **Professional page**: http://www.arnau-sanchez.com/en
 
 **Free projects and writings**: http://code.google.com/p/tokland/
+
+License
+=======
+
+  Creative Commons Attribution 3.0
+
+.. image:: pics/license-cc.png
+  :height: 100
+  :align: center
+
+- Feel free to use all the material in the presentation.
+
+- All the images belong to their original authors (I guess), none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).
+
+- The idea of starting with *x = x + 1*  was taken from Luca Bolognese's presentation "An Introduction to Microsoft F#".

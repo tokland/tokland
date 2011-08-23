@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.7: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.8: http://docutils.sourceforge.net/" />
 <meta name="version" content="S5 1.1" />
 <title>Functional Programming with Ruby</title>
 <style type="text/css">
@@ -781,6 +781,7 @@ Functional programming is like describing your problem to a mathematician. Imper
 <li>Well, at least in theory, because:<ul>
 <li>Typical OOP tends to emphasize change of state in objects.</li>
 <li>Typical OOP tends to impose tight coupling between layers (which hinders modularization).</li>
+<li>Typical OOP mixes the concepts of identity and state.</li>
 <li>Mixture of data and code raises both conceptual and practical problems.</li>
 </ul>
 </li>
@@ -792,7 +793,7 @@ Functional programming is like describing your problem to a mathematician. Imper
 <ul>
 <li><p class="first">Functional programming is usually very efficient... in functional programming languages.</p>
 </li>
-<li><p class="first">Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...).</p>
+<li><p class="first">Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...). Ruby cannot.</p>
 </li>
 <li><p class="first">However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).</p>
 </li>
@@ -805,7 +806,7 @@ Functional programming is like describing your problem to a mathematician. Imper
 <h1>Breaking the law (1): Why</h1>
 <ul class="simple">
 <li>Efficiency: You need to update big structures a lot.</li>
-<li>Intricate code: You cannot figure out a clean implementation (it's preferable a good imperative than bad functional).</li>
+<li>Intricate code: You cannot figure out a clean implementation (it's preferable good imperative than bad functional).</li>
 <li>Keep state: and we cannot use recursion due to the uncertainty about TCO.</li>
 </ul>
 </div>
@@ -837,13 +838,13 @@ Functional programming is like describing your problem to a mathematician. Imper
 Is the imperative programming stronger?
 No, no, no. Only quicker, easier, more seductive.</blockquote>
 <img alt="pics/yoda-lambda.png" class="incremental align-center" src="pics/yoda-lambda.png" style="height: 400px;" />
-<p class="incremental">An elegant weapon for a more civilized age</p>
+<p class="incremental">&quot;An elegant weapon for a more civilized age.&quot;</p>
 </div>
 <div class="slide" id="id1">
 <h1>We get it, FP is cool but...</h1>
 <p>... why is it harder to catch?!</p>
 <blockquote>
-A programmer is a craftsman: first learn the existing tools and later build your own.</blockquote>
+Be a craftsman: first learn the existing tools and later build your own.</blockquote>
 <img alt="pics/violinmaker.jpg" class="align-center" src="pics/violinmaker.jpg" style="height: 300px;" />
 </div>
 <div class="slide" id="things-we-ve-not-talked-about">
@@ -894,7 +895,7 @@ A programmer is a craftsman: first learn the existing tools and later build your
 <span class="mi">3</span><span class="p">;</span> <span class="no">Rick</span> <span class="no">McCollum</span><span class="p">;</span> <span class="mi">22</span><span class="p">;</span> <span class="mi">1200</span>
 <span class="mi">4</span><span class="p">;</span> <span class="no">Michael</span> <span class="no">Horrigan</span><span class="p">;</span> <span class="mi">25</span><span class="p">;</span> <span class="mi">4000</span>
 </pre></div>
-<p>Create a <em>Parsing</em> class with <em>&#64;people</em> array and methods <em>problemX</em>:</p>
+<p>Create a <em>Parsing</em> class with a <em>&#64;people</em> array and methods <em>problemX</em>:</p>
 <ol class="small arabic simple">
 <li>Is there any person with more than 1500 points?</li>
 <li>Sum of points of people over 30 years.</li>
@@ -935,6 +936,17 @@ A programmer is a craftsman: first learn the existing tools and later build your
 <p><strong>Email</strong>: <a class="reference external" href="mailto:tokland&#64;gmail.com">tokland&#64;gmail.com</a></p>
 <p><strong>Professional page</strong>: <a class="reference external" href="http://www.arnau-sanchez.com/en">http://www.arnau-sanchez.com/en</a></p>
 <p><strong>Free projects and writings</strong>: <a class="reference external" href="http://code.google.com/p/tokland/">http://code.google.com/p/tokland/</a></p>
+</div>
+<div class="slide" id="license">
+<h1>License</h1>
+<blockquote>
+Creative Commons Attribution 3.0</blockquote>
+<img alt="pics/license-cc.png" class="align-center" src="pics/license-cc.png" style="height: 100px;" />
+<ul class="simple">
+<li>Feel free to use all the material in the presentation.</li>
+<li>All the images belong to their original authors (I guess), none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).</li>
+<li>The idea of starting with <em>x = x + 1</em>  was taken from Luca Bolognese's presentation &quot;An Introduction to Microsoft F#&quot;.</li>
+</ul>
 </div>
 </div>
 </body>
