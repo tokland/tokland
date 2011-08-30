@@ -25,7 +25,7 @@ MU_URL2_FILENAME=xkcd2.jpg
 MU_URL2_MD5="bcf9aec4d5e9a92ad22cd42d52f11fcc"
 
 test_0wrong_link() {
-  assert_return 1 download "http://rapidshare.com/?d=1234"
+  assert_return 2 download "http://rapidshare.com/?d=1234"
 }
 
 test_dead_link() {

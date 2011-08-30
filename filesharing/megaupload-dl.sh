@@ -11,8 +11,8 @@
 EXIT_STATUSES=(
   [0]=ok
   # Non-retryable errors
-  [1]=link_invalid
-  [2]=arguments
+  [1]=arguments
+  [2]=link_invalid
   [3]=link_dead
   [4]=link_unknown_problem
   [5]=parse
@@ -47,9 +47,6 @@ parse() { local S=$(sed -n "/$1/I s/^.*$2.*$/\1/ip" | head -n1) && test "$S" && 
 
 # Like parse but do not write errors to stderr
 parse_quiet() { parse "$@" 2>/dev/null; }
-
-# Parse form input 'value' attribute from its name ($1)
-parse_form_input() { parse "name=\"$1\"" 'value="\([^"]*\)'; }
 
 # Wrapper over curl
 curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 "$@"; }
@@ -105,7 +102,7 @@ get_main_page() {
   done
 }
 
-# Download a Megaupload link ($1) with optional password ($2) and echo file path (stdout) 
+# Download a MU link ($1) with optional password ($2) and echo file path to stdout 
 megaupload_download() {
   local URL=$1; local PASSWORD=${2:-""}
   match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
