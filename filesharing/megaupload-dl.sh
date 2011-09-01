@@ -1,23 +1,23 @@
 #!/bin/bash
-#
+
 # Download a file from Megaupload.
 #
 # $ megaupload-dl http://www.megaupload.com/?d=XJHN1S11
 # hello.pdf
 #
 # Author: Arnau Sanchez <tokland@gmail.com>
-# Website: http://code.google.com/p/tokland/wiki/MegauploadDownloader
+# Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
+# Webpage: http://www.arnau-sanchez.com/en
 
 EXIT_STATUSES=(
   [0]=ok
   # Non-retryable errors
   [1]=arguments
-  [2]=link_invalid
-  [3]=link_dead
-  [4]=link_unknown_problem
-  [5]=parse
-  [6]=password_required
-  [7]=password_wrong
+  [2]=link_dead
+  [3]=link_unknown_problem
+  [4]=parse
+  [5]=password_required
+  [6]=password_wrong
   # Retryable errors
   [100]=parse_nonfatal
   [101]=network
@@ -25,7 +25,7 @@ EXIT_STATUSES=(
   [103]=another_download_active
 )
 
-# Set EXIT_STATUS_$KEY variables (poor man's associative array for Bash)
+# Set EXIT_STATUS_${KEY} variables (poor man's associative array for Bash)
 for SC in ${!EXIT_STATUSES[@]}; do 
   eval "EXIT_STATUS_${EXIT_STATUSES[$SC]}=$SC"
 done
@@ -54,7 +54,7 @@ curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 "$@"; }
 # Echo error with key $1 (see EXIT_STATUSES_*), message $2 and optional debug output ($3)
 error() {
   local KEY=$1; local MSG=${2:-""}; local DEBUGCONTENT=${3:-""}
-  stderr -n "ERROR [$KEY]"
+  stderr -n "ERROR [$KEY:$BASH_LINENO]"
   test "$MSG" && stderr ": $MSG" || stderr
   if test "$DEBUGCONTENT"; then
     local TEMP=$(tempfile)
@@ -65,9 +65,7 @@ error() {
   echo ${!VAR}
 }
 
-### Application-specific functions
-
-# Get the page for a URL ($1) or return error (set $2 = 'wait' to loop on wait messages)
+# Get the page for a URL ($1) or return error (if $2 = 'wait' loop on wait-messages)
 get_main_page() {
   local URL=$1; local OPT=$2
   
@@ -77,27 +75,33 @@ get_main_page() {
     ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
     MSG=$(echo "$PAGE" | parse_quiet '<center>' '<center>\(.*\)<') || true
     
-    if test "$ERROR_URL" -a "$OPT" = "wait"; then
-      ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
-        return $(error network "downloading error page") 
-      WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
-        return $(error parse "error page detected, but wait time not found" "$ERROR_PAGE")
-      info "The server told us off for making too much requests, waiting $WAIT minutes"
-      sleep $((WAIT*60))
-      continue
-    elif match "the link you have clicked is not available" "$PAGE"; then
-      return $(error link_dead "Link is dead")    
-    elif match "temporarily unavailable" "$MSG"; then
-      return $(error link_temporally_unavailable "File is temporarily unavailable")
-    elif test "$MSG"; then
-      return $(error link_unknown_problem "server says: '$MSG'")
-    else
-      # refactorize? something like: file_info "$PAGE" "Name" "File name" "span"
+    if match 'class="down_top_bl1"' "$PAGE"; then
       info "Name: $(echo "$PAGE" | parse 'File name:' '>\(.*\)<\/span' | strip)"
       info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)<br' | strip)"
       info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"    
       echo "$PAGE"
       break
+    elif test "$ERROR_URL"; then
+      ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
+        return $(error network "downloading error page") 
+      WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
+        return $(error parse_nonfatal "no wait time not found in error page" "$ERROR_PAGE")
+      if test "$OPT" = "wait"; then        
+        info "The server told us off for making too much requests, waiting $WAIT minutes"
+        sleep $((WAIT*60))
+        continue
+      else
+        info "We were redirected to the wait error page but 'nowait' option is enabled"
+        break
+      fi
+    elif match "the link you have clicked is not available" "$PAGE"; then
+      return $(error link_dead "Link is dead")    
+    elif match "temporarily unavailable" "$MSG"; then
+      return $(error link_temporally_unavailable "File is temporarily unavailable")
+    elif test "$MSG"; then
+      return $(error link_unknown_problem "server returns an unknown message: '$MSG'")
+    else
+      return $(error parse "No file info nor error messages found in main page" "$PAGE")    
     fi
   done
 }
@@ -105,8 +109,6 @@ get_main_page() {
 # Download a MU link ($1) with optional password ($2) and echo file path to stdout 
 megaupload_download() {
   local URL=$1; local PASSWORD=${2:-""}
-  match "^\(http://\)\?\(www\.\)\?megaupload.com/" "$URL" ||
-    return $(error link_invalid "'$URL' does not seem a valid megaupload URL")
   
   while true; do
     PAGE=$(get_main_page "$URL" "wait") || return $?
@@ -159,7 +161,7 @@ megaupload_download() {
       match "finish this download before" "$LIMIT_PAGE" &&
         return $(error another_download_active)      
       MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") || 
-        return $(error parse_nonfatal "wait time in limit page" "$LIMIT_PAGE")
+        return $(error parse_nonfatal "no wait time in limit exceeded page" "$LIMIT_PAGE")
       info "Download limit exceeded, waiting $MINUTES minutes by server request"
       sleep $((MINUTES*60))
       continue

@@ -24,12 +24,8 @@ MU_URL2_PASSWORD=tokland
 MU_URL2_FILENAME=xkcd2.jpg
 MU_URL2_MD5="bcf9aec4d5e9a92ad22cd42d52f11fcc"
 
-test_0wrong_link() {
-  assert_return 2 download "http://rapidshare.com/?d=1234"
-}
-
 test_dead_link() {
-  assert_return 3 download "http://megaupload.com/?d=12deadlink34"
+  assert_return 2 download "http://megaupload.com/?d=12deadlink34"
 }
 
 test_download() {
@@ -54,11 +50,11 @@ test_link_with_password() {
 }
 
 test_link_with_password_but_no_password_provided() {
-  assert_return 6 download "$MU_URL2"
+  assert_return 5 download "$MU_URL2"
 }
 
 test_link_with_password_but_wrong_password() {
-  assert_return 7 download "${MU_URL2}@wrongpassword"
+  assert_return 6 download "${MU_URL2}@wrongpassword"
 }
 
 run_tests "$@"
