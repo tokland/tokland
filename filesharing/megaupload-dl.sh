@@ -2,8 +2,8 @@
 
 # Download a file from Megaupload.
 #
-# $ megaupload-dl http://www.megaupload.com/?d=XJHN1S11
-# hello.pdf
+# $ megaupload-dl http://www.megaupload.com/?d=S9BJRU17
+# lao_tzu-the_tao_te_ching.pdf
 #
 # Author: Arnau Sanchez <tokland@gmail.com>
 # Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
@@ -34,7 +34,7 @@ done
 stderr() { echo -e "$@" >&2; }
 
 # Echo an info message ($@) to stderr
-info() { stderr "--- $@"; }
+info() { stderr "[$(date +%H:%M:%S)] $@"; }
 
 # Check if regular expression $1 is found in string $2 (case insensitive)
 match() { grep -qi "$1" <<< "$2"; }
@@ -42,14 +42,14 @@ match() { grep -qi "$1" <<< "$2"; }
 # Strip string
 strip() { sed "s/^[[:space:]]*//; s/[[:space:]]*$//"; }
 
-# Get first line that matches regular expression $1 and parse string $2 (case insensitive)
+# Get first line in stdin that matches regexp $1 and parse string $2 (case insensitive)
 parse() { local S=$(sed -n "/$1/I s/^.*$2.*$/\1/ip" | head -n1) && test "$S" && echo "$S"; }
 
-# Like parse but do not write errors to stderr
+# Like parse() but do not write errors to stderr
 parse_quiet() { parse "$@" 2>/dev/null; }
 
-# Wrapper over curl
-curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 "$@"; }
+# Wrapper over curl (appends global variable GLOBAL_CURL_OPTS)
+curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 $GLOBAL_CURL_OPTS "$@"; }
 
 # Echo error with key $1 (see EXIT_STATUSES_*), message $2 and optional debug output ($3)
 error() {
@@ -65,7 +65,7 @@ error() {
   echo ${!VAR}
 }
 
-# Get the page for a URL ($1) or return error (if $2 = 'wait' loop on wait-messages)
+# Get the page for a URL ($1) or return error (if $2 = 'wait', loop on wait-messages)
 get_main_page() {
   local URL=$1; local OPT=$2
   
@@ -185,13 +185,15 @@ usage() {
 
 if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
   set -e -u -o pipefail
+  GLOBAL_CURL_OPTS=
   PASSWORD=
   CHECKONLY=
   test $# -eq 0 && set -- "-h"
-  while getopts "cp:h" ARG; do
+  while getopts "cp:o:h" ARG; do
     case "$ARG" in
     c) CHECKONLY=1;;
     p) PASSWORD=$OPTARG;;
+    o) GLOBAL_CURL_OPTS=$OPTARG;;
     *) usage
        exit $EXIT_STATUS_arguments;;
     esac
