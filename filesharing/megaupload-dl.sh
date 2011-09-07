@@ -177,7 +177,7 @@ megaupload_download() {
 }
 
 usage() {
-  stderr "Usage: $(basename $0) [-p PASSWORD] [-c] URL[@PASSWORD]\n"
+  stderr "Usage: $(basename $0) [-p PASSWORD] [-c] URL[|PASSWORD]\n"
   stderr "  Download a file from megaupload.com"
 }
 
@@ -199,7 +199,7 @@ if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
     esac
   done
   shift $(($OPTIND-1))
-  IFS="@" read URL URL_PASSWORD <<< "$1"
+  IFS="|" read URL URL_PASSWORD <<< "$1"
   
   if test "$CHECKONLY"; then
     get_main_page "$URL" "nowait" > /dev/null

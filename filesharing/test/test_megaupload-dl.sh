@@ -44,7 +44,7 @@ test_download_with_resume() {
 
 test_link_with_password() {
   rm -f $MU_URL2_FILENAME
-  assert_equal "$MU_URL2_FILENAME" $(download "$MU_URL2@$MU_URL2_PASSWORD")
+  assert_equal "$MU_URL2_FILENAME" $(download -p "$MU_URL2_PASSWORD" "$MU_URL2")
   assert_equal "$MU_URL2_MD5" $(md5 $MU_URL2_FILENAME)
   rm -f $MU_URL2_FILENAME
 }
@@ -54,7 +54,7 @@ test_link_with_password_but_no_password_provided() {
 }
 
 test_link_with_password_but_wrong_password() {
-  assert_return 6 download "${MU_URL2}@wrongpassword"
+  assert_return 6 download "${MU_URL2}|wrongpassword"
 }
 
 run_tests "$@"
