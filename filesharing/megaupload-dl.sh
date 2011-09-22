@@ -26,7 +26,7 @@ EXIT_STATUSES=(
 )
 
 # Set EXIT_STATUS_${KEY} variables (poor man's associative array for Bash)
-for SC in ${!EXIT_STATUSES[@]}; do 
+for SC in ${!EXIT_STATUSES[@]}; do
   eval "EXIT_STATUS_${EXIT_STATUSES[$SC]}=$SC"
 done
 
@@ -39,7 +39,7 @@ info() { stderr "[$(date +%H:%M:%S)] $@"; }
 # Check if regular expression $1 is found in string $2 (case insensitive)
 match() { grep -qi "$1" <<< "$2"; }
 
-# Strip string
+# Strip string from stdin
 strip() { sed "s/^[[:space:]]*//; s/[[:space:]]*$//"; }
 
 # Get first line in stdin that matches regexp $1 and parse string $2 (case insensitive)
@@ -68,25 +68,25 @@ error() {
 # Get the page for a URL ($1) or return error (if $2 = 'wait', loop on wait-messages)
 get_main_page() {
   local URL=$1; local OPT=$2
-  
-  while true; do 
+
+  while true; do
     info "GET $URL"
     PAGE=$(curlw -sS "$URL") || return $(error network "downloading page: $URL")
     ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
     MSG=$(echo "$PAGE" | parse_quiet '<center>' '<center>\(.*\)<') || true
-    
+
     if match 'class="down_top_bl1"' "$PAGE"; then
       info "Name: $(echo "$PAGE" | parse 'File name:' '>\(.*\)<\/span' | strip)"
       info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)<br' | strip)"
-      info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"    
+      info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"
       echo "$PAGE"
       break
     elif test "$ERROR_URL"; then
       ERROR_PAGE=$(curlw -sS "$ERROR_URL") ||
-        return $(error network "downloading error page") 
+        return $(error network "downloading error page")
       WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
         return $(error parse_nonfatal "no wait time not found in error page" "$ERROR_PAGE")
-      if test "$OPT" = "wait"; then        
+      if test "$OPT" = "wait"; then
         info "The server told us off for making too much requests, waiting $WAIT minutes"
         sleep $((WAIT*60))
         continue
@@ -95,29 +95,29 @@ get_main_page() {
         break
       fi
     elif match "the link you have clicked is not available" "$PAGE"; then
-      return $(error link_dead "Link is dead")    
+      return $(error link_dead "Link is dead")
     elif match "temporarily unavailable" "$MSG"; then
       return $(error link_temporally_unavailable "File is temporarily unavailable")
     elif test "$MSG"; then
       return $(error link_unknown_problem "server returns an unknown message: '$MSG'")
     else
-      return $(error parse "No file info nor error messages found in main page" "$PAGE")    
+      return $(error parse "No file info nor error message found in main page" "$PAGE")
     fi
   done
 }
 
-# Download a MU link ($1) with optional password ($2) and echo file path to stdout 
+# Download a MU link ($1) with optional password ($2) and echo file path to stdout
 megaupload_download() {
   local URL=$1; local PASSWORD=${2:-""}
-  
+
   while true; do
     PAGE=$(get_main_page "$URL" "wait") || return $?
-    
+
     # Wait page
     PASSRE='name="filepassword"'
     WAITPAGE=$(if match "^[[:space:]]*count=" "$PAGE"; then
       # MU dropped the captcha, so the main page is also the wait page
-      echo "$PAGE" 
+      echo "$PAGE"
     elif match "$PASSRE" "$PAGE"; then
       # Password-protected link
       test "$PASSWORD" || return $(error password_required "No password provided")
@@ -127,10 +127,10 @@ megaupload_download() {
       match "$PASSRE" "$WAITPAGE" &&
         return $(error password_wrong "Password error")
       echo "$WAITPAGE"
-    else 
+    else
       return $(error parse "main page" "$PAGE")
     fi) || return $?
-    
+
     # Get download link and wait
     WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" "count=\([[:digit:]]\+\);") ||
       { info "Wait time not found in response (wrong captcha?), retrying"; continue; }
@@ -139,28 +139,28 @@ megaupload_download() {
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
     info "Waiting $WAITTIME seconds before download starts"
     sleep $WAITTIME
-    
+
     # Download the file
     info "Output filename: $FILENAME"
     info "GET $FILEURL"
     INFO=$(curlw -w "%{http_code} %{size_download}" -g -C - -o "$FILENAME" "$FILEURL") ||
       return $(error network "downloading file")
     read HTTP_CODE SIZE_DOWNLOAD <<< "$INFO"
-    
+
     if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
-      # This is tricky: if we got an unsuccessful code (probably a 503), but 
+      # This is tricky: if we got an unsuccessful code (probably a 503), but
       # FILENAME contains data (the error page), we need to delete it so it
-      # does not interfere with the real file later. 
+      # does not interfere with the real file later.
       rm -f "$FILENAME"
     fi
-    
+
     if match "503" "$HTTP_CODE"; then
-      # Megaupload uses HTTP code 503 to signal a download limit exceeded 
-      LIMIT_PAGE=$(curlw -sS "http://www.megaupload.com/?c=premium&l=1") || 
+      # Megaupload uses HTTP code 503 to signal a download limit exceeded
+      LIMIT_PAGE=$(curlw -sS "http://www.megaupload.com/?c=premium&l=1") ||
         return $(error network "Downloading error page")
       match "finish this download before" "$LIMIT_PAGE" &&
-        return $(error another_download_active)      
-      MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") || 
+        return $(error another_download_active)
+      MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") ||
         return $(error parse_nonfatal "no wait time in limit exceeded page" "$LIMIT_PAGE")
       info "Download limit exceeded, waiting $MINUTES minutes by server request"
       sleep $((MINUTES*60))
@@ -169,7 +169,7 @@ megaupload_download() {
       # Unsuccessful code different from 503. A transient network problem? who knows.
       return $(error network "unsuccessful (and unexpected) HTTP code: $HTTP_CODE")
     fi
-    
+
     # File successfully downloaded: echo the path to stdout and break loop
     echo "$FILENAME"
     break
@@ -177,7 +177,7 @@ megaupload_download() {
 }
 
 usage() {
-  stderr "Usage: $(basename $0) [-p PASSWORD] [-c] URL[|PASSWORD]\n"
+  stderr "Usage: $(basename $0) [-c] [-p PASSWORD] [-o CURL_OPTIONS] URL[|PASSWORD]\n"
   stderr "  Download a file from megaupload.com"
 }
 
@@ -200,7 +200,7 @@ if test -z "$_MEGAUPLOAD_DL_SOURCE"; then
   done
   shift $(($OPTIND-1))
   IFS="|" read URL URL_PASSWORD <<< "$1"
-  
+
   if test "$CHECKONLY"; then
     get_main_page "$URL" "nowait" > /dev/null
     info "Link is alive: $URL"
