@@ -18,10 +18,6 @@ Introduction (1)
 
 .. class:: center incremental
 
-really? 
-
-.. class:: center incremental
-
   x - x = 1 
   
   0 = 1  
@@ -146,10 +142,11 @@ Easier debugging
 Modularity and composition
 ==========================
 
-* *Modularity*: Light coupling between modules
-* *Compositionality*: Connect modules to work cooperatively.
-* *Bottom-up programming*: Base elements first and go up in the abstraction layer.
-* *Change the way you think about the problem*: Create you own abstractions. 
+Global state spreads complexity all over the code. Instead, you should use take advantage of:
+
+* *Modularity*: Write so there is light coupling between modules.
+* *Compositionality*: Make easy to connect modules and make them work cooperatively.
+* *Bottom-up programming*: Write the base elements first and go up in the abstraction layer.
 
   *"Programming is building abstractions and expressing ideas"* Hal Abelson 
 
@@ -157,10 +154,10 @@ Write better code!
 ==================
  
 *All right... all right... but apart from referential transparency, parallelization, easier debugging and modularization... what has Functional Programming ever done for us?*
+ 
+.. class:: incremental
 
-You'll write elegant, concise, easier to understand, maintainable code. 
-
-You'll have to take my word for now.
+You'll write more elegant, concise, easier to understand, maintainable code.  
 
 Functional programming in Ruby?
 ===============================
@@ -467,7 +464,7 @@ We can use the (somewhat obscure) Hash constructor:
     [string, string.length]
   end
   lengths = Hash[length_pairs] 
-  lengths => {"the" => 3, "ride" => 4, "dragon" => 6}
+  #=> {"the" => 3, "ride" => 4, "dragon" => 6}
   
 Not bad, but:
 
@@ -600,8 +597,8 @@ Using *simple_memoize*:
 
   real	0m0.017s
   
-Narrowing down the scope by immutability
-========================================
+Narrow down the scope by immutability
+=====================================
 
 .. sourcecode:: ruby
 
@@ -657,9 +654,9 @@ Recursion (3)
     has_many :children, :class_name => "Node"
     
     def all_children
-      self.children.map do |child|
+      self.children.flat_map do |child|
         [child] + child.all_children
-      end.flatten(1)
+      end
     end
   end
   
@@ -684,7 +681,7 @@ Everything is an expression (2)
 
 .. sourcecode:: ruby
 
-  message = if found_dog == my_dog
+  message = if found_dog == our_dog
     name = found_dog.name
     "We found our dog #{name}!"
   else
@@ -883,15 +880,12 @@ We get it, FP is cool but...
   Is the imperative programming stronger? 
   No, no, no. Only quicker, easier, more seductive.
 
-.. class:: incremental
+.. class:: center incremental
 
 .. image:: pics/yoda-lambda.png
   :height: 400
-  :align: center
-  
-.. class:: incremental
-  
-  "An elegant weapon for a more civilized age."
+  :align: center 
+
 
 We get it, FP is cool but...
 ============================
@@ -918,7 +912,7 @@ Learn at least one functional language
 * Haskell (pure FP, beautiful, inspiring language)
 * ML (Standard ML, Objective Caml, ...)
 * Scheme (minimal LISP dialect)
-* Erlang (designed for highly-concurrent programming)
+* Erlang (designed for fault-tolerant, highly-concurrent systems)
 * Scala (runs in JVM)
 * Clojure (LISP dialect, runs in JVM)
 * F# (OCaml dialect, runs in .NET)
@@ -1016,8 +1010,8 @@ Software freelance developer (and occasional teacher).
 
 **Free projects and writings**: http://code.google.com/p/tokland/
 
-License
-=======
+Share this!
+===========
 
   Creative Commons Attribution 3.0
 
@@ -1025,8 +1019,8 @@ License
   :height: 100
   :align: center
 
-- Feel free to use all the material in the presentation.
+- Feel free to use all the material in the presentation. No need for attribution if you just get some ideas.
 
-- All the images belong to their original authors (I guess), none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).
+- All the images belong to their original authors, none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).
 
-- The idea of starting with *x = x + 1*  was taken from Luca Bolognese's presentation "An Introduction to Microsoft F#".
+- The idea of beginning with the "expression" *x = x + 1*  was taken from Luca Bolognese's great presentation "An Introduction to Microsoft F#".

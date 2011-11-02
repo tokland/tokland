@@ -536,6 +536,14 @@ function trap(e) {
 	return modifierKey || e.which == 0;
 }
 
+function changeSlideFromHash() {
+	var n = window.location.hash.match(/^#(\d+)/)[1];
+	if (n) {
+	  console.log(n);
+    goTo(n);
+  }
+}
+
 function startup() {
 	defaultCheck();
 	if (!isOp) createControls();
@@ -554,7 +562,17 @@ function startup() {
 		document.onkeypress = trap;
 		//document.onclick = clicker;
 	}
+	changeSlideFromHash();
+	storedHash = "";
+  window.setInterval(function () {
+    if (window.location.hash != storedHash) {
+      storedHash = window.location.hash;
+      changeSlideFromHash(storedHash);
+    }
+  }, 100); 	
 }
 
 window.onload = startup;
 window.onresize = function(){setTimeout('fontScale()', 50);}
+
+//alert(1);

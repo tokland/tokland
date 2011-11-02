@@ -121,7 +121,6 @@
 <div class="slide" id="introduction-1">
 <h1>Introduction (1)</h1>
 <p class="center huge">x = x + 1</p>
-<p class="center incremental">really?</p>
 <p class="center incremental">x - x = 1</p>
 <p class="center incremental">0 = 1</p>
 <img alt="pics/picard-facepalm.jpg" class="incremental align-center" src="pics/picard-facepalm.jpg" style="height: 300px;" />
@@ -222,14 +221,13 @@
 </div>
 <div class="slide" id="modularity-and-composition">
 <h1>Modularity and composition</h1>
+<p>Global state spreads complexity all over the code. Instead, you should use take advantage of:</p>
 <ul>
-<li><p class="first"><em>Modularity</em>: Light coupling between modules</p>
+<li><p class="first"><em>Modularity</em>: Write so there is light coupling between modules.</p>
 </li>
-<li><p class="first"><em>Compositionality</em>: Connect modules to work cooperatively.</p>
+<li><p class="first"><em>Compositionality</em>: Make easy to connect modules and make them work cooperatively.</p>
 </li>
-<li><p class="first"><em>Bottom-up programming</em>: Base elements first and go up in the abstraction layer.</p>
-</li>
-<li><p class="first"><em>Change the way you think about the problem</em>: Create you own abstractions.</p>
+<li><p class="first"><em>Bottom-up programming</em>: Write the base elements first and go up in the abstraction layer.</p>
 <p><em>&quot;Programming is building abstractions and expressing ideas&quot;</em> Hal Abelson</p>
 </li>
 </ul>
@@ -237,8 +235,7 @@
 <div class="slide" id="write-better-code">
 <h1>Write better code!</h1>
 <p><em>All right... all right... but apart from referential transparency, parallelization, easier debugging and modularization... what has Functional Programming ever done for us?</em></p>
-<p>You'll write elegant, concise, easier to understand, maintainable code.</p>
-<p>You'll have to take my word for now.</p>
+<p class="incremental">You'll write more elegant, concise, easier to understand, maintainable code.</p>
 </div>
 <div class="slide" id="functional-programming-in-ruby">
 <h1>Functional programming in Ruby?</h1>
@@ -474,7 +471,7 @@
   <span class="o">[</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="o">.</span><span class="n">length</span><span class="o">]</span>
 <span class="k">end</span>
 <span class="n">lengths</span> <span class="o">=</span> <span class="no">Hash</span><span class="o">[</span><span class="n">length_pairs</span><span class="o">]</span>
-<span class="n">lengths</span> <span class="o">=&gt;</span> <span class="p">{</span><span class="s2">&quot;the&quot;</span> <span class="o">=&gt;</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;ride&quot;</span> <span class="o">=&gt;</span> <span class="mi">4</span><span class="p">,</span> <span class="s2">&quot;dragon&quot;</span> <span class="o">=&gt;</span> <span class="mi">6</span><span class="p">}</span>
+<span class="c1">#=&gt; {&quot;the&quot; =&gt; 3, &quot;ride&quot; =&gt; 4, &quot;dragon&quot; =&gt; 6}</span>
 </pre></div>
 <p>Not bad, but:</p>
 <ol class="arabic simple">
@@ -582,8 +579,8 @@ real  0m19.852s
 real  0m0.017s
 </pre></div>
 </div>
-<div class="slide" id="narrowing-down-the-scope-by-immutability">
-<h1>Narrowing down the scope by immutability</h1>
+<div class="slide" id="narrow-down-the-scope-by-immutability">
+<h1>Narrow down the scope by immutability</h1>
 <div class="highlight"><pre><span class="vi">@title</span> <span class="o">=</span> <span class="s2">&quot;The apartment&quot;</span>
 <span class="c1"># 100 lines of code here</span>
 <span class="n">render</span><span class="p">(</span><span class="vi">@title</span><span class="p">)</span>
@@ -629,9 +626,9 @@ real  0m0.017s
   <span class="n">has_many</span> <span class="ss">:children</span><span class="p">,</span> <span class="ss">:class_name</span> <span class="o">=&gt;</span> <span class="s2">&quot;Node&quot;</span>
 
   <span class="k">def</span> <span class="nf">all_children</span>
-    <span class="nb">self</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">child</span><span class="o">|</span>
+    <span class="nb">self</span><span class="o">.</span><span class="n">children</span><span class="o">.</span><span class="n">flat_map</span> <span class="k">do</span> <span class="o">|</span><span class="n">child</span><span class="o">|</span>
       <span class="o">[</span><span class="n">child</span><span class="o">]</span> <span class="o">+</span> <span class="n">child</span><span class="o">.</span><span class="n">all_children</span>
-    <span class="k">end</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">end</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </pre></div>
@@ -652,7 +649,7 @@ real  0m0.017s
 </div>
 <div class="slide" id="everything-is-an-expression-2">
 <h1>Everything is an expression (2)</h1>
-<div class="highlight"><pre><span class="n">message</span> <span class="o">=</span> <span class="k">if</span> <span class="n">found_dog</span> <span class="o">==</span> <span class="n">my_dog</span>
+<div class="highlight"><pre><span class="n">message</span> <span class="o">=</span> <span class="k">if</span> <span class="n">found_dog</span> <span class="o">==</span> <span class="n">our_dog</span>
   <span class="nb">name</span> <span class="o">=</span> <span class="n">found_dog</span><span class="o">.</span><span class="n">name</span>
   <span class="s2">&quot;We found our dog </span><span class="si">#{</span><span class="nb">name</span><span class="si">}</span><span class="s2">!&quot;</span>
 <span class="k">else</span>
@@ -790,16 +787,11 @@ Functional programming is like describing your problem to a mathematician. Imper
 </div>
 <div class="slide" id="efficiency">
 <h1>Efficiency</h1>
-<ul>
-<li><p class="first">Functional programming is usually very efficient... in functional programming languages.</p>
-</li>
-<li><p class="first">Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...). Ruby cannot.</p>
-</li>
-<li><p class="first">However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).</p>
-</li>
-<li><p class="first">First write readable, maintainable code and only later worry about efficiency.</p>
-<p><em>&quot;Premature optimization is the root of all evil&quot;</em></p>
-</li>
+<ul class="simple">
+<li>Functional programming is usually very efficient... in functional programming languages.</li>
+<li>Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...). Ruby cannot.</li>
+<li>However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).</li>
+<li>First write readable, maintainable code and only later worry about efficiency.</li>
 </ul>
 </div>
 <div class="slide" id="breaking-the-law-1-why">
@@ -837,8 +829,7 @@ Functional programming is like describing your problem to a mathematician. Imper
 <blockquote>
 Is the imperative programming stronger?
 No, no, no. Only quicker, easier, more seductive.</blockquote>
-<img alt="pics/yoda-lambda.png" class="incremental align-center" src="pics/yoda-lambda.png" style="height: 400px;" />
-<p class="incremental">&quot;An elegant weapon for a more civilized age.&quot;</p>
+<img alt="pics/yoda-lambda.png" class="center incremental align-center" src="pics/yoda-lambda.png" style="height: 400px;" />
 </div>
 <div class="slide" id="id1">
 <h1>We get it, FP is cool but...</h1>
@@ -862,7 +853,7 @@ Be a craftsman: first learn the existing tools and later build your own.</blockq
 <li>Haskell (pure FP, beautiful, inspiring language)</li>
 <li>ML (Standard ML, Objective Caml, ...)</li>
 <li>Scheme (minimal LISP dialect)</li>
-<li>Erlang (designed for highly-concurrent programming)</li>
+<li>Erlang (designed for fault-tolerant, highly-concurrent systems)</li>
 <li>Scala (runs in JVM)</li>
 <li>Clojure (LISP dialect, runs in JVM)</li>
 <li>F# (OCaml dialect, runs in .NET)</li>
@@ -937,15 +928,15 @@ Be a craftsman: first learn the existing tools and later build your own.</blockq
 <p><strong>Professional page</strong>: <a class="reference external" href="http://www.arnau-sanchez.com/en">http://www.arnau-sanchez.com/en</a></p>
 <p><strong>Free projects and writings</strong>: <a class="reference external" href="http://code.google.com/p/tokland/">http://code.google.com/p/tokland/</a></p>
 </div>
-<div class="slide" id="license">
-<h1>License</h1>
+<div class="slide" id="share-this">
+<h1>Share this!</h1>
 <blockquote>
 Creative Commons Attribution 3.0</blockquote>
 <img alt="pics/license-cc.png" class="align-center" src="pics/license-cc.png" style="height: 100px;" />
 <ul class="simple">
-<li>Feel free to use all the material in the presentation.</li>
-<li>All the images belong to their original authors (I guess), none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).</li>
-<li>The idea of starting with <em>x = x + 1</em>  was taken from Luca Bolognese's presentation &quot;An Introduction to Microsoft F#&quot;.</li>
+<li>Feel free to use all the material in the presentation. No need for attribution if you just get some ideas.</li>
+<li>All the images belong to their original authors, none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).</li>
+<li>The idea of beginning with the &quot;expression&quot; <em>x = x + 1</em>  was taken from Luca Bolognese's great presentation &quot;An Introduction to Microsoft F#&quot;.</li>
 </ul>
 </div>
 </div>
