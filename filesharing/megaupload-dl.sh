@@ -35,7 +35,6 @@ stderr() { echo -e "$@" >&2; }
 
 # Echo an info message ($@) to stderr
 info() { stderr "--- $@"; }
-info_nolf() { stderr -n "--- $@"; }
 
 # Check if regular expression $1 is found in string $2 (case insensitive)
 match() { grep -qi "$1" <<< "$2"; }
@@ -51,7 +50,8 @@ parse_quiet() { parse "$@" 2>/dev/null; }
 
 # Sleep $1 seconds while showing a real-time MM:SS countdown
 sleep_countdown() {
-  test -t 2 || { sleep $1; return; }
+  test -t 2 || { info "$2"; sleep $1; return; }
+  stderr -n "--- $2 - "
   for ((SECS=$1; SECS>=0; SECS--)); do
     local STR=$(date -d"0+$SECS seconds" "+%M:%S")
     stderr -n "$STR"
@@ -99,8 +99,7 @@ get_main_page() {
       WAIT=$(echo "$ERROR_PAGE" | parse_quiet "check back in" "in \([[:digit:]]\+\) min") ||
         return $(error parse_nonfatal "no wait time not found in error page" "$ERROR_PAGE")
       if test "$OPT" = "wait"; then
-        info_nolf "The server told us off for making too much requests, waiting $WAIT minutes: "
-        sleep_countdown $((WAIT*60))
+        sleep_countdown $((WAIT*60)) "The server asked us to wait $WAIT minutes"
         continue
       else
         info "We were redirected to the wait error page but 'nowait' option is enabled"
@@ -113,7 +112,7 @@ get_main_page() {
     elif test "$MSG"; then
       return $(error link_unknown_problem "server returns an unknown message: '$MSG'")
     else
-      return $(error parse "No file info nor error message found in main page" "$PAGE")
+      return $(error parse "Could not parse main page (is this a MU page?)" "$PAGE")
     fi
   done
 }
@@ -149,8 +148,7 @@ megaupload_download() {
     FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
       return $(error parse "download link not found" "$WAITPAGE")
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
-    info_nolf "Waiting $WAITTIME seconds before download starts: "
-    sleep_countdown $WAITTIME
+    sleep_countdown $WAITTIME "Waiting $WAITTIME seconds before download starts"
 
     # Download the file
     info "Output filename: $FILENAME"
@@ -174,8 +172,7 @@ megaupload_download() {
         return $(error another_download_active)
       MINUTES=$(echo "$LIMIT_PAGE" | parse "Please wait" "wait \([[:digit:]]\+\) min") ||
         return $(error parse_nonfatal "no wait time in limit exceeded page" "$LIMIT_PAGE")
-      info_nolf "Download limit exceeded, waiting $MINUTES minutes by server request: "
-      sleep_countdown $((MINUTES*60))
+      sleep_countdown $((MINUTES*60)) "Download limit exceeded, waiting $MINUTES minutes"
       continue
     elif ! match "2.." "$HTTP_CODE"; then
       # Unsuccessful code different from 503. A transient network problem? who knows.
