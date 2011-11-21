@@ -41,9 +41,9 @@ match() { grep -qi "$1" <<< "$2"; }
 
 # Strip string from stdin
 strip() { sed "s/^[[:space:]]*//; s/[[:space:]]*$//"; }
-
+        
 # Get first line in stdin that matches regexp $1 and parse string $2 (case insensitive)
-parse() { local S=$(sed -n "/$1/ s/^.*$2.*$/\1/ip" | head -n1) && test "$S" && echo "$S"; }
+parse() { local S=$(sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1) && test "$S" && echo "$S"; }
 
 # Like parse() but do not write errors to stderr
 parse_quiet() { parse "$@" 2>/dev/null; }
