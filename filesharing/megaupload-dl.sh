@@ -157,15 +157,15 @@ megaupload_download() {
       return $(error network "downloading file")
     read HTTP_CODE SIZE_DOWNLOAD <<< "$INFO"
 
-    if ! match "2.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
+    if match "5.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
       # This is tricky: if we got an unsuccessful code (probably a 503), but
       # FILENAME contains data (the error page), we need to delete it so it
       # does not interfere with the real file later.
+      info "delete file: $FILENAME"
       rm -f "$FILENAME"
     fi
 
     if match "503" "$HTTP_CODE"; then
-      # Megaupload uses HTTP code 503 to signal a download limit exceeded
       LIMIT_PAGE=$(curlw -sS "http://www.megaupload.com/?c=premium&l=1") ||
         return $(error network "Downloading error page")
       match "finish this download before" "$LIMIT_PAGE" &&
@@ -174,8 +174,9 @@ megaupload_download() {
         return $(error parse_nonfatal "no wait time in limit exceeded page" "$LIMIT_PAGE")
       sleep_countdown $((MINUTES*60)) "Download limit exceeded, waiting $MINUTES minutes"
       continue
+    elif match "416" "$HTTP_CODE"; then
+      info "HTTP code 416: MU inexplicably returns it when asked for a fully downloaded files"
     elif ! match "2.." "$HTTP_CODE"; then
-      # Unsuccessful code different from 503. A transient network problem? who knows.
       return $(error network "unsuccessful (and unexpected) HTTP code: $HTTP_CODE")
     fi
 
