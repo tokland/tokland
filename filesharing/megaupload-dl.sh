@@ -85,12 +85,11 @@ get_main_page() {
     info "GET $URL"
     PAGE=$(curlw -sS "$URL") || return $(error network "downloading page: $URL")
     ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
-    MSG=$(echo "$PAGE" | parse_quiet '<center>' '<center>\(.*\)<') || true
 
-    if match 'class="down_top_bl1"' "$PAGE"; then
-      info "Name: $(echo "$PAGE" | parse 'File name:' '>\(.*\)<\/span' | strip)"
-      info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)<br' | strip)"
-      info "Size: $(echo "$PAGE" | parse 'File size:' '>\(.*\)<br' | strip)"
+    if match 'class="downl_main"' "$PAGE"; then
+      info "Name: $(echo "$PAGE" | parse 'download_file_name' '>\(.*\)<\/div' | strip)"
+      info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)' | strip)"
+      info "Size: $(echo "$PAGE" | parse 'download_file_size' '>\(.*\)<\/div' | strip)"
       echo "$PAGE"
       break
     elif test "$ERROR_URL"; then
@@ -105,12 +104,10 @@ get_main_page() {
         info "We were redirected to the wait error page but 'nowait' option is enabled"
         break
       fi
-    elif match "the link you have clicked is not available" "$PAGE"; then
+    elif match "The file has been deleted" "$PAGE"; then
       return $(error link_dead "Link is dead")
-    elif match "temporarily unavailable" "$MSG"; then
+    elif match "temporarily unavailable" "$PAGE"; then
       return $(error link_temporally_unavailable "File is temporarily unavailable")
-    elif test "$MSG"; then
-      return $(error link_unknown_problem "server returns an unknown message: '$MSG'")
     else
       return $(error parse "Could not parse main page (is this a MU page?)" "$PAGE")
     fi
@@ -145,7 +142,7 @@ megaupload_download() {
     # Get download link and wait
     WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" "count=\([[:digit:]]\+\);") ||
       { info "Wait time not found in response (wrong captcha?), retrying"; continue; }
-    FILEURL=$(echo "$WAITPAGE" | parse 'id="downloadlink"' 'href="\([^"]*\)"') ||
+    FILEURL=$(echo "$WAITPAGE" | parse 'class="download_regular_usual"' 'href="\([^"]*\)"') ||
       return $(error parse "download link not found" "$WAITPAGE")
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
     sleep_countdown $WAITTIME "Waiting $WAITTIME seconds before download starts"
