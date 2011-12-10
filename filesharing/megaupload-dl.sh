@@ -87,7 +87,7 @@ get_main_page() {
     ERROR_URL=$(echo "$PAGE" | parse_quiet '<BODY>.*document.loc' "location='\([^']*\)'") || true
 
     if match 'class="downl_main"' "$PAGE"; then
-      info "Name: $(echo "$PAGE" | parse 'download_file_name' '>\(.*\)<\/div' | strip)"
+      info "Filename: $(echo "$PAGE" | parse 'download_file_name' '>\(.*\)<\/div' | strip)"
       info "Description: $(echo "$PAGE" | parse 'File description:' '>\(.*\)' | strip)"
       info "Size: $(echo "$PAGE" | parse 'download_file_size' '>\(.*\)<\/div' | strip)"
       echo "$PAGE"
@@ -104,9 +104,9 @@ get_main_page() {
         info "We were redirected to the wait error page but 'nowait' option is enabled"
         break
       fi
-    elif match "The file has been deleted" "$PAGE"; then
+    elif match 'class="bott_p_na_lnk"' "$PAGE"; then
       return $(error link_dead "Link is dead")
-    elif match "temporarily unavailable" "$PAGE"; then
+    elif match 'class="bott_p_access2"' "$PAGE"; then
       return $(error link_temporally_unavailable "File is temporarily unavailable")
     else
       return $(error parse "Could not parse main page (is this a MU page?)" "$PAGE")
