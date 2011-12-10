@@ -106,10 +106,12 @@ get_main_page() {
       fi
     elif match 'class="bott_p_na_lnk"' "$PAGE"; then
       return $(error link_dead "Link is dead")
+    elif match 'class="bott_p_access"' "$PAGE"; then
+      return $(error link_temporally_unavailable "Access temporarily restricted")
     elif match 'class="bott_p_access2"' "$PAGE"; then
       return $(error link_temporally_unavailable "File is temporarily unavailable")
     else
-      return $(error parse "Could not parse main page (is this a MU page?)" "$PAGE")
+      return $(error parse "Could not parse main page" "$PAGE")
     fi
   done
 }
