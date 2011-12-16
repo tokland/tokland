@@ -1,0 +1,125 @@
+# basic types
+
+boolean1 = True # or downcase?
+boolean2 = False
+
+string1 = "hello there"
+
+number = 10
+float = 10.3
+
+list = [1, 2, 3, 4]
+list2 = [1..10]
+list[0] # access
+
+# untyped hash (how to implement it?)
+hash1 = {1: "one", 2: "two"}
+hash1[1]
+
+# nested 
+hash2 = 
+  "default":
+    "start": 1
+    "end_at": 20
+    "info": ["hi there", "bye"]
+  "extended":
+    "start": 1
+    "end_at": 200
+    "info": ["hi there", "bye"]
+
+# allow JS style getters
+hash2.default["info"]
+
+# nil/None/NULL
+
+nothing = Null
+
+# makes sense to have a Null type in the language? 
+# (it will be hard to accord it with Haskell, everything would be a Maybe?)
+# but it will allow things like: hash2.default.info || "default_info"
+
+# or maybe Python style: get(hash1, "key1", "default")
+
+# ADT
+data Tree a = Empty | Leaf(node:a) | Node(node:a, left:Tree a, right:Tree a)
+
+some_tree -> Tree Integer = 
+  Node(node=2, left=Leaf(node=5), right=Empty)
+  
+# Haskell auto-detects, so this should be possible:
+some_tree = Node(node=2, left=Leaf(node=5), right=Empty)
+
+# anonymous functions
+some_mapping = map([1..10], x -> 2*x)
+
+# or using parentheses?
+some_mapping = map([1..10], (x) -> 2*x)
+
+# multi-line maps
+ys = map([1..10], x ->
+  y = 2
+  x * y
+)
+
+# how to pipe? maybe using F#-style |>
+[1..10] |> map(x ->
+  y = 2
+  x * y
+) |> reject(x ->
+  x < 3
+)
+
+# or emulating dot preparing class-like structure? 
+# x.function(arg1, arg2) -> function(x, arg1, arg2) 
+
+[1..10].map(x ->
+  y = 2
+  x * y
+).reject(x ->
+  x < 3
+)  
+
+# conditional
+some_string = (if true then "yes" else "no")
+
+# also multi-line conditionals
+greeting = (if name == "Anne" then
+  s = "hello: " 
+  s + name 
+else 
+  "bye: #{name}"
+end)
+
+# functions (name in result is informative, here 'total')
+add(x:Num, y:Num) -> total:Num = x + y
+  
+# normal call
+add(10, 20) 
+
+# partial application
+add(10)(20) 
+
+
+Shape = Square(side:Num) | Circle(radius:Num)
+
+# function type definition ends with a dot
+
+surface(shape:Shape) -> surface:Num.
+
+surface(square:Square) = 
+  square.side * square.side
+
+surface(circle:Circle) = 
+  math.pi * cicle.radius^2
+
+# example
+
+# needs to be marked as impure or can we autodetect? if yes, how? using Ruby-like '!'? 
+readFileAndSize(path:String, factor:Int) -> (length:Int, contents:String) =
+  contents = readFile(path)
+  len = length(contents)
+  (len*factor, contents)
+ 
+main =
+  len, contents = readFileAndSize("/etc/hosts", 2)
+  print(len, contents)
