@@ -1,22 +1,23 @@
 # basic types
 
-boolean1 = True # or downcase?
+boolean1 = True
 boolean2 = False
 
 string1 = "hello there"
 
-number = 10
+integer = 10
 float = 10.3
 
 list = [1, 2, 3, 4]
 list2 = [1..10]
 list[0] # access
+list ++ list2 # list concatenation
 
-# untyped hash (how to implement it?)
+# untyped hash tables (how to implement it?)
 hash1 = {1: "one", 2: "two"}
 hash1[1]
 
-# nested 
+# nested, CoffeeScript-style
 hash2 = 
   "default":
     "start": 1
@@ -27,27 +28,23 @@ hash2 =
     "end_at": 200
     "info": ["hi there", "bye"]
 
-# allow JS style getters
+# allow JS-style getters. how? 
 hash2.default["info"]
 
-# nil/None/NULL
-
+# nil/None/NULL. This needs some thought, Haskell has no NULL but the Maybe pattern
 nothing = Null
 
-# makes sense to have a Null type in the language? 
-# (it will be hard to accord it with Haskell, everything would be a Maybe?)
 # but it will allow things like: hash2.default.info || "default_info"
+# instead of hash2.get("default", {}).get("info", "default_info")
 
-# or maybe Python style: get(hash1, "key1", "default")
-
-# ADT
-data Tree a = Empty | Leaf(node:a) | Node(node:a, left:Tree a, right:Tree a)
+# ADT: similar to Haskell but always using named fields (record syntax)
+data Tree a = Empty | Leaf(a) | Node(a, left:Tree a, right:Tree a)
 
 some_tree -> Tree Integer = 
-  Node(node=2, left=Leaf(node=5), right=Empty)
+  Node(2, left=Leaf(5), right=Empty)
   
-# Haskell auto-detects, so this should be possible:
-some_tree = Node(node=2, left=Leaf(node=5), right=Empty)
+# But like Haskell, it autodetects:
+some_tree = Node(2, left=Leaf(5), right=Empty)
 
 # anonymous functions
 some_mapping = map([1..10], x -> 2*x)
@@ -55,71 +52,90 @@ some_mapping = map([1..10], x -> 2*x)
 # or using parentheses?
 some_mapping = map([1..10], (x) -> 2*x)
 
-# multi-line maps
+# multi-line maps. Let's put the function mapping the last argument so we can
+# write Ruby-like blocks.
 ys = map([1..10], x ->
   y = 2
   x * y
 )
 
-# how to pipe? maybe using F#-style |>
-[1..10] |> map(x ->
+# how to allow pipe style? maybe using F# |> ?
+ys = [1..10] |> map(x ->
   y = 2
   x * y
 ) |> reject(x ->
   x < 3
 )
 
-# or emulating dot preparing class-like structure? 
-# x.function(arg1, arg2) -> function(x, arg1, arg2) 
-
-[1..10].map(x ->
+# or emulating dot as a OOP syntantic sugar? looks better.
+# x.function(arg1, arg2) -> function(x, arg1, arg2)
+ys = [1..10].map(x ->
   y = 2
   x * y
 ).reject(x ->
   x < 3
-)  
+)
 
-# conditional
-some_string = (if true then "yes" else "no")
+# list-comprehensions
+[2*x for x in [1..10] if x > 2]
 
-# also multi-line conditionals
-greeting = (if name == "Anne" then
-  s = "hello: " 
+# conditionals
+some_string = if true then "yes" else "no"
+
+# also multi-line conditionals are possible
+greeting = if name == "Anne" [then]
+  s = "hello: "
   s + name 
 else 
   "bye: #{name}"
-end)
 
-# functions (name in result is informative, here 'total')
-add(x:Num, y:Num) -> total:Num = x + y
+result = case value
+  1 ->
+    s = "o" 
+    s + "ne"
+  2 -> "two"
+  
+# false values: False, [], (), 0, 0.0, {}
+s = if [] then "empty" else "non empty"
+
+# functions (name in result is optional and informative)
+# but if we put the types here, it's not the clear Haskell split 1 definition / N implementations. 
+add(x:Num, y:Num) -> result:Num = x + y
   
 # normal call
 add(10, 20) 
 
-# partial application
-add(10)(20) 
+# equivalent to a partial application
+add(10)(20)
 
+data Shape = Square(side:Num) | Circle(radius:Num)
 
-Shape = Square(side:Num) | Circle(radius:Num)
+# Pattern-matching. 
+# function type definition ends with a dot.
+# Maybe use data name as prefix? but looks ugly if there are the same: Car.Car
 
-# function type definition ends with a dot
+surface(Shape) -> Num.-
 
-surface(shape:Shape) -> surface:Num.
-
-surface(square:Square) = 
+surface(square:Shape.Square) =
   square.side * square.side
 
-surface(circle:Circle) = 
-  math.pi * cicle.radius^2
+surface(circle:Shape.Circle) = 
+  math.pi * cicle.radius**2
 
-# example
-
-# needs to be marked as impure or can we autodetect? if yes, how? using Ruby-like '!'? 
-readFileAndSize(path:String, factor:Int) -> (length:Int, contents:String) =
+# example of function with side-effects
+# programmer will always use x =, no matter if it's a impure (x <-) ... or pure (let x =)
+# impure function needs to be marked as impure or can we autodetect?
+# if it must be marked, how? using Ruby-like 'name!'? 
+readFileAndSize(path:String, offset:Int) -> (length:Int, contents:String) =
   contents = readFile(path)
   len = length(contents)
-  (len*factor, contents)
+  (len-offset, drop(offset, contents))
  
 main =
   len, contents = readFileAndSize("/etc/hosts", 2)
-  print(len, contents)
+  print("lenght of file: #{len}: #{contents}")
+  
+# module imports (python style)
+import System.Environment as env
+from System.Environment import xyz
+env.xyx
