@@ -125,29 +125,25 @@ megaupload_download() {
 
     # Wait page
     PASSRE='name="filepassword"'
-    WAITPAGE=$(if match "^[[:space:]]*count=" "$PAGE"; then
-      # MU dropped the captcha, so the main page is also the wait page
+    PAGE2=$(if match "download_regular_usual" "$PAGE"; then
       echo "$PAGE"
     elif match "$PASSRE" "$PAGE"; then
       # Password-protected link
       test "$PASSWORD" || return $(error password_required "No password provided")
       info "POST $URL (filepassword=$PASSWORD)"
-      WAITPAGE=$(curlw -sS -F "filepassword=$PASSWORD" "$URL") ||
+      PAGE2=$(curlw -sS -F "filepassword=$PASSWORD" "$URL") ||
         return $(error network "posting password form")
-      match "$PASSRE" "$WAITPAGE" &&
+      match "$PASSRE" "$PAGE2" &&
         return $(error password_wrong "Password error")
-      echo "$WAITPAGE"
+      echo "$PAGE2"
     else
       return $(error parse "main page" "$PAGE")
     fi) || return $?
 
     # Get download link and wait
-    WAITTIME=$(echo "$WAITPAGE" | parse "^[[:space:]]*count=" "count=\([[:digit:]]\+\);") ||
-      { info "Wait time not found in response (wrong captcha?), retrying"; continue; }
-    FILEURL=$(echo "$WAITPAGE" | parse 'class="download_regular_usual"' 'href="\([^"]*\)"') ||
-      return $(error parse "download link not found" "$WAITPAGE")
+    FILEURL=$(echo "$PAGE2" | parse 'class="download_regular_usual"' 'href="\([^"]*\)"') ||
+      return $(error parse "download link not found" "$PAGE2")
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
-    sleep_countdown $WAITTIME "Waiting $WAITTIME seconds"
 
     # Download the file
     info "Output filename: $FILENAME"
