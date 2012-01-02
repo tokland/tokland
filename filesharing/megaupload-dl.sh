@@ -7,7 +7,6 @@
 #
 # Author: Arnau Sanchez <tokland@gmail.com>
 # Documentation: http://code.google.com/p/tokland/wiki/MegauploadDownloader
-# Webpage: http://www.arnau-sanchez.com/en
 
 EXIT_STATUSES=(
   [0]=ok
@@ -43,13 +42,14 @@ match() { grep -qi "$1" <<< "$2"; }
 strip() { sed "s/^[[:space:]]*//; s/[[:space:]]*$//"; }
         
 # Get first line in stdin that matches regexp $1 and parse string $2 (case insensitive)
-parse() { local S=$(sed -n "/$1/ s/^.*$2.*$/\1/p" | head -n1) && test "$S" && echo "$S"; }
+parse() { local S=$(sed -n "/$1/s/^.*$2.*$/\1/p" | head -n1) && test "$S" && echo "$S"; }
 
 # Like parse() but do not write errors to stderr
 parse_quiet() { parse "$@" 2>/dev/null; }
 
 # Sleep $1 seconds while showing a real-time MM:SS countdown
 sleep_countdown() {
+  local SECS
   test -t 2 || { info "$2"; sleep $1; return; }
   stderr -n "--- $2 - "
   for ((SECS=$1; SECS>=0; SECS--)); do
@@ -63,7 +63,7 @@ sleep_countdown() {
 # Wrapper over curl (appends global variable GLOBAL_CURL_OPTS)
 curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 $GLOBAL_CURL_OPTS "$@"; }
 
-# Echo error with key $1 (see EXIT_STATUSES_*), message $2 and optional debug output ($3)
+# Echo error with key $1 (see EXIT_STATUSES_*), message $2 and optional debug ($3)
 error() {
   local KEY=$1; local MSG=${2:-""}; local DEBUGCONTENT=${3:-""}
   stderr -n "ERROR [$KEY:$BASH_LINENO]"
@@ -77,7 +77,7 @@ error() {
   echo ${!VAR}
 }
 
-# Get the page for a URL ($1) or return error (if $2 = 'wait', loop on wait-messages)
+# Get the page for a MU URL ($1) (if $2 = 'wait', loop on wait messages)
 get_main_page() {
   local URL=$1; local OPT=$2
 
@@ -147,7 +147,7 @@ megaupload_download() {
     FILEURL=$(echo "$WAITPAGE" | parse 'class="download_regular_usual"' 'href="\([^"]*\)"') ||
       return $(error parse "download link not found" "$WAITPAGE")
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
-    sleep_countdown $WAITTIME "Waiting $WAITTIME seconds before download starts"
+    sleep_countdown $WAITTIME "Waiting $WAITTIME seconds"
 
     # Download the file
     info "Output filename: $FILENAME"
@@ -157,9 +157,8 @@ megaupload_download() {
     read HTTP_CODE SIZE_DOWNLOAD <<< "$INFO"
 
     if match "5.." "$HTTP_CODE" -a test $SIZE_DOWNLOAD -gt 0; then
-      # This is tricky: if we got an unsuccessful code (probably a 503), but
-      # FILENAME contains data (the error page), we need to delete it so it
-      # does not interfere with the real file later.
+      # This is tricky: if we got an unsuccessful 5xx code (probably a 503), 
+      # FILENAME will now contain the error page, so we better delete it.
       info "delete file: $FILENAME"
       rm -f "$FILENAME"
     fi
@@ -174,7 +173,7 @@ megaupload_download() {
       sleep_countdown $((MINUTES*60)) "Download limit exceeded, waiting $MINUTES minutes"
       continue
     elif match "416" "$HTTP_CODE"; then
-      info "HTTP code 416: MU inexplicably returns it when asked for a fully downloaded files"
+      info "HTTP code 416: MU inexplicably returns this when asked for a fully downloaded file"
     elif ! match "2.." "$HTTP_CODE"; then
       return $(error network "unsuccessful (and unexpected) HTTP code: $HTTP_CODE")
     fi
