@@ -1,88 +1,129 @@
-# basic types
+# Features:
+#
+# functional (impure)
+# statically typed
+# type constructors (with ADT)
+# type inference?
+# type classes (+ instances)
+# whitespace-aware syntax
+# boolean, float, string, array, hash/records
+# pattern-matching
+# impure side-effects
+# monadic syntatic sugar for CPS
+# exceptions or function return with typed ok/error?
 
+# basic types
 boolean1 = True
 boolean2 = False
-
 string1 = "hello there"
-
 integer = 10
 float = 10.3
 
-list = [1, 2, 3, 4]
+# list or arrays, depending on implementation
+list1 = [1, 2, 3, 4]
 list2 = [1..10]
-list[0] # access
-list ++ list2 # list concatenation
+list1!2 # access 3th-element (0-indexing)
+list1 ++ list2 # list concatenation
 
-# untyped hash tables (how to implement it?)
-hash1 = {1: "one", 2: "two"}
-hash1[1]
+# records
+> record1 = {a1: "one", a2: 2} 
+{a1: "one", a2: 2} : {a1: String, a2: Int} 
+> record1.a2 
+2 : Int
 
-# nested, CoffeeScript-style
-hash2 = 
-  "default":
-    "start": 1
-    "end_at": 20
-    "info": ["hi there", "bye"]
-  "extended":
-    "start": 1
-    "end_at": 200
-    "info": ["hi there", "bye"]
+# nested records:
+> record1 = {a1: "one", a2: {b1: 4}} 
+{a1: "one", a2: 2} : {a1: String, a2: Int} 
+> record1.a2.b1 
+4
 
-# allow JS-style getters. how? 
-hash2.default["info"]
+# functions (Ocaml style without let, and with parens)
+# Allow only one function definition (and use case)
+ 
+square_of_sums(x:Num, y:Num):Num =
+  sum = x + y 
+  sum^2
 
-# nil/None/NULL. This needs some thought, Haskell has no NULL but the Maybe pattern
-nothing = Null
+# functions (Ocaml style without let, and with parens) 
+add_sums(x:Num, y:Num):Num =
+  x + y 
 
-# but it will allow things like: hash2.default.info || "default_info"
-# instead of hash2.get("default", {}).get("info", "default_info")
+# normal call
+add(10, 20)
 
-# ADT: similar to Haskell but always using named fields (record syntax)
-data Tree a = Empty | Leaf(a) | Node(a, left:Tree a, right:Tree a)
+# equivalent to a partial application
+add(10)(20)
 
-some_tree -> Tree Integer = 
-  Node(2, left=Leaf(5), right=Empty)
-  
-# But like Haskell, it autodetects:
+# optional labeled arguments
+add(x=10, y=20)
+
+# sections
+(+3)(5)
+#=> 8
+
+# type constructors + ADT
+# how to unify function arguments/type constructor arguments with records. 
+type Boolean = True | False
+type Maybe(a) = Nothing | Just(a)
+type Tree(a) = Empty | Leaf(a) | Node({node:a, left:Tree(a), right:Tree(a)})
+type Tree(a) = Empty | Leaf(a) | Node(node:a, left:Tree(a), right:Tree(a)) # optional {} ?
+type Tree(a) = Empty | Leaf(a) | Node(a, left:Tree(a), right:Tree(a)) #?
+type Options = Options({arg1: Integer, arg2: Maybe([String])})
+
+some_maybe = Just("hello")
 some_tree = Node(2, left=Leaf(5), right=Empty)
+options1 = Options(arg1=1, arg2=["hello", "there"])
+options2 = Options(arg1=2, arg2=Nothing)
 
-# anonymous functions
-some_mapping = map([1..10], x -> 2*x)
+# type aliases
+typealias FilePath = String
 
-# or using parentheses?
-some_mapping = map([1..10], (x) -> 2*x)
+# type class interface
+typeclass Show(a)
+  toString(a): String.
+
+# add type to class    
+typeinstance Show(Int)
+  toString(x:Int) = js.toString(x)
+
+# type deriving default implementations in classes    
+type Boolean deriving(Eq, Ord, Enum, Show) = 
+  True | False
+
+# restrict class for functions
+process(x:a, y:a):a where(a:Eq, a:Ord) =
+  d = if x > y then 1 else 0 
+  x + y + d
+
+# anonymous functions, some ideas:
+f = \x -> 2*x
+f = |x| -> 2*x
 
 # multi-line maps. Let's put the function mapping the last argument so we can
 # write Ruby-like blocks.
-ys = map([1..10], x ->
+ys = map([1..10], |x| ->
   y = 2
   x * y
 )
 
-# how to allow pipe style? maybe using F# |> ?
-ys = [1..10] |> map(x ->
+# what about emulating dot as a OOP syntantic sugar? 
+# x.function(arg1, arg2) equivalent to function(x, arg1, arg2)
+# Note that Haskell "allows" it: let (.) = flip ($); [1,2,3].map(\x -> 2*x).map(\x -> x+1)
+
+ys = [1..10].map(|x| ->
   y = 2
   x * y
-) |> reject(x ->
-  x < 3
-)
+).reject(|x| ->
+  x > 4
+) 
 
-# or emulating dot as a OOP syntantic sugar? looks better.
-# x.function(arg1, arg2) -> function(x, arg1, arg2)
-ys = [1..10].map(x ->
-  y = 2
-  x * y
-).reject(x ->
-  x < 3
-)
-
-# list-comprehensions
-[2*x for x in [1..10] if x > 2]
+# list-comprehensions (Python syntax)
+[2*x + y for x in [1..10] for y in [1..5] if x+y > 2]
 
 # conditionals
 some_string = if true then "yes" else "no"
 
-# also multi-line conditionals are possible
+# multi-line conditionals
 greeting = if name == "Anne" [then]
   s = "hello: "
   s + name 
@@ -95,47 +136,46 @@ result = case value
     s + "ne"
   2 -> "two"
   
-# false values: False, [], (), 0, 0.0, {}
-s = if [] then "empty" else "non empty"
+type Shape = Square(side:Num) | Circle(radius:Num)
 
-# functions (name in result is optional and informative)
-# but if we put the types here, it's not the clear Haskell split 1 definition / N implementations. 
-add(x:Num, y:Num) -> result:Num = x + y
-  
-# normal call
-add(10, 20) 
+# with pattern matching, deconstruct
+surface(shape:Shape) =
+  case shape
+    Square(side) -> side * side
+    Circle(radius) -> math.pi * radius**2 
 
-# equivalent to a partial application
-add(10)(20)
+# this makes sense? no deconstruct, only get by type (+ name binding), and record access
+surface(shape:Shape) =
+  case shape
+    square:Square -> square.side * square.size
+    circle:Circle -> math.pi * circle.radius**2 
+    
+# you can return anywhere in a function. Not very functional, but convenient to be used as guards.
+add(x:Num, y:Num): Num =
+  if x == 0 && y == 0
+    return 0
+  x + y
 
-data Shape = Square(side:Num) | Circle(radius:Num)
+# how to deal with side-effects? the simplest is to be unpure and allow them 
+readFileAndSize(paths:[String]): Hash(length:Int, contents:String) =
+  contents = paths.mash(|path| ->
+    contents = readFile(path):String 
+    (length(contents), contents)
+  )
 
-# Pattern-matching. 
-# function type definition ends with a dot.
-# Maybe use data name as prefix? but looks ugly if there are the same: Car.Car
-
-surface(Shape) -> Num.-
-
-surface(square:Shape.Square) =
-  square.side * square.side
-
-surface(circle:Shape.Circle) = 
-  math.pi * cicle.radius**2
-
-# example of function with side-effects
-# programmer will always use x =, no matter if it's a impure (x <-) ... or pure (let x =)
-# impure function needs to be marked as impure or can we autodetect?
-# if it must be marked, how? using Ruby-like 'name!'? 
-readFileAndSize(path:String, offset:Int) -> (length:Int, contents:String) =
-  contents = readFile(path)
-  len = length(contents)
-  (len-offset, drop(offset, contents))
- 
 main =
-  len, contents = readFileAndSize("/etc/hosts", 2)
-  print("lenght of file: #{len}: #{contents}")
+  readFileAndSize(["/etc/hosts", "/etc/passwd"])
+
+# if no exceptions, to manage errors similator to Either
+type OkFail(a) = Ok(a) | Fail(reason:String)
+
+getFileSize(path:String): OkFail(Int) =
+  if fileExists(path)
+    Ok(fileSize(path))
+  else
+    Fail("file not found")
   
 # module imports (python style)
-import System.Environment as env
-from System.Environment import xyz
-env.xyx
+import system.environment # system.environment.funcname
+import system.environment as env # env.funcname 
+import from system.environment(funcname, funcname2) # funcname"
