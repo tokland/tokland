@@ -65,7 +65,7 @@ curlw() { curl --connect-timeout 20 --speed-time 60 --retry 5 $GLOBAL_CURL_OPTS 
 
 # Echo error with key $1 (see EXIT_STATUSES_*), message $2 and optional debug ($3)
 error() {
-  local KEY=$1; local MSG=${2:-""}; local DEBUGCONTENT=${3:-""}
+  local KEY=$1 MSG=${2:-""} DEBUGCONTENT=${3:-""}
   stderr -n "ERROR [$KEY:$BASH_LINENO]"
   test "$MSG" && stderr ": $MSG" || stderr
   if test "$DEBUGCONTENT"; then
@@ -79,7 +79,7 @@ error() {
 
 # Get the page for a MU URL ($1) (if $2 = 'wait', loop on wait messages)
 get_main_page() {
-  local URL=$1; local OPT=$2
+  local URL=$1 OPT=$2
 
   while true; do
     info "GET $URL"
@@ -118,7 +118,7 @@ get_main_page() {
 
 # Download a MU link ($1) with optional password ($2) and echo file path to stdout
 megaupload_download() {
-  local URL=$1; local PASSWORD=${2:-""}
+  local URL=$1 PASSWORD=${2:-""}
 
   while true; do
     PAGE=$(get_main_page "$URL" "wait") || return $?
@@ -140,12 +140,9 @@ megaupload_download() {
       return $(error parse "main page" "$PAGE")
     fi) || return $?
 
-    # Get download link and wait
     FILEURL=$(echo "$PAGE2" | parse 'class="download_regular_usual"' 'href="\([^"]*\)"') ||
       return $(error parse "download link not found" "$PAGE2")
     FILENAME=$(basename "$FILEURL" | { recode html.. || cat; }) # make recode optional
-
-    # Download the file
     info "Output filename: $FILENAME"
     info "GET $FILEURL"
     INFO=$(curlw -w "%{http_code} %{size_download}" -g -C - -o "$FILENAME" "$FILEURL") ||
