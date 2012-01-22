@@ -38,7 +38,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 #       pacman -Qo $PACKAGE 
 #     done | awk '{print $5}' | sort -u | xargs
 BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
-                pacman-mirrorlist xz zlib)
+                pacman-mirrorlist xz zlib curl gpgme libssh2 libassuan libgpg-error)
 EXTRA_PACKAGES=(filesystem coreutils bash grep awk file tar)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
@@ -114,8 +114,8 @@ mkdir -p "$DEST"
 
 debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
 for PACKAGE in ${BASIC_PACKAGES[*]}; do
-  FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]].*\(\.gz\|\.xz\)$")
-  test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
+  FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]].*\(\.gz\|\.xz\)$") ||
+    { debug "Error: cannot find package: $PACKAGE"; exit 1; }
   FILEPATH="$PACKDIR/$FILE"
   if ! test -e "$FILEPATH" || ! check_compressed_integrity "$FILEPATH"; then
     debug "download package: $REPO/$FILE"
