@@ -39,7 +39,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 #     done | awk '{print $5}' | sort -u | xargs
 BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz zlib curl gpgme libssh2 libassuan libgpg-error)
-EXTRA_PACKAGES=(filesystem coreutils bash grep awk file tar)
+EXTRA_PACKAGES=(coreutils bash grep awk file tar)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
 
@@ -51,12 +51,14 @@ configure_pacman() {
 
 minimal_configuration() {
   local DEST=$1
+  mkdir -p "$DEST/dev"
   echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
-  # create root user (password root)
+  # create default user (root/root)
   echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
-  test -c "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
+  test -e "$DEST/etc/mtab" || echo "rootfs / rootfs rw 0 0" > "$DEST/etc/mtab"
+  test -e "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
 }
 
 check_compressed_integrity() {
@@ -129,11 +131,11 @@ debug "configure DNS and pacman"
 configure_pacman "$DEST" "$ARCH"
 
 debug "re-install basic packages and install extra packages: ${EXTRA_PACKAGES[*]}"
-chroot "$DEST" /usr/bin/pacman --noconfirm --arch $ARCH \
-       -Syf ${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}
+minimal_configuration "$DEST"
+LC_ALL=C chroot "$DEST" /usr/bin/pacman --noconfirm --arch $ARCH \
+  -Syf ${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}
 
 debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
 configure_pacman "$DEST" "$ARCH"
-minimal_configuration "$DEST"
 
 debug "done! you can now use the system (chroot \"$DEST\")"
