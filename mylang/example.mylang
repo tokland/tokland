@@ -1,74 +1,76 @@
 # Features:
 #
-# functional (impure)
-# statically typed
-# type constructors (with ADT)
-# type inference?
-# type classes (+ instances)
-# whitespace-aware syntax
-# boolean, float, string, array, hash/records
-# pattern-matching
-# impure side-effects
-# monadic syntatic sugar for CPS
-# exceptions or function return with typed ok/error?
+# - functional (impure)
+# - statically typed
+# - whitespace-aware syntax
+# - boolean, float, string, array, records, hashes
+# - type constructors (with ADT)
+# - type inference? (Damas-Hindley-Milner) but not a priority
+# - type-classes+type-instances (Haskell) or single-type functions (O'Caml)?  
+# - pattern-matching
+# - impure side-effects (but think about a way to mark functions as impure)
+# - monadic syntatic sugar for CPS?
+# - exceptions or function return with typed ok/error?
 
-# basic types
-boolean1 = True
-boolean2 = False
-string1 = "hello there"
-integer = 10
-float = 10.3
+# Docs:
+# OCaml: http://www.csc.villanova.edu/~dmatusze/resources/ocaml/ocaml.html
+# JS BNF: https://github.com/navstev0/nodebnf
 
-# list or arrays, depending on implementation
-list1 = [1, 2, 3, 4]
-list2 = [1..10]
-list1!2 # access 3th-element (0-indexing)
-list1 ++ list2 # list concatenation
+# basic types (Boolean, String, Int, Float). Type/type-constructors start with [A-Z]
+boolean1 = True # True : Boolean
+boolean2 = False # False : Boolean
+string1 = "hello there" # "hello there" : String
+integer = 10 # 10 : Int
+float = 10.3 # 10.3 : Float
+unit = () # () : ()
 
-# records
-> record1 = {a1: "one", a2: 2} 
-{a1: "one", a2: 2} : {a1: String, a2: Int} 
-> record1.a2 
-2 : Int
+# linked lists or arrays? depending on implementation?: [a]
+list1 = [1, 2, 3, 4] # [1, 2, 3, 4] : [Int]
+list2 = [1..3] # [1, 2, 3] : [Int]
+list1 ! 2 # 3 : Int
+list1 ++ list2 # [1, 2, 3, 4, 1, 2, 3] : [Int] 
 
-# nested records:
-> record1 = {a1: "one", a2: {b1: 4}} 
-{a1: "one", a2: 2} : {a1: String, a2: Int} 
-> record1.a2.b1 
-4
+# records: {key1: type1, key2: type2, ..., keyN: typeN}
+record1 = {a1: "one", a2: 2}  # {a1: "one", a2: 2} : {a1: String, a2: Int} 
+record1.a2 # 2 : Int
+
+# Hashes: {{keys_type, values_type}}
+# Cannot use {...} for both records and hashes
+hash1 = {{"red": 1, "blue": 2, "green": 3}} 
+# {{"red": 1, "blue": 2, "green": 3}} : {{String => Int}}  
 
 # functions (Ocaml style without let, and with parens)
 # Allow only one function definition (and use case)
- 
-square_of_sums(x:Num, y:Num):Num =
+square_of_sums(x:Float, y:Float):Float =
   sum = x + y 
-  sum^2
+  sum ** 2
+
+# call
+square_of_sums(1.0, 2.0) # 5.0 : Float
 
 # functions (Ocaml style without let, and with parens) 
-add_sums(x:Num, y:Num):Num =
+add(x:Int, y:Int): Int =
   x + y 
 
 # normal call
-add(10, 20)
+add(10, 20) # 30 : Int
 
 # equivalent to a partial application
-add(10)(20)
+add(10)(20) # 30 : Int
 
-# optional labeled arguments
-add(x=10, y=20)
+# optional labeled arguments?
+add(x=10, y=20) # 30 : Int
 
 # sections
-(+3)(5)
-#=> 8
+(+3)(5) #  8 : Int
 
 # type constructors + ADT
-# how to unify function arguments/type constructor arguments with records. 
+# unify function arguments/type constructor arguments with records? or are different things? 
 type Boolean = True | False
 type Maybe(a) = Nothing | Just(a)
 type Tree(a) = Empty | Leaf(a) | Node({node:a, left:Tree(a), right:Tree(a)})
 type Tree(a) = Empty | Leaf(a) | Node(node:a, left:Tree(a), right:Tree(a)) # optional {} ?
 type Tree(a) = Empty | Leaf(a) | Node(a, left:Tree(a), right:Tree(a)) #?
-type Options = Options({arg1: Integer, arg2: Maybe([String])})
 
 some_maybe = Just("hello")
 some_tree = Node(2, left=Leaf(5), right=Empty)
@@ -78,20 +80,19 @@ options2 = Options(arg1=2, arg2=Nothing)
 # type aliases
 typealias FilePath = String
 
-# type class interface
-typeclass Show(a)
-  toString(a): String.
+# Haskell type class interface, OCaml has different functions for different types 
+type_class Show a
+  toString(:a): String
 
 # add type to class    
-typeinstance Show(Int)
+type_instance Show Int
   toString(x:Int) = js.toString(x)
 
 # type deriving default implementations in classes    
-type Boolean deriving(Eq, Ord, Enum, Show) = 
-  True | False
+type Boolean deriving(Eq, Ord, Enum, Show) = True | False
 
 # restrict class for functions
-process(x:a, y:a):a where(a:Eq, a:Ord) =
+process(x:a, y:a):a where(a is Eq, a is Ord) =
   d = if x > y then 1 else 0 
   x + y + d
 
@@ -108,25 +109,33 @@ ys = map([1..10], |x| ->
 
 # what about emulating dot as a OOP syntantic sugar? 
 # x.function(arg1, arg2) equivalent to function(x, arg1, arg2)
-# Note that Haskell "allows" it: let (.) = flip ($); [1,2,3].map(\x -> 2*x).map(\x -> x+1)
-
+# but we cannot have both "record.field" and now "something.fun(...)" 
 ys = [1..10].map(|x| ->
   y = 2
   x * y
 ).reject(|x| ->
   x > 4
-) 
+)
+
+# function with options
+process(arg1:Int, options:{opt1: [Int], opt2: String}): Int =
+  arg1 + options.opt1.foldl(0, (+)) + options.opt2.length
+
+type Options = Options({arg1: Integer, arg2: Maybe([String])}) 
 
 # list-comprehensions (Python syntax)
-[2*x + y for x in [1..10] for y in [1..5] if x+y > 2]
+[2*x + y for x in [1..10] for y in [1..5] if x+y < 4]
+# [3, 4, 5] : [Int]
 
 # conditionals
-some_string = if true then "yes" else "no"
+some_string = if true then "yes" else "no" # "yes" : String
 
 # multi-line conditionals
 greeting = if name == "Anne" [then]
   s = "hello: "
   s + name 
+elsif surname == "Holmes"
+  "hi"
 else 
   "bye: #{name}"
 
@@ -135,38 +144,40 @@ result = case value
     s = "o" 
     s + "ne"
   2 -> "two"
+  _ -> "dunno" 
   
 type Shape = Square(side:Num) | Circle(radius:Num)
 
 # with pattern matching, deconstruct
+# see http://caml.inria.fr/pub/docs/oreilly-book/html/book-ora016.html 
 surface(shape:Shape) =
   case shape
-    Square(side) -> side * side
-    Circle(radius) -> math.pi * radius**2 
+    Square(side=side) -> side * side
+    Circle(radius) -> math.pi * radius**2   
 
-# this makes sense? no deconstruct, only get by type (+ name binding), and record access
+# this makes sense? no deconstruct, only get by type (+ name binding), and record access (!)
 surface(shape:Shape) =
   case shape
-    square:Square -> square.side * square.size
-    circle:Circle -> math.pi * circle.radius**2 
+    Square as square -> square.side * square.size
+    Circle as circle -> math.pi * circle.radius**2 
     
 # you can return anywhere in a function. Not very functional, but convenient to be used as guards.
 add(x:Num, y:Num): Num =
   if x == 0 && y == 0
     return 0
-  x + y
+  x + y 
 
-# how to deal with side-effects? the simplest is to be unpure and allow them 
-readFileAndSize(paths:[String]): Hash(length:Int, contents:String) =
+# impure side-effects: ! to mark return value as impure?
+readFiles(paths:[String]): !{{(path:String) => (contents:String)}} =
   contents = paths.mash(|path| ->
-    contents = readFile(path):String 
-    (length(contents), contents)
+    (path, readFile(path):String)
   )
 
-main =
-  readFileAndSize(["/etc/hosts", "/etc/passwd"])
+# function main is the entry point of execution
+main(args) =
+  readFiles(["/etc/hosts", "/etc/passwd"])
 
-# if no exceptions, to manage errors similator to Either
+# if no exceptions, to manage errors similator to Either. 
 type OkFail(a) = Ok(a) | Fail(reason:String)
 
 getFileSize(path:String): OkFail(Int) =
@@ -176,6 +187,6 @@ getFileSize(path:String): OkFail(Int) =
     Fail("file not found")
   
 # module imports (python style)
-import system.environment # system.environment.funcname
-import system.environment as env # env.funcname 
-import from system.environment(funcname, funcname2) # funcname"
+import system.environment                      # system.environment.funcname(...)
+import system.environment as env               # env.funcname(...)
+import system.environment(funcname, funcname2) # funcname(...)
