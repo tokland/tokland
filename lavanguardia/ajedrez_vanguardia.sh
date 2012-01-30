@@ -1,16 +1,9 @@
 #!/bin/bash
-set -e
+set -u -e -o pipefail
 
-debug() {
-  echo "$@" >&2
-}
+debug() { echo "$@" >&2; }
 
-match() {
-  local S=$(sed -n "/$1/s/^.*$2.*$/\1/p") && test "$S" && echo "$S" ||
-    { debug "parse failed: sed -n \"/$1/$2\""; return 1; }
-}
-
-login() { local EMAIL=$1; local PASSWORD=$2  
+login() { local EMAIL=$1 PASSWORD=$2  
   local COOKIES="cookies.txt"
   local URL="http://registro.lavanguardia.com/reg2006/Registro"
   local PARAMS="p_action=loginconfig&email=$EMAIL&password=$PASSWORD"
@@ -19,20 +12,23 @@ login() { local EMAIL=$1; local PASSWORD=$2
   echo $COOKIES
 }
 
-download() { local COOKIES=$1; local DATE0=$2   
-  local DATE=$(test "$DATE0" && echo $DATE0 || date "+%Y%m%d")
-  local FILENAME="lvg-chess-$DATE.pdf"  
-  local INDEX_URL="http://edicionimpresa.lavanguardia.com/free/epaper/$DATE/index.html"
-  debug "GET $INDEX_URL"
-  INDEX=$(curl -sS -b $COOKIES -c $COOKIES "$INDEX_URL") || return 1
-  URL=$(echo "$INDEX" | match "Pasatiempos" 'href="\(.*\)"') || return 1
-  
-  debug "GET $URL"
-  PAGE=$(curl -sS -L -b $COOKIES -c $COOKIES "$URL") || return 1
-  PDF_URL=$(echo "$PAGE" | match strPdf "'\(.*\)'") || return 1
-  
-  debug "GET $PDF_URL"
-  curl -o "$FILENAME" -b $COOKIES -c $COOKIES "$PDF_URL" || return 1
+download() { local COOKIES=$1
+  DATE=$(date "+%Y%m%d")
+  URL="http://hemeroteca.lavanguardia.com/search.html"
+  FILENAME="lvg-chess-$DATE.pdf"
+  PARAMS_START=$(date "+bd=%d&bm=%m&by=%Y")
+  PARAMS_END=$(date "+ed=%d&em=%m&ey=%Y")
+  COMPLETE_URL="$URL?q=MOTS+ENCREUATS+ANTERIORS+&${PARAMS_START}&${PARAMS_END}"
+  debug "GET $COMPLETE_URL"
+  PDF_URL0=$(curl -sS -b $COOKIES -c $COOKIES "$COMPLETE_URL" |
+    grep -o "http://hemeroteca.lavanguardia.com/dynamic/preview/[^?]*" | head -n1)
+  debug "GET $PDF_URL0"
+  PDF_URL=$(curl -b $COOKIES -c $COOKIES -sS "$PDF_URL0" |  
+    grep -o "http://hemeroteca-paginas.lavanguardia[^\"]*" | head -n1)
+
+  debug "GET $PDF_URL"   
+  curl -b $COOKIES -c $COOKIES -L -o $FILENAME "$PDF_URL"
+    
   echo $FILENAME
 }
 
