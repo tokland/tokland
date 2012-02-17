@@ -59,6 +59,7 @@ minimal_configuration() {
   echo "bootstrap" > "$DEST/etc/hostname"
   test -e "$DEST/etc/mtab" || echo "rootfs / rootfs rw 0 0" > "$DEST/etc/mtab"
   test -e "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
+  sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "$DEST/etc/pacman.conf"
 }
 
 check_compressed_integrity() {
