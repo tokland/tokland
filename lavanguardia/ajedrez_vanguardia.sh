@@ -20,7 +20,7 @@ download() { local COOKIES=$1
   
   URL2="$URL?edition=Vivir+Barcelona+Cat&bd=$DAY&bm=$MONTH&by=$YEAR"
   PDF_URL0=$(curl -L -b $COOKIES -c $COOKIES -sS "$URL2" |  
-             grep -o "http://hemeroteca.*.pdf.html" | sed -n 12p)
+             grep -o "http://hemeroteca.*.pdf.html" | uniq | sed -n 12p)
   debug "GET $PDF_URL0"
   PDF_URL=$(curl -L -b $COOKIES -c $COOKIES -sS "$PDF_URL0" |  
             grep -o "http://hemeroteca-paginas.lavanguardia[^\"]*" | head -n1)
