@@ -13,22 +13,19 @@ login() { local EMAIL=$1 PASSWORD=$2
 }
 
 download() { local COOKIES=$1
-  DATE=$(date "+%Y%m%d")
-  URL="http://hemeroteca.lavanguardia.com/search.html"
-  FILENAME="lvg-chess-$DATE.pdf"
-  PARAMS_START=$(date "+bd=%d&bm=%m&by=%Y")
-  PARAMS_END=$(date "+ed=%d&em=%m&ey=%Y")
-  COMPLETE_URL="$URL?q=MOTS+ENCREUATS+ANTERIORS+&${PARAMS_START}&${PARAMS_END}"
-  debug "GET $COMPLETE_URL"
-  PDF_URL0=$(curl -sS -b $COOKIES -c $COOKIES "$COMPLETE_URL" |
-    grep -o "http://hemeroteca.lavanguardia.com/dynamic/preview/[^?]*" | head -n1)
+  DATE=$(date "+%Y %m %d")
+  read YEAR MONTH DAY <<< "$DATE"
+  FILENAME="lvg-chess-$(echo $DATE | tr -d ' ').pdf"
+  URL="http://hemeroteca.lavanguardia.com/dynamic/edition/editionThumbnails.html"
+  
+  URL2="$URL?edition=Vivir+Barcelona+Cat&bd=$DAY&bm=$MONTH&by=$YEAR"
+  PDF_URL0=$(curl -L -b $COOKIES -c $COOKIES -sS "$URL2" |  
+             grep -o "http://hemeroteca.*.pdf.html" | sed -n 12p)
   debug "GET $PDF_URL0"
-  PDF_URL=$(curl -b $COOKIES -c $COOKIES -sS "$PDF_URL0" |  
-    grep -o "http://hemeroteca-paginas.lavanguardia[^\"]*" | head -n1)
-
+  PDF_URL=$(curl -L -b $COOKIES -c $COOKIES -sS "$PDF_URL0" |  
+            grep -o "http://hemeroteca-paginas.lavanguardia[^\"]*" | head -n1)
   debug "GET $PDF_URL"   
   curl -b $COOKIES -c $COOKIES -L -o $FILENAME "$PDF_URL"
-    
   echo $FILENAME
 }
 
