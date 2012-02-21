@@ -6,13 +6,17 @@
 # Bug tracker: http://code.google.com/p/tokland/issues
 # Author: Arnau Sanchez <tokland@gmail.com>
 #
+# Install:
+#
+#   $ sudo install -m 755 arch-bootstrap.sh /usr/local/bin/arch-bootstrap
+#
 # Some examples:
 #
-#   $ bash arch-bootstrap.sh myarch 
-#   $ bash arch-bootstrap.sh myarch x86_64 
-#   $ bash arch-bootstrap.sh myarch x86_64 "ftp://ftp.archlinux.org"
+#   $ sudo arch-bootstrap myarch 
+#   $ sudo arch-bootstrap myarch x86_64 
+#   $ sudo arch-bootstrap myarch x86_64 "ftp://ftp.archlinux.org"
 #
-# And then chroot to the bootstrapped distro (administrator: root/root):
+# And then chroot to the destination directory (root/root):
 #
 #   $ sudo chroot myarch
 
@@ -32,14 +36,14 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 
 ### Main
 
-# Packages needed by pacman (BASIC_PACKAGES) has been obtained this way:
+# Packages needed by pacman (BASIC_PACKAGES) are obtained this way:
 # 
 #   $ for PACKAGE in $(ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}'); do 
 #       pacman -Qo $PACKAGE 
 #     done | awk '{print $5}' | sort -u | xargs
 BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz zlib curl gpgme libssh2 libassuan libgpg-error)
-EXTRA_PACKAGES=(coreutils bash grep awk file tar)
+EXTRA_PACKAGES=(coreutils bash grep awk file tar initscripts)
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
 
@@ -53,7 +57,7 @@ minimal_configuration() {
   local DEST=$1
   mkdir -p "$DEST/dev"
   echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
-  # create default user (root/root)
+  # create root user (password: root)
   echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
@@ -110,7 +114,8 @@ fi
 
 debug "packages HTML index: $LIST_HTML_FILE"
 LIST=$(< "$LIST_HTML_FILE" extract_href | awk -F"/" '{print $NF}' | sort -rn)
-test "$LIST" || { debug "Error processing list file: $LIST_HTML_FILE"; exit 1; }  
+test "$LIST" || 
+  { debug "Error processing list file: $LIST_HTML_FILE"; exit 1; }  
 
 debug "create destination directory: $DEST"
 mkdir -p "$DEST"
@@ -139,4 +144,7 @@ LC_ALL=C chroot "$DEST" /usr/bin/pacman --noconfirm --arch $ARCH \
 debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
 configure_pacman "$DEST" "$ARCH"
 
-debug "done! you can now use the system (chroot \"$DEST\")"
+echo "Done! you can now use the system: chroot \"$DEST\""
+echo
+echo "Note: some apps may require system directories /dev, /proc or /sys. Hint:"
+echo "  mount --bind /dev \"$DEST/dev\""
