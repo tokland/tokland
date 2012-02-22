@@ -2,7 +2,7 @@
 
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Depends: coreutils, wget, sed, awk, tar, gzip, chroot, xz
+# Dependencies: coreutils, wget, sed, awk, tar, gzip, chroot, xz.
 # Bug tracker: http://code.google.com/p/tokland/issues
 # Author: Arnau Sanchez <tokland@gmail.com>
 #
@@ -12,15 +12,14 @@
 #
 # Some examples:
 #
-#   $ sudo arch-bootstrap myarch 
-#   $ sudo arch-bootstrap myarch x86_64 
-#   $ sudo arch-bootstrap myarch x86_64 "ftp://ftp.archlinux.org"
+#   $ sudo arch-bootstrap destination
+#   $ sudo arch-bootstrap -a x86_64 -r "ftp://ftp.archlinux.org" destination_x86_64 
 #
-# And then chroot to the destination directory (root/root):
+# And then you can chroot to the destination directory (default user: root/root):
 #
-#   $ sudo chroot myarch
+#   $ sudo chroot destination
 
-set -e
+set -e -o pipefail -u
 
 # Output to standard error
 stderr() { echo "$@" >&2; }
@@ -44,6 +43,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz zlib curl gpgme libssh2 libassuan libgpg-error)
 EXTRA_PACKAGES=(coreutils bash grep awk file tar initscripts)
+PACKDIR="arch-bootstrap"
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
 
@@ -58,7 +58,7 @@ minimal_configuration() {
   mkdir -p "$DEST/dev"
   echo "root:x:0:0:root:/root:/bin/bash" > "$DEST/etc/passwd"
   # create root user (password: root)
-  echo "root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::" > "$DEST/etc/shadow"
+  echo 'root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::' > "$DEST/etc/shadow"
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
   test -e "$DEST/etc/mtab" || echo "rootfs / rootfs rw 0 0" > "$DEST/etc/mtab"
@@ -86,18 +86,26 @@ uncompress() {
   esac
 }  
 
+usage() {
+  stderr "Usage: $(basename "$0") [-a i686|x86_64] [-r REPO_URL] DESTINATION_DIRECTORY"
+}
+
 ### Main
 
-if test $# -lt 1; then
-  stderr "Usage: $(basename "$0") DESTINATION_DIRECTORY [i686|x86_64] [REPO_URL]"
-  exit 2
-fi
-   
-DEST=$1
-ARCH=${2:-$DEFAULT_ARCH}
-REPO_URL=${3:-$DEFAULT_REPO_URL}
+test $# -eq 0 && set -- "-h"
+ARCH=$DEFAULT_ARCH;
+REPO_URL=$DEFAULT_REPO_URL
+while getopts "a:r:h" ARG; do
+  case "$ARG" in
+  a) ARCH=$OPTARG;;
+  r) REPO_URL=$OPTARG;;
+  *) usage; exit 1;;
+  esac
+done
+shift $(($OPTIND-1))
+test $# -eq 1 || { usage; exit 1; }
+DEST=$1   
 
-PACKDIR="arch-bootstrap"
 REPO="${REPO_URL%/}/core/os/$ARCH"
 debug "using core repository: $REPO"
 
@@ -145,6 +153,5 @@ debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)"
 configure_pacman "$DEST" "$ARCH"
 
 echo "Done! you can now use the system: chroot \"$DEST\""
-echo
-echo "Note: some apps may require system directories /dev, /proc or /sys. Hint:"
-echo "  mount --bind /dev \"$DEST/dev\""
+echo "Note: some apps require special directories /dev, /proc or /sys to be mounted:"
+echo "  $ sudo mount --bind /dev \"$DEST/dev\""
