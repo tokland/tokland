@@ -2,7 +2,7 @@
 
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
-# Dependencies: coreutils, wget, sed, awk, tar, gzip, chroot, xz.
+# Dependencies: coreutils, wget, sed, gawk, tar, gzip, chroot, xz.
 # Bug tracker: http://code.google.com/p/tokland/issues
 # Author: Arnau Sanchez <tokland@gmail.com>
 #
@@ -42,7 +42,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 #     done | awk '{print $5}' | sort -u | xargs
 BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
                 pacman-mirrorlist xz zlib curl gpgme libssh2 libassuan libgpg-error)
-EXTRA_PACKAGES=(coreutils bash grep awk file tar initscripts)
+EXTRA_PACKAGES=(coreutils bash grep gawk file tar initscripts)
 PACKDIR="arch-bootstrap"
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
