@@ -95,7 +95,7 @@ def pdf2fen(pdffile):
     debug("pdf file: %s" % pdffile)
     retcode, output, err = run(["pdftohtml", "-xml", "-stdout", pdffile])
     assert (retcode == 0), "Error running pdftohtml:\n%s" % err
-    lines = output.splitlines()
+    lines = [s.replace("JUEGUEN", "JUGUEN") for s in output.splitlines()]
     
     tomove = first(re.search(r'<b>(\w+) (JUEGAN Y|JUGUEN I)', line) 
         for line in lines).group(1).lower()
