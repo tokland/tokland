@@ -4,7 +4,7 @@ set -u -e -o pipefail
 debug() { echo "$@" >&2; }
 
 login() { local EMAIL=$1 PASSWORD=$2  
-  local COOKIES="cookies.txt"
+  local COOKIES="/tmp/cookies.txt"
   local URL="http://registro.lavanguardia.com/reg2006/Registro"
   local PARAMS="p_action=loginconfig&email=$EMAIL&password=$PASSWORD"
   debug "GET $URL"
