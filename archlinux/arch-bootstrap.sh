@@ -40,7 +40,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 #   $ for PACKAGE in $(ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}'); do 
 #       pacman -Qo $PACKAGE 
 #     done | awk '{print $5}' | sort -u | xargs
-BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive libfetch openssl pacman 
+BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive openssl pacman 
                 pacman-mirrorlist xz zlib curl gpgme libssh2 libassuan libgpg-error)
 EXTRA_PACKAGES=(coreutils bash grep gawk file tar initscripts)
 PACKDIR="arch-bootstrap"
