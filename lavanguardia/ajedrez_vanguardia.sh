@@ -19,13 +19,16 @@ download() { local COOKIES=$1
   URL="http://hemeroteca.lavanguardia.com/dynamic/edition/editionThumbnails.html"
   
   URL2="$URL?edition=Vivir+Barcelona+Cat&bd=$DAY&bm=$MONTH&by=$YEAR"
-  PDF_URL0=$(curl -L -b $COOKIES -c $COOKIES -sS "$URL2" |  
+  debug "GET $URL2"
+  PDF_URL0=$(curl -L -b $COOKIES -c $COOKIES -sS "$URL2" |   
              grep -o "http://hemeroteca.*pagina-12.*.pdf.html" | head -n1)
+  test "$PDF_URL0" || return 1          
   debug "GET $PDF_URL0"
   PDF_URL=$(curl -L -b $COOKIES -c $COOKIES -sS "$PDF_URL0" |  
             grep -o "http://hemeroteca-paginas.lavanguardia[^\"]*" | head -n1)
+  test "$PDF_URL" || return 1
   debug "GET $PDF_URL"   
-  curl -b $COOKIES -c $COOKIES -L -o $FILENAME "$PDF_URL"
+  curl -b $COOKIES -c $COOKIES -L -o $FILENAME "$PDF_URL" || return 1
   echo $FILENAME
 }
 
