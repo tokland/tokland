@@ -6,10 +6,10 @@ debug() {
 }
 
 scurl() {
-  for TRY in $(seq 10); do
-    curl "$@" && return 0
+  for TRY in $(seq 6); do
+    curl "$@" && return 0 || debug "error: curl $@"
+    sleep 10
   done
-  debug "error: curl $@"
   return 1     
 }
 
