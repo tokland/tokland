@@ -76,9 +76,8 @@ function send_url(service, template_url, urls, url) {
   }
 }
 
-var config = JSON.parse(localStorage["services"]);
-
 function add_menus() {
+  var config = JSON.parse(localStorage["services"]);
   var main = chrome.contextMenus.create({
     title: "Chronkey" + (get_keys(config).length == 0 ? " (go to options page to add services)" : ""),
     contexts: ["page", "link"],
@@ -98,6 +97,7 @@ function add_menus() {
 
 chrome.extension.onRequest.addListener(
   function(request, sender, sendResponse) {
+    var config = JSON.parse(localStorage["services"]);
     if (request.action == "updateMenus") {
       chrome.contextMenus.removeAll()
       add_menus();

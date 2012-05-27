@@ -1,3 +1,3 @@
 #!/bin/bash
 SIZE=$(identify - | awk '{print $3}')
-convert seal.jpg -resize "!$SIZE" jpg:-
+convert examples/linux-penguin.jpg -resize "!$SIZE" jpg:-

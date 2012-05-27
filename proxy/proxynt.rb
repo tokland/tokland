@@ -50,7 +50,7 @@ class ProxyInterceptor
   #  :port - Port value for HTTP Proxy server
   #  :log_level - Logger level (see Logger::Severity)
   #  :urlmapping - [{:from => Regexp, :to => String}, ...] 
-  #  :filters - [{:conditions => {content_type => Regexp, :request_url => String}, 
+  #  :filters - [{:conditions => {content_type => Regexp, :request_url => Regexp}, 
   #               :command => String}, ...]
   def initialize(options = {})
     @logger = Logger.new(STDERR)
@@ -120,7 +120,6 @@ private
       
       @logger.debug("New body (#{response.content_type}): #{response.body.size} bytes")
       response.body = new_body
-      # Some apps don't like discrepancies between body size and Content-length  
       response.header["content-length"] = new_body.size
       options
     end

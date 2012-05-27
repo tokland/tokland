@@ -42,9 +42,6 @@ def makeop(operation, num1, num2):
     string = "(" + num1.string + operator_string[operation] + num2.string + ")"
     return Num(operation(num1.value, num2.value), string)     
 
-def compact(it):
-    return itertools.ifilter(bool, it)
-
 def process_pair(num1, num2):
     """Yield all possible results from operating two nums. 
     
@@ -55,14 +52,13 @@ def process_pair(num1, num2):
     [Num(10, '(7+3)'), Num(4, '(7-3)'), Num(21, '(7*3)')]
     """
     num1a, num2a = ((num1, num2) if num1.value >= num2.value else (num2, num1))
-    candidates = [
+    operations = [
         (operator.add, None),
         (operator.sub, lambda x, y: x > y), 
         (operator.mul, None),
         (operator.div, lambda x, y: x % y == 0),
     ]
-    # is it worth to remove duplicates?
-    for (op, condition) in candidates:
+    for (op, condition) in operations:
         if not condition or condition(num1a.value, num2a.value):
             yield makeop(op, num1a, num2a)
                   
@@ -72,8 +68,10 @@ def process(ints):
     >>> next(n for n in process([1,2,3,4,5,6]) if n.value == 576)
     Num(576, '(((4*(2+1))*6)*(5+3))')
     """
-    def _process(nums):
-        for i1, i2 in itertools.combinations(range(len(nums)), 2): 
+    combinations = dict((n, list(itertools.combinations(range(n), 2)))
+        for n in range(len(ints)+1))
+    def _process(nums):      
+        for i1, i2 in combinations[len(nums)]: 
             other_nums = nums[:i1] + nums[i1+1:i2] + nums[i2+1:]
             for num in process_pair(nums[i1], nums[i2]):
                 yield num

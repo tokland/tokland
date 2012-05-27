@@ -59,5 +59,7 @@ cifras2 xss = concat $ map fst pairs : (map cifras2 $ map joinPair pairs)
                  (xs, ys) <- concatMap (getPairs 2) xss]
         joinPair (xs, ys) = [x : ys | x <- xs]
                   
+                 
 main = do                  
-  (putStrLn . show) $ take 1 $ map show2 $ filter ((== 579) . value) $ cifras [3, 9, 25, 6, 4, 7]
+  (putStrLn . show) $ length $ map show2 $ 
+    filter ((== 765) . value) $ cifras [1, 3, 7, 10, 25, 50]

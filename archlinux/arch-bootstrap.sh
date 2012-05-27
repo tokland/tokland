@@ -155,5 +155,5 @@ debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)"
 configure_pacman "$DEST" "$ARCH"
 
 echo "Done! you can now use the system: chroot \"$DEST\""
-echo "Note: some apps require special directories /dev, /proc or /sys to be mounted:"
+echo "Note that some applications may require directories /dev, /proc or /sys to be mounted:"
 echo "  $ sudo mount --bind /dev \"$DEST/dev\""
