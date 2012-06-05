@@ -4,7 +4,7 @@ services = {
     "method": "GET",
     "path": "/submit",
     "url_regexp": "\\.(torrent|ed2k)$",
-    "params": "q=dllink+%url",
+    "params": "q=dllink+%url"
   },
   
   "qbittorrent": {
@@ -12,6 +12,14 @@ services = {
     "method": "POST",
     "path": "/command/download",
     "url_regexp": "\\.(torrent|ed2k)$",
-    "params": "urls=%url",
+    "params": "urls=%url"
   },
+
+  "ktorrent": {
+    "name": "KTorrent",
+    "method": "GET",
+    "path": "/action",
+    "url_regexp": "\\.(torrent|ed2k)$",
+    "params": "load_torrent=%url"
+  }
 }
