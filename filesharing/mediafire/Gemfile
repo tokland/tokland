@@ -1,0 +1,9 @@
+source "http://rubygems.org"
+
+gem 'curb', :git => 'https://github.com/taf2/curb.git',
+            :ref => 'dceafcd931c4fb7ad2c8d356537358fd1286e4ae'
+gem 'therubyracer'
+gem 'nokogiri'
+gem "ruby-debug19", :require => "ruby-debug"
+gem "ruby-progressbar"
+gem "nestegg" #, :git => "https://github.com/loganb/nestegg.git"

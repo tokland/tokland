@@ -1,0 +1,41 @@
+GIT
+  remote: https://github.com/taf2/curb.git
+  revision: dceafcd931c4fb7ad2c8d356537358fd1286e4ae
+  ref: dceafcd931c4fb7ad2c8d356537358fd1286e4ae
+  specs:
+    curb (0.8.0)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    archive-tar-minitar (0.5.2)
+    columnize (0.3.6)
+    libv8 (3.3.10.4)
+    linecache19 (0.5.13)
+      ruby_core_source (>= 0.1.4)
+    nestegg (0.0.2)
+    nokogiri (1.5.2)
+    ruby-debug-base19 (0.11.26)
+      columnize (>= 0.3.1)
+      linecache19 (>= 0.5.11)
+      ruby_core_source (>= 0.1.4)
+    ruby-debug19 (0.11.6)
+      columnize (>= 0.3.1)
+      linecache19 (>= 0.5.11)
+      ruby-debug-base19 (>= 0.11.19)
+    ruby-progressbar (0.0.10)
+    ruby_core_source (0.1.5)
+      archive-tar-minitar (>= 0.5.2)
+    therubyracer (0.10.1)
+      libv8 (~> 3.3.10)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  curb!
+  nestegg
+  nokogiri
+  ruby-debug19
+  ruby-progressbar
+  therubyracer
