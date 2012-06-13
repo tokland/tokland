@@ -1,4 +1,5 @@
 require 'curl'
+require 'nestegg'
 
 module Enumerable
   def map_compact(&block)
@@ -120,17 +121,52 @@ end
 class Object
   def catch_exceptions(exit_codes)
     yield
-    0
   rescue => exc
-    $stderr.puts("ERROR: #{[exc.class.name, exc.to_s].uniq.join(': ')}")
+    $stderr.puts("ERROR: #{[exc.class.name, exc.to_s].uniq.join(' - ')}")
     exit_codes.map_detect do |exc_class, exc_code| 
       exc_code if exc.is_a?(exc_class)
     end or raise
   end 
 end
 
+class Object
+  def define_exceptions(names, options = {})
+    Array(names).each do |name|
+      parent = options[:from] || 
+        Class.new(StandardError) { include Nestegg::NestingException }
+      const_set(name, parent)
+    end
+  end
+end
+
+class Object
+  def wrap_exceptions(relations)
+    begin
+      yield
+    rescue => exc
+      raise(*relations.map_detect do |source, dest|
+        if exc.is_a?(source)
+          dest.new([exc.class.name, exc.to_s].uniq.join(' -- '))
+        end
+      end)
+    end
+  end
+end
+
 module Curl
-  def self.download_with_progressbar(destination, file_url)
+  def self.get_with_headers(url)
+    curl = Curl::Easy.http_get(url)
+    headers = {}
+    curl.on_header do |header|
+      key, value = header.split(":", 2).map(&:strip)
+      headers[key] = value
+      header.size
+    end
+    curl.perform
+    [curl.body_str, headers]
+  end
+
+  def self.download_with_progressbar(file_url, destination)
     open(destination, "wb") do |fd|
       curl = Curl::Easy.new(file_url)
       pbar = nil
