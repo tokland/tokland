@@ -1,5 +1,5 @@
 require 'rspec'
-require 'ostruct' 
+require 'ostruct'
 require 'extensions'
 
 describe "Extensions" do
