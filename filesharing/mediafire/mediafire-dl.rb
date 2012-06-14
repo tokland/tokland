@@ -18,9 +18,8 @@ class MediaFire
 
   def self.download(url)
     wrap_exceptions(WrappedExceptions) do
-      #body, headers = wrap { Curl.get_with_headers(url) } # explicit exception wrapping 
       body, headers = Curl.get_with_headers(url)
-      headers["Location"] != "/error.php?errno=320" or
+      headers["Location"] !~ /error.php/ or
         raise InvalidLink.new("Invalid or deleted file")
       doc = Nokogiri::HTML(body)
       doc.at_css("#form_captcha").nil? or

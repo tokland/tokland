@@ -15,6 +15,16 @@ describe MediaFire do
         MediaFire.download("http://mediafire.com?1234").should == "Logo quiz 3.1.apk"
       end
     end
+
+    context "when server redirects to error page" do
+      it "should return the filename of the downloaded file" do
+        Curl.should_receive(:get_with_headers).with("http://mediafire.com?1234").
+          and_return(["", {"Location" => "error.php?errno=320"}])
+        lambda do
+          MediaFire.download("http://mediafire.com?1234")
+        end.should raise_error(MediaFire::InvalidLink)
+      end
+    end
     
     context "when HTML asks for a recaptcha" do
       it "should raise exception Captcha" do

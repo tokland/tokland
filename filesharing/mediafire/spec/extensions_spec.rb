@@ -79,10 +79,15 @@ describe "Extensions" do
   end
   
   describe "Object#maybe" do
-    it { 123.maybe.to_s.should == "123" }
-    it { nil.maybe.to_s.should == nil }
-    it { 123.maybe { |x| x.to_s }.should == "123" }
-    it { nil.maybe { |x| x.to_s }.should == nil }
+    describe "without block" do
+      it { 123.maybe.to_s.should == "123" }
+      it { nil.maybe.to_s.should == nil }
+    end
+    
+    describe "with block" do
+      it { 123.maybe { |x| x.to_s }.should == "123" }
+      it { nil.maybe { |x| x.to_s }.should == nil }
+    end
   end
   
   describe "Kernel#state_loop" do
