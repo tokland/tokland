@@ -1,11 +1,15 @@
 source "http://rubygems.org"
 
-gem 'curb', :git => 'https://github.com/taf2/curb.git', :ref => 'dceafcd931c4fb'
-gem 'therubyracer'
-gem 'nokogiri'
-gem "ruby-progressbar"
-gem "nestegg"
+gem 'curb', :git => 'git://github.com/taf2/curb.git', :ref => 'dceafcd931' # Curl wrapper 
+gem 'therubyracer' # Javascript engine
+gem 'nokogiri' # XML/HTML parser
+gem "ruby-progressbar" # text progressbar
+gem "nestegg" # better backtraces for nested exceptions
 
 group :development do
   gem "ruby-debug19", :require => "ruby-debug"
+end
+
+group :test do
+  gem "rspec"
 end

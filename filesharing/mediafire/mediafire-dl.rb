@@ -50,9 +50,10 @@ if __FILE__ == $0
     MediaFire::JSError => 6,
   }
   exit(catch_exceptions(exit_codes) do
-    mediafire_url = ARGV.first or 
+    mediafire_url = ARGV.first.presence or 
       raise CommandArgumentsError.new("Usage: mediafire-dl URL")  
     file_path = MediaFire.download(mediafire_url)
     $stdout.puts(file_path)
-  end || 0)
+    0
+  end)
 end

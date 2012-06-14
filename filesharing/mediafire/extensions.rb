@@ -2,10 +2,6 @@ require 'curl'
 require 'nestegg'
 
 module Enumerable
-  def map_compact(&block)
-    self.map(&block).compact
-  end
-
   def mash(&block)
     self.inject({}) do |hash, item|
       if (result = block_given? ? yield(item) : item)
@@ -34,6 +30,12 @@ module Enumerable
   end
 end
 
+class String
+  def split_at(idx)
+    [self[0...idx] || "", self[idx..-1] || ""] 
+  end
+end
+
 class MaybeWrapper
   instance_methods.each { |m| undef_method m unless m == :object_id || m =~ /^__/ }
 
@@ -42,13 +44,19 @@ class MaybeWrapper
   end
 end
 
-class String
-  def splitAt(idx)
-    [self[0...idx], self[idx..-1]] 
-  end
-end
-
 class Object
+  def present?
+    true
+  end
+  
+  def blank?
+    !present?
+  end
+  
+  def presence
+    self.present? ? self : nil
+  end
+  
   def to_bool
     !!self
   end
@@ -63,21 +71,6 @@ class Object
   
   def send_if_responds(method_name, *args, &block)
     respond_to?(method_name) ? self.send(method_name, *args, &block) : nil
-  end
-
-  def or_else(options = {}, &block)
-    if options[:if]
-      self.send(options[:if]) ? yield : self
-    else
-      self || yield
-    end
-  end
-
-  def state_loop(initial_value, &block)
-    value = initial_value
-    loop do
-      value = (yield value) or break
-    end
   end
 
   def in?(enumerable)
@@ -95,11 +88,47 @@ class Object
       nil? ? MaybeWrapper.new : self
     end
   end
-  
-  def die(message, code = 1)
-    info = caller(0)[1].split(":").first(2).join(":")
-    $stderr.puts("[#{info}] #{message}")
-    exit(code)  
+end
+
+class FalseClass
+  def present?
+    false
+  end
+end
+
+class NilClass
+  def present?
+    false
+  end
+end
+
+class Array
+  def present?
+    !empty?
+  end
+end
+
+class Hash
+  def present?
+    !empty?
+  end
+end
+
+class String
+  def present?
+    !strip.empty?
+  end
+end
+
+module Kernel
+  def circular_accumulator(initial_value, &block)
+    value = initial_value
+    Enumerator.new do |yielder|
+      while value
+        yielder << value
+        value = (yield value)
+      end
+    end
   end
 end
 
@@ -146,7 +175,7 @@ class Object
     rescue => exc
       raise(*relations.map_detect do |source, dest|
         if exc.is_a?(source)
-          dest.new([exc.class.name, exc.to_s].uniq.join(' -- '))
+          dest.new([exc.class.name, exc.to_s].uniq.join(' - '))
         end
       end)
     end
@@ -185,4 +214,8 @@ module Curl
     end
     destination
   end
+end
+
+class Object
+  include Kernel
 end
