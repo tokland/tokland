@@ -1,5 +1,5 @@
 require 'rspec'
-require 'mediafire-dl'
+require 'mediafire'
 
 describe MediaFire do
   describe "download" do
@@ -22,7 +22,7 @@ describe MediaFire do
           and_return(["", {"Location" => "error.php?errno=320"}])
         lambda do
           MediaFire.download("http://mediafire.com?1234")
-        end.should raise_error(MediaFire::InvalidLink)
+        end.should raise_error(MediaFire::LinkError)
       end
     end
     
