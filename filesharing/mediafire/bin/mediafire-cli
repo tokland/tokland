@@ -1,0 +1,35 @@
+#!/usr/bin/ruby
+require 'extensions'
+require 'mediafire'
+
+class MediaFire::CLI
+  ExitCodes = {
+    :success => 0,
+    # Fatal
+    :command_arguments_error => 1,
+    MediaFire::LinkError => 2,
+    MediaFire::ParseError => 3, 
+    MediaFire::JSError => 4,
+    # Temporal error: non-fatal, but not retriable right away
+    MediaFire::Captcha => 50,
+    # Retryable
+    MediaFire::NetworkError => 100,
+  }
+  
+  def self.download(args)
+    catch_exceptions(ExitCodes) do
+      if (mediafire_url = ARGV.first.presence) 
+        file_path = MediaFire.download(mediafire_url)
+        $stdout.puts(file_path)
+        ExitCodes[:success]
+      else
+        $stderr.puts("Usage: mediafire-dl URL")
+        ExitCodes[:command_arguments_error]
+      end
+    end
+  end
+end
+
+if __FILE__ == $0
+  exit(MediaFire::CLI.download(ARGV))
+end

@@ -147,28 +147,67 @@ class File
   end
 end 
 
-class Object
-  def catch_exceptions(exit_codes)
-    yield
-  rescue => exc
-    $stderr.puts("ERROR: #{[exc.class.name, exc.to_s].uniq.join(' - ')}")
-    exit_codes.map_detect do |exc_class, exc_code| 
-      exc_code if exc.is_a?(exc_class)
-    end or raise
-  end 
+class Array
+  def extract_options
+    if last.is_a?(Hash)
+      [[0...-1], last]
+    else
+      [self, {}]
+    end      
+  end
 end
 
 class Object
-  def define_exceptions(names, options = {})
+  def define_exceptions(*args)
+    names, options = args.extract_options
     Array(names).each do |name|
-      parent = options[:from] || 
-        Class.new(StandardError) { include Nestegg::NestingException }
+      parent = options[:from] || Class.new(StandardError) do
+        include Nestegg::NestingException
+        
+        def initialize(msg = nil, options = {})
+          super(msg)
+          @options = options
+          @msg = msg
+        end
+        
+        def to_s
+          @msg
+        end
+      end
+ 
       const_set(name, parent)
     end
   end
 end
 
-class Object
+class WrapClass
+  def initialize(block)
+    @block = block
+  end
+  
+  def with(exceptions)
+    begin
+      @block.call
+    rescue *exceptions.keys => exc
+      raise(*exceptions.map_detect { |from, to| to if exc.is_a?(from) } )
+    end
+  end
+end
+
+module Kernel
+  def catch_exceptions(exit_codes)
+    yield
+  rescue => exc
+    $stderr.puts("ERROR: #{[exc.class.name, exc.to_s].uniq.join(' - ')}")
+    exit_codes.map_detect do |symbol_or_exc_class, exc_code| 
+      exc_code if symbol_or_exc_class.is_a?(Class) && exc.is_a?(symbol_or_exc_class)
+    end or raise
+  end
+  
+  def wrap(&block)
+    WrapClass.new(block)
+  end
+
   def wrap_exceptions(relations)
     begin
       yield
