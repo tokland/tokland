@@ -1,6 +1,7 @@
 require 'curl'
 require 'nestegg'
 require 'progressbar'
+require 'enumerable/lazy'
 
 module Enumerable
   def mash(&block)
@@ -32,6 +33,10 @@ module Enumerable
 end
 
 class String
+  def present?
+    !strip.empty?
+  end
+
   def split_at(idx)
     [self[0...idx] || "", self[idx..-1] || ""] 
   end
@@ -107,17 +112,27 @@ class Array
   def present?
     !empty?
   end
-end
+  
+  def extract_options
+    if last.is_a?(Hash)
+      [self[0...-1], last]
+    else
+      [self, {}]
+    end  
+  end
+
+  def lazy_slice(range)
+    Lazy.new(Enumerator.new do |yielder|
+      range.each do |index|
+        yielder << self[index]
+      end
+    end)
+  end
+end  
 
 class Hash
   def present?
     !empty?
-  end
-end
-
-class String
-  def present?
-    !strip.empty?
   end
 end
 
@@ -147,16 +162,6 @@ class File
     open(path, "w") { |f| f.write(data) }
   end
 end 
-
-class Array
-  def extract_options
-    if last.is_a?(Hash)
-      [[0...-1], last]
-    else
-      [self, {}]
-    end      
-  end
-end
 
 class Object
   def define_exceptions(*args)
@@ -212,18 +217,6 @@ module Kernel
           raise(*exceptions.map_detect { |from, to| to if exc.is_a?(from) } )
         end
       end
-    end
-  end
-
-  def wrap_exceptions(relations)
-    begin
-      yield
-    rescue => exc
-      raise(*relations.map_detect do |source, dest|
-        if exc.is_a?(source)
-          dest.new([exc.class.name, exc.to_s].uniq.join(' - '))
-        end
-      end)
     end
   end
 end

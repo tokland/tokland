@@ -5,6 +5,7 @@ gem 'therubyracer' # Javascript engine
 gem 'nokogiri' # XML/HTML parser
 gem "ruby-progressbar" # text progressbar
 gem "nestegg" # better backtraces for nested exceptions
+gem "enumerable-lazy" # Enumerable-like lazy methods 
 
 group :development do
   gem "ruby-debug19", :require => "ruby-debug"
