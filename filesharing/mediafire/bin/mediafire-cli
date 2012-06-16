@@ -5,14 +5,14 @@ require 'mediafire'
 class MediaFire::CLI
   ExitCodes = {
     :success => 0,
-    # Fatal
+    # Fatal errors
     :command_arguments_error => 1,
     MediaFire::LinkError => 2,
     MediaFire::ParseError => 3, 
     MediaFire::JSError => 4,
-    # Temporal error: non-fatal, but not retriable right away
+    # Temporal errors: non-fatal, but not retriable right away
     MediaFire::Captcha => 50,
-    # Retryable
+    # Retryable errors
     MediaFire::NetworkError => 100,
   }
   

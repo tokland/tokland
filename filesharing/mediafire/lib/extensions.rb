@@ -1,5 +1,6 @@
 require 'curl'
 require 'nestegg'
+require 'progressbar'
 
 module Enumerable
   def mash(&block)
@@ -181,16 +182,10 @@ class Object
 end
 
 class WrapClass
-  def initialize(block)
-    @block = block
-  end
-  
-  def with(exceptions)
-    begin
-      @block.call
-    rescue *exceptions.keys => exc
-      raise(*exceptions.map_detect { |from, to| to if exc.is_a?(from) } )
-    end
+  def initialize(block, &module_block)
+    singleton_class.send(:attr_accessor, :block)
+    singleton_class.class_eval(&module_block)
+    self.block = block
   end
 end
 
@@ -204,8 +199,20 @@ module Kernel
     end or raise
   end
   
+  # contents = wrap { File.read("/etc/service") }.with({
+  #   Errno::ENOENT => MyFileNotFound.new("file not found")
+  #   Errno::EISDIR => MyIsADirectory.new("it's a directory")
+  # })
   def wrap(&block)
-    WrapClass.new(block)
+    WrapClass.new(block) do
+      def with(exceptions)
+        begin
+          block.call
+        rescue *exceptions.keys => exc
+          raise(*exceptions.map_detect { |from, to| to if exc.is_a?(from) } )
+        end
+      end
+    end
   end
 
   def wrap_exceptions(relations)

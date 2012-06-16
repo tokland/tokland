@@ -27,17 +27,17 @@ describe "Extensions" do
   FalsyValues = [nil, false, "", "  \t \n", [], {}]
   TruishValues = [true, "a", [1], {:a => 1}, OpenStruct.new]
   
-  describe "#present?" do
+  describe "Object#present?" do
     FalsyValues.each { |v| v.present?.should == false }
     TruishValues.each { |v| v.present?.should == true }
   end
 
-  describe "#blank?" do
+  describe "Object#blank?" do
     FalsyValues.each { |v| v.blank?.should == true }
     TruishValues.each { |v| v.blank?.should == false }
   end
 
-  describe "#blank?" do
+  describe "Object#presence" do
     FalsyValues.each { |v| v.presence.should == nil }
     TruishValues.each { |v| v.presence.should == v }
   end
@@ -79,18 +79,18 @@ describe "Extensions" do
   end
   
   describe "Object#maybe" do
-    describe "without block" do
+    context "without block" do
       it { 123.maybe.to_s.should == "123" }
       it { nil.maybe.to_s.should == nil }
     end
     
-    describe "with block" do
+    context "with block" do
       it { 123.maybe { |x| x.to_s }.should == "123" }
       it { nil.maybe { |x| x.to_s }.should == nil }
     end
   end
   
-  describe "Kernel#state_loop" do
+  describe "Kernel#circular_accumulator" do
     circular_accumulator(1) do |x|
       x + 1 if x < 5    
     end.to_a.should == [1, 2, 3, 4, 5]

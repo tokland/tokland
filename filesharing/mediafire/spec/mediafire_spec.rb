@@ -5,9 +5,9 @@ describe MediaFire do
   describe "download" do
     context "when HTML is the expected" do
       it "should return the filename of the downloaded file" do
-        html = File.read(File.join("spec/fixtures/normal.html"))
-        Curl.should_receive(:get_with_headers).with("http://mediafire.com?1234").
-          and_return([html, {}])
+        Curl.should_receive(:get_with_headers).
+          with("http://mediafire.com?1234").
+          and_return([read_fixture("normal.html"), {}])
         Curl.should_receive(:download_with_progressbar).
           with("http://205.196.120.108/2yvvyob3w6wg/ss8i5w9df7bxlk5/Logo+quiz+3.1.apk", 
                "Logo quiz 3.1.apk").
@@ -18,7 +18,8 @@ describe MediaFire do
 
     context "when server redirects to error page" do
       it "should return the filename of the downloaded file" do
-        Curl.should_receive(:get_with_headers).with("http://mediafire.com?1234").
+        Curl.should_receive(:get_with_headers).
+          with("http://mediafire.com?1234").
           and_return(["", {"Location" => "error.php?errno=320"}])
         lambda do
           MediaFire.download("http://mediafire.com?1234")
@@ -28,13 +29,17 @@ describe MediaFire do
     
     context "when HTML asks for a recaptcha" do
       it "should raise exception Captcha" do
-        html = File.read(File.join("spec/fixtures/error_recaptcha.html"))
         Curl.should_receive(:get_with_headers).
-          with("http://mediafire.com?1234").and_return([html, {}])
+          with("http://mediafire.com?1234").
+          and_return([read_fixture("error_recaptcha.html"), {}])
         lambda do 
           MediaFire.download("http://mediafire.com?1234")
         end.should raise_error(MediaFire::Captcha)
       end
     end
   end
+end
+
+def read_fixture(path)
+  File.read(File.join(File.dirname(__FILE__), "fixtures", path))
 end

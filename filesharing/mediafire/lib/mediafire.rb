@@ -1,9 +1,7 @@
-#!/usr/bin/ruby
-require 'cgi'
-require 'curl'
-require 'v8'
 require 'nokogiri'
-require 'progressbar'
+require 'curl'
+require 'cgi'
+require 'v8'
 
 require 'extensions'
 
