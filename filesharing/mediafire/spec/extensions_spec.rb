@@ -92,7 +92,7 @@ describe "Extensions" do
   
   describe "Kernel#circular_accumulator" do
     circular_accumulator(1) do |x|
-      x + 1 if x < 5    
+      x < 5 ? x + 1 : nil    
     end.to_a.should == [1, 2, 3, 4, 5]
   end
   

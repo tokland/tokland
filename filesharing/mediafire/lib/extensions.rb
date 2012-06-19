@@ -204,13 +204,13 @@ module Kernel
     end or raise
   end
   
-  # contents = wrap { File.read("/etc/service") }.with({
+  # contents = catch { File.read("/etc/service") }.with({
   #   Errno::ENOENT => MyFileNotFound.new("file not found")
   #   Errno::EISDIR => MyIsADirectory.new("it's a directory")
   # })
-  def wrap(&block)
+  def catch(&block)
     WrapClass.new(block) do
-      def with(exceptions)
+      def on(exceptions)
         begin
           block.call
         rescue *exceptions.keys => exc
