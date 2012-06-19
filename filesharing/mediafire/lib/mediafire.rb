@@ -18,8 +18,8 @@ module MediaFire
     doc.at_css("#form_captcha").blank? or
       raise Captcha.new("Mediafire returns a reCaptcha after some downloads")
     doc.at_css(".dl_options_innerblock") or
-      raise ParseError.new("That does not seem like a Mediafire file page")
-      
+      raise ParseError.new("This does not seem a Mediafire file page", :body => body)
+    
     script = doc.at_css(".dl_startlink script") or
       raise ParseError.new("Cannot find JS element", :body => body)
     js_stubs = "var document = {write: function(x) { return x; }};"
@@ -29,6 +29,7 @@ module MediaFire
     file_url = Nokogiri::HTML.fragment(link).at_css("a").maybe["href"] or
       raise ParseError.new("Cannot find link in obfuscated JS", :body => body)
     file_name = CGI.unescape(File.basename(file_url))
-    Curl.download_with_progressbar(file_url, file_name)
+    catch { Curl.download_with_progressbar(file_url, file_name) }.
+      on(Curl::Err::CurlError => NetworkError.new("Error downloading file"))
   end
 end
