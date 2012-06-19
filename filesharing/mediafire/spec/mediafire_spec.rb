@@ -1,5 +1,4 @@
-require 'rspec'
-require 'mediafire'
+require 'spec_helper'
 
 describe MediaFire do
   describe "download" do
@@ -27,6 +26,28 @@ describe MediaFire do
       end
     end
     
+    context "when HTML is not a Mediafire page" do
+      it "should raise exception ParseError" do
+        Curl.should_receive(:get_with_headers).
+          with("http://somewhere.com").
+          and_return([read_fixture("non_mediafire_page.html"), {}])
+        lambda do 
+          MediaFire.download("http://somewhere.com")
+        end.should raise_error(MediaFire::ParseError)
+      end
+    end
+
+    context "when HTML contains unexpected obfuscated JS code" do
+      it "should raise exception ParseError" do
+        Curl.should_receive(:get_with_headers).
+          with("http://somewhere.com").
+          and_return([read_fixture("unexpected_jscode.html"), {}])
+        lambda do 
+          MediaFire.download("http://somewhere.com")
+        end.should raise_error(MediaFire::ParseError)
+      end
+    end
+
     context "when HTML asks for a recaptcha" do
       it "should raise exception Captcha" do
         Curl.should_receive(:get_with_headers).
@@ -38,8 +59,4 @@ describe MediaFire do
       end
     end
   end
-end
-
-def read_fixture(path)
-  File.read(File.join(File.dirname(__FILE__), "fixtures", path))
 end
