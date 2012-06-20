@@ -134,6 +134,10 @@ class Hash
   def present?
     !empty?
   end
+  
+  def reverse_update(other_hash)
+    replace(other_hash.merge(self))
+  end
 end
 
 module Kernel
@@ -234,13 +238,15 @@ module Curl
     [curl.body_str, headers]
   end
 
-  def self.download_with_progressbar(file_url, destination)
+  def self.download_to_file(file_url, destination, options = {})
+    options.reverse_update(:show_progressbar => false)
+    
     open(destination, "wb") do |fd|
       curl = Curl::Easy.new(file_url)
       pbar = nil
       curl.on_body { |data| fd.write(data) }
       curl.on_progress do |dl_total, dl_now, ul_total, ul_now|
-        if dl_total > 0
+        if options[:show_progressbar] && dl_total > 0
           pbar ||= ProgressBar.new(destination, dl_total).tap do |pbar|
             pbar.format_arguments = [:title, :percentage, :bar, :stat_for_file_transfer]
           end
