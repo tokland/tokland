@@ -111,4 +111,14 @@ describe "Extensions" do
       File.read(filename).should == "hello"
     end
   end
+  
+  describe "Array#extract_options" do
+    it { [1, 2, 3].extract_options.should == [[1, 2, 3], {}] }
+    it { [1, 2, {:x => 1}].extract_options.should == [[1, 2], {:x => 1}] }
+  end
+  
+  describe "Array#lazy_slice" do
+    it { [1, 2, 3, 4, 5].lazy_slice(1..3).should be_a_kind_of Enumerable::Lazy }
+    it { [1, 2, 3, 4, 5].lazy_slice(1..3).to_a.should == [2, 3, 4] }
+  end
 end

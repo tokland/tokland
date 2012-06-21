@@ -4,6 +4,7 @@ require 'progressbar'
 require 'enumerable/lazy'
 
 module Enumerable
+  # [1, 2, 3].mash { |x| [x.to_s, 2*x] } #=> {"1"=>2, "2"=>4, "3"=>6}
   def mash(&block)
     self.inject({}) do |hash, item|
       if (result = block_given? ? yield(item) : item)
@@ -15,6 +16,7 @@ module Enumerable
     end
   end
 
+  # [1, 2, 3].map_select { |x| 2*x if x > 1 } #=> [4, 6]
   def map_select
     self.inject([]) do |acc, item|
       value = yield(item)
@@ -22,6 +24,7 @@ module Enumerable
     end
   end
   
+  # [1, 2, 3].map_detect { |x| 2*x if x > 1 } #=> 4
   def map_detect
     self.each do |member|
       if (result = yield(member))
@@ -43,7 +46,7 @@ class String
 end
 
 class MaybeWrapper
-  instance_methods.each { |m| undef_method m unless m == :object_id || m =~ /^__/ }
+  instance_methods.each { |m| undef_method(m) unless m == :object_id || m =~ /^__/ }
 
   def method_missing(*args, &block)
     nil
@@ -122,11 +125,11 @@ class Array
   end
 
   def lazy_slice(range)
-    Lazy.new(Enumerator.new do |yielder|
+    Enumerator.new do |yielder|
       range.each do |index|
         yielder << self[index]
       end
-    end)
+    end.lazy
   end
 end  
 
@@ -208,17 +211,21 @@ module Kernel
     end or raise
   end
   
-  # contents = catch { File.read("/etc/service") }.with({
+  # contents = guard { File.read("/etc/service") }.with({
   #   Errno::ENOENT => MyFileNotFound.new("file not found")
   #   Errno::EISDIR => MyIsADirectory.new("it's a directory")
   # })
-  def catch(&block)
+  def guard(&block)
     WrapClass.new(block) do
-      def on(exceptions)
+      def with(exceptions)
         begin
           block.call
         rescue *exceptions.keys => exc
-          raise(*exceptions.map_detect { |from, to| to if exc.is_a?(from) } )
+          raise(*exceptions.map_detect do |from, to|
+            if exc.is_a?(from) 
+              to.is_a?(Proc) ? to.call(exc) : to
+            end
+          end)
         end
       end
     end
@@ -227,15 +234,21 @@ end
 
 module Curl
   def self.get_with_headers(url)
-    curl = Curl::Easy.http_get(url)
-    headers = {}
-    curl.on_header do |header|
-      key, value = header.split(":", 2).map(&:strip)
-      headers[key] = value
-      header.size
+    loop do 
+      curl = Curl::Easy.http_get(url)
+      headers = {}
+      curl.on_header do |header|
+        key, value = header.split(":", 2).map(&:strip)
+        headers[key] = value
+        header.size
+      end
+      curl.perform
+      if curl.response_code.to_s =~ /^3..$/ && (location = headers["Location"])
+        url = URI::join(url, location).to_s
+      else 
+        break [curl.body_str, headers]
+      end
     end
-    curl.perform
-    [curl.body_str, headers]
   end
 
   def self.download_to_file(file_url, destination, options = {})
@@ -249,6 +262,8 @@ module Curl
         if options[:show_progressbar] && dl_total > 0
           pbar ||= ProgressBar.new(destination, dl_total).tap do |pbar|
             pbar.format_arguments = [:title, :percentage, :bar, :stat_for_file_transfer]
+            pbar.bar_mark = "="
+            pbar.bar_end_mark = ">"
           end
           pbar.set(dl_now)
         end 

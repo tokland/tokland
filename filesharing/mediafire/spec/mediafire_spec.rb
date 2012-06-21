@@ -7,9 +7,10 @@ describe MediaFire do
         Curl.should_receive(:get_with_headers).
           with("http://mediafire.com?1234").
           and_return([read_fixture("normal.html"), {}])
-        Curl.should_receive(:download_with_progressbar).
+        Curl.should_receive(:download_to_file).
           with("http://205.196.120.108/2yvvyob3w6wg/ss8i5w9df7bxlk5/Logo+quiz+3.1.apk", 
-               "Logo quiz 3.1.apk").
+               "Logo quiz 3.1.apk",
+               :show_progressbar => true).
           and_return("Logo quiz 3.1.apk")
         MediaFire.download("http://mediafire.com?1234").should == "Logo quiz 3.1.apk"
       end
@@ -19,7 +20,7 @@ describe MediaFire do
       it "should return the filename of the downloaded file" do
         Curl.should_receive(:get_with_headers).
           with("http://mediafire.com?1234").
-          and_return(["", {"Location" => "error.php?errno=320"}])
+          and_return([read_fixture("invalid_link.html"), {}])
         lambda do
           MediaFire.download("http://mediafire.com?1234")
         end.should raise_error(MediaFire::LinkError)

@@ -3,9 +3,9 @@ source "http://rubygems.org"
 gem 'curb', :git => 'git://github.com/taf2/curb.git', :ref => 'dceafcd931' # Curl wrapper 
 gem 'therubyracer' # Javascript engine
 gem 'nokogiri' # XML/HTML parser
-gem "ruby-progressbar" # text progressbar
+gem "ruby-progressbar", :git => 'git://github.com/tokland/ruby-progressbar.git'
 gem "nestegg" # better backtraces for nested exceptions
-gem "enumerable-lazy" # Enumerable-like lazy methods 
+gem "enumerable-lazy" 
 
 group :development do
   gem "ruby-debug19", :require => "ruby-debug"

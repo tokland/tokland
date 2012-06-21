@@ -5,6 +5,12 @@ GIT
   specs:
     curb (0.8.0)
 
+GIT
+  remote: git://github.com/tokland/ruby-progressbar.git
+  revision: e848688f466e9bf2dfac351c7f5b1d8fd2ef68d4
+  specs:
+    ruby-progressbar (0.0.10)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -33,7 +39,6 @@ GEM
       columnize (>= 0.3.1)
       linecache19 (>= 0.5.11)
       ruby-debug-base19 (>= 0.11.19)
-    ruby-progressbar (0.0.10)
     ruby_core_source (0.1.5)
       archive-tar-minitar (>= 0.5.2)
     therubyracer (0.10.1)
@@ -49,5 +54,5 @@ DEPENDENCIES
   nokogiri
   rspec
   ruby-debug19
-  ruby-progressbar
+  ruby-progressbar!
   therubyracer
