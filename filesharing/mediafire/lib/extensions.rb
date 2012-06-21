@@ -230,11 +230,25 @@ module Kernel
       end
     end
   end
+  
+  def circular_loop(value)
+    loop do
+      action, new_value = yield(value)
+      value = case action
+      when :continue
+        new_value
+      when :break
+        break new_value
+      else
+        fail("[circular_loop] Expected response: [:continue | :break, value]")
+      end
+    end
+  end
 end
 
 module Curl
   def self.get_with_headers(url)
-    loop do 
+    circular_loop(url) do |url| 
       curl = Curl::Easy.http_get(url)
       headers = {}
       curl.on_header do |header|
@@ -244,9 +258,9 @@ module Curl
       end
       curl.perform
       if curl.response_code.to_s =~ /^3..$/ && (location = headers["Location"])
-        url = URI::join(url, location).to_s
+        [:continue, URI::join(url, location).to_s]
       else 
-        break [curl.body_str, headers]
+        [:break, [curl.body_str, headers]]
       end
     end
   end
