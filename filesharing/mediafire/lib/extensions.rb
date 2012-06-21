@@ -212,8 +212,8 @@ module Kernel
   end
   
   # contents = guard { File.read("/etc/service") }.with({
-  #   Errno::ENOENT => MyFileNotFound.new("file not found")
-  #   Errno::EISDIR => MyIsADirectory.new("it's a directory")
+  #   Errno::ENOENT => MyErrorFileNotFound.new("file not found"),
+  #   Errno::EISDIR => proc { |exc| MyErrorIsDirectory.new("it's a directory: #{exc}") },
   # })
   def guard(&block)
     WrapClass.new(block) do
@@ -247,7 +247,9 @@ module Kernel
 end
 
 module Curl
-  def self.get_with_headers(url)
+  def self.get_with_headers(url, options = {})
+    options.reverse_update(:follow_redirects => false)
+    
     circular_loop(url) do |url| 
       curl = Curl::Easy.http_get(url)
       headers = {}
@@ -257,9 +259,9 @@ module Curl
         header.size
       end
       curl.perform
-      if curl.response_code.to_s =~ /^3..$/ && (location = headers["Location"])
-        [:continue, URI::join(url, location).to_s]
-      else 
+      if options[:follow_redirects] && curl.response_code.to_s =~ /^3..$/
+        [:continue, URI::join(url, headers["Location"]).to_s]
+      else
         [:break, [curl.body_str, headers]]
       end
     end
