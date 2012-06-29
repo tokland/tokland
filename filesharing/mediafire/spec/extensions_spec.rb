@@ -24,22 +24,24 @@ describe "Extensions" do
     it { "12345678".split_at(10).should == ["12345678", ""] }
   end
 
-  FalsyValues = [nil, false, "", "  \t \n", [], {}]
-  TruishValues = [true, "a", [1], {:a => 1}, OpenStruct.new]
-  
-  describe "Object#present?" do
-    FalsyValues.each { |v| v.present?.should == false }
-    TruishValues.each { |v| v.present?.should == true }
-  end
+  describe "presence related methods" do
+    let(:falsy_values) { [nil, false, "", "  \t \n", [], {}] }
+    let(:truish_values) { [true, "a", [1], {:a => 1}, OpenStruct.new] }
+    
+    describe "Object#present?" do
+      it { falsy_values.each { |v| v.present?.should == false } }
+      it { truish_values.each { |v| v.present?.should == true } }
+    end
 
-  describe "Object#blank?" do
-    FalsyValues.each { |v| v.blank?.should == true }
-    TruishValues.each { |v| v.blank?.should == false }
-  end
+    describe "Object#blank?" do
+      it { falsy_values.each { |v| v.blank?.should == true } }
+      it { truish_values.each { |v| v.blank?.should == false } }
+    end
 
-  describe "Object#presence" do
-    FalsyValues.each { |v| v.presence.should == nil }
-    TruishValues.each { |v| v.presence.should == v }
+    describe "Object#presence" do
+      it { falsy_values.each { |v| v.presence.should == nil } }
+      it { truish_values.each { |v| v.presence.should == v } }
+    end
   end
   
   describe "Object#to_bool" do

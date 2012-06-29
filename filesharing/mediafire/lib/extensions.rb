@@ -36,10 +36,12 @@ module Enumerable
 end
 
 class String
+  # "  ".present? #=> false
   def present?
     !strip.empty?
   end
 
+  # "hello".split_at(2) #=> ["he", "llo"]
   def split_at(idx)
     [self[0...idx] || "", self[idx..-1] || ""] 
   end
@@ -66,6 +68,13 @@ class Object
     self.present? ? self : nil
   end
   
+  # [1, 2].as { |x, y| x + y } #=> 3
+  def as
+    yield self
+  end
+  
+  # 1.to_bool #=> true
+  # nil.to_bool #=> false
   def to_bool
     !!self
   end
@@ -112,8 +121,15 @@ class NilClass
 end
 
 class Array
+  # [1].present? #=> true
+  # [].present? #=> false
   def present?
     !empty?
+  end
+
+  # [0, 1, 2, 3].split_at(1) #=> [[0], [1, 2, 3]]
+  def split_at(idx)
+    [self[0...idx] || [], self[idx..-1] || []] 
   end
   
   def extract_options
@@ -202,12 +218,25 @@ class WrapClass
 end
 
 module Kernel
+  # lets("do some math") { 1 + 2*3 } #=> 7 
+  def lets(msg = nil, &block)
+    yield
+  end
+
+  # scope { |x = 1, y = 2| x + y } #=> 3
+  def scope(&block)
+    num_required = block.arity >= 0 ? block.arity : ~block.arity
+    yield *([nil] * num_required)
+  end
+    
   def catch_exceptions(exit_codes)
     yield
   rescue => exc
-    $stderr.puts("ERROR: #{[exc.class.name, exc.to_s].uniq.join(' - ')}")
-    exit_codes.map_detect do |symbol_or_exc_class, exc_code| 
-      exc_code if symbol_or_exc_class.is_a?(Class) && exc.is_a?(symbol_or_exc_class)
+    exit_codes.map_detect do |symbol_or_exc_class, exc_code|
+      if symbol_or_exc_class.is_a?(Class) && exc.is_a?(symbol_or_exc_class) 
+        $stderr.puts("ERROR: #{[exc.class.name, exc.to_s].uniq.join(' - ')}")
+        exc_code
+      end
     end or raise
   end
   
@@ -231,6 +260,7 @@ module Kernel
     end
   end
   
+  # circular_loop(1) { |x| x < 3 ? [:continue, x + 1] : [:break, x] } #=> 3
   def circular_loop(value)
     loop do
       action, new_value = yield(value)
@@ -247,10 +277,10 @@ module Kernel
 end
 
 module Curl
-  def self.get_with_headers(url, options = {})
+  def self.get(url, options = {})
     options.reverse_update(:follow_redirects => false)
     
-    circular_loop(url) do |url| 
+    circular_loop(url) do |url|
       curl = Curl::Easy.http_get(url)
       headers = {}
       curl.on_header do |header|
@@ -262,7 +292,7 @@ module Curl
       if options[:follow_redirects] && curl.response_code.to_s =~ /^3..$/
         [:continue, URI::join(url, headers["Location"]).to_s]
       else
-        [:break, [curl.body_str, headers]]
+        [:break, curl.body_str]
       end
     end
   end
@@ -284,7 +314,7 @@ module Curl
           pbar.set(dl_now)
         end 
         true
-      end 
+      end
       curl.perform
       pbar.finish if pbar
     end
