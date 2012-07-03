@@ -1,6 +1,7 @@
 #!/usr/bin/ruby
 require 'extensions'
-require 'mediafire'
+require 'mediafire2'
+require 'trollop'
 
 class MediaFire::CLI
   ExitCodes = {
@@ -16,12 +17,22 @@ class MediaFire::CLI
     MediaFire::NetworkError => 100,
   }
   
-  def self.download(args)
+  def self.run(args, options = {})
     catch_exceptions(ExitCodes) do
-      if (mediafire_url = ARGV.first.presence) 
-        file_path = MediaFire.download(mediafire_url)
-        $stdout.puts(file_path)
-        ExitCodes[:success]
+      if (url = args.first)
+        if options[:check]
+          if MediaFire.active?(url)   
+            $stderr.puts("Link is active: #{url}")
+            ExitCodes[:success]
+          else
+            $stderr.puts("Link is not active: #{url}")
+            ExitCodes[MediaFire::LinkError]
+          end
+        else
+          file_path = MediaFire.download(url)
+          $stdout.puts(file_path)
+          ExitCodes[:success]
+        end
       else
         $stderr.puts("Usage: mediafire-dl URL")
         ExitCodes[:command_arguments_error]
@@ -31,5 +42,8 @@ class MediaFire::CLI
 end
 
 if __FILE__ == $0
-  exit(MediaFire::CLI.download(ARGV))
+  options = Trollop::options do
+    opt :check, "Check only if link is active"
+  end  
+  exit(MediaFire::CLI.run(ARGV, options))
 end

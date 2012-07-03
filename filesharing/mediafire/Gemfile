@@ -6,6 +6,7 @@ gem 'nokogiri' # XML/HTML parser
 gem "ruby-progressbar", :git => 'git://github.com/tokland/ruby-progressbar.git'
 gem "nestegg" # better backtraces for nested exceptions
 gem "enumerable-lazy" 
+gem "trollop"
 
 group :development do
   gem "ruby-debug19", :require => "ruby-debug"

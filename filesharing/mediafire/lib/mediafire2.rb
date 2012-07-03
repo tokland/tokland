@@ -11,7 +11,13 @@ module MediaFire
     doc = get_doc(url)
     validate_page(doc)
     file_url, file_name = get_file_info(doc)
-    download_file(file_url, file_name)
+    download_to_file(file_url, file_name)
+  end
+  
+  def self.active?(url)
+    doc = get_doc(url)
+    guard { validate_page(doc); true }.
+      with_values(Captcha => true, LinkError => false)
   end
   
 private
@@ -44,7 +50,7 @@ private
     [file_url, file_name]
   end
 
-  def self.download_file(file_url, file_name)
+  def self.download_to_file(file_url, file_name)
     guard { Curl.download_to_file(file_url, file_name, :show_progressbar => true) }.
       with(Curl::Err::CurlError => proc { |e| NetworkError.new("Error downloading file: #{e}") })
   end

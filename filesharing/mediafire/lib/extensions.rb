@@ -1,3 +1,4 @@
+require 'uri'
 require 'curl'
 require 'nestegg'
 require 'progressbar'
@@ -255,6 +256,18 @@ module Kernel
               to.is_a?(Proc) ? to.call(exc) : to
             end
           end)
+        end
+      end
+
+      def with_values(exceptions)
+        begin
+          block.call
+        rescue *exceptions.keys => exc
+          exceptions.map_detect do |from, to|
+            if exc.is_a?(from) 
+              to.is_a?(Proc) ? to.call(exc) : to
+            end
+          end
         end
       end
     end

@@ -43,6 +43,7 @@ GEM
       archive-tar-minitar (>= 0.5.2)
     therubyracer (0.10.1)
       libv8 (~> 3.3.10)
+    trollop (1.16.2)
 
 PLATFORMS
   ruby
@@ -56,3 +57,4 @@ DEPENDENCIES
   ruby-debug19
   ruby-progressbar!
   therubyracer
+  trollop

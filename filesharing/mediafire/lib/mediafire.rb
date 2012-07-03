@@ -23,7 +23,7 @@ module MediaFire
         raise ParseError.new("This does not seem a Mediafire file page", :doc => doc)
     end
 
-    file_name, file_url = lets "Get file URL and its name" do 
+    file_name, file_url = lets "Get the file URL and its name" do 
       script = doc.at_css(".dl_startlink script") or
         raise ParseError.new("Cannot find JS element", :doc => doc)
       js_stubs = "var document = {write: function(x) { return x; }};"
