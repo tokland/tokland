@@ -66,6 +66,7 @@ minimal_configuration() {
   test -e "$DEST/dev/random" || mknod -m 0644 "$DEST/dev/random" c 1 8
   test -e "$DEST/dev/urandom" || mknod -m 0644 "$DEST/dev/urandom" c 1 9
   sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "$DEST/etc/pacman.conf"
+  sed -i "s/^[[:space:]]*SigLevel[[:space:]]*=.*$/SigLevel = Never/" "$DEST/etc/pacman.conf"
 }
 
 check_compressed_integrity() {
