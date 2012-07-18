@@ -16,8 +16,8 @@ class Rag
       definition = doc.at_css(".description").inner_html.strip
       open(filename, "w") { |f| f.write(definition) }
       $stdout.puts(filename)
-      href = doc.at_css(".next_nouns ul li a")["href"] or break
-      url = URI.join(StartUrl, href).to_s
+      anchor = doc.at_css(".next_nouns ul li a") or break
+      url = URI.join(StartUrl, anchor["href"]).to_s
     end    
   end
 end
