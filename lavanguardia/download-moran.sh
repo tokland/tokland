@@ -12,9 +12,9 @@ login() { local EMAIL=$1 PASSWORD=$2
   echo $COOKIES
 }
 
-download() { local COOKIES=$1
-  DATE=$(date "+%Y %m %d")
-  read YEAR MONTH DAY <<< "$DATE"
+download() { local COOKIES=$1; local DATE=$2
+  test "$DATE" || DATE=$(date "+%Y-%m-%d")
+  IFS="-" read YEAR MONTH DAY <<< "$DATE"
   FILENAME="lvg-moran-$YEAR-$MONTH-$DAY.pdf"
   URL="http://hemeroteca.lavanguardia.com/dynamic/edition/editionThumbnails.html"
   URL="http://hemeroteca.lavanguardia.com/search.html"
@@ -30,6 +30,7 @@ download() { local COOKIES=$1
   echo $FILENAME
 }
 
-read USER PASSWORD < /etc/lvg-auth.conf 
-COOKIES=$(login $USER $PASSWORD)
-download $COOKIES
+#read USER PASSWORD < /etc/lvg-auth.conf 
+#COOKIES=$(login $USER $PASSWORD)
+DATE=$(date --date="35 days ago" "+%Y-%m-%d")
+download "cookies.txt" "$DATE" # $COOKIES
