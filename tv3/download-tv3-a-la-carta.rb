@@ -5,8 +5,9 @@ require 'uri'
 
 module Tv3
   def self.download(url)
-    html = open(url).read
-    video_id = html.match(/flashvars.videoid = (\d+);/)[1] 
+    video_id = url.match(/videos\/(\d+)/)[1]
+    $stderr.puts("video_id=#{video_id}")
+    
     url = "http://www.tv3.cat/pvideo/FLV_bbd_dadesItem.jsp?idint=#{video_id}"
     doc = Nokogiri::XML(open(url))
     video = doc.css("videos video").max_by do |video|
