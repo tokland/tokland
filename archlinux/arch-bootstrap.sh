@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 # arch-bootstrap: Bootstrap a base Arch Linux system.
 #
 # Dependencies: coreutils, wget, sed, gawk, tar, gzip, chroot, xz.
@@ -18,6 +18,7 @@
 # And then you can chroot to the destination directory (default user: root/root):
 #
 #   $ sudo chroot destination
+#
 
 set -e -o pipefail -u
 
@@ -33,13 +34,9 @@ extract_href() { sed -n '/<a / s/^.*<a [^>]*href="\([^\"]*\)".*$/\1/p'; }
 # Simple wrapper around wget
 fetch() { wget -c --passive-ftp --quiet "$@"; }
 
-# Packages needed by pacman (BASIC_PACKAGES) are obtained this way:
-# 
-#   $ for PACKAGE in $(ldd /usr/bin/pacman | grep "=> /" | awk '{print $3}'); do 
-#       pacman -Qo $PACKAGE
-#     done | awk '{print $5}' | sort -u | xargs
-BASIC_PACKAGES=(acl attr bzip2 expat glibc libarchive openssl pacman 
-                pacman-mirrorlist xz zlib curl gpgme libssh2 libassuan libgpg-error)
+# Packages needed by pacman (check get-pacman-depenencies.sh)
+BASIC_PACKAGES=(acl archlinux-keyring attr bzip2 curl expat glibc gpgme 
+  libarchive libassuan libgpg-error libssh2 openssl pacman pacman-mirrorlist xz zlib)
 EXTRA_PACKAGES=(coreutils bash grep gawk file tar initscripts)
 PACKDIR="arch-bootstrap"
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
@@ -87,7 +84,7 @@ uncompress() {
 }  
 
 usage() {
-  stderr "Usage: $(basename "$0") [-a i686|x86_64] [-r REPO_URL] DESTINATION_DIRECTORY"
+  stderr "Usage: $(basename "$0") [-a i686 | x86_64] [-r REPO_URL] DEST"
 }
 
 main() {
@@ -106,10 +103,11 @@ main() {
   local DEST=$1   
 
   local REPO="${REPO_URL%/}/core/os/$ARCH"
-  debug "using core repository: $REPO"
-
-  debug "create package directory: $PACKDIR"
+  debug "core repository: $REPO"
   mkdir -p "$PACKDIR"
+  debug "package directory created: $PACKDIR"
+  mkdir -p "$DEST"
+  debug "destination directory created: $DEST"
 
   local LIST_HTML_FILE="$PACKDIR/core_os_$ARCH-index.html"
   if ! test -s "$LIST_HTML_FILE"; then 
@@ -121,17 +119,14 @@ main() {
 
   debug "packages HTML index: $LIST_HTML_FILE"
   local LIST=$(< "$LIST_HTML_FILE" extract_href | awk -F"/" '{print $NF}' | sort -rn)
-  test "$LIST" || 
-    { debug "Error processing list file: $LIST_HTML_FILE"; exit 1; }  
-
-  debug "create destination directory: $DEST"
-  mkdir -p "$DEST"
+  test "$LIST" || { debug "Error processing list file: $LIST_HTML_FILE"; exit 1; }  
 
   debug "pacman package and dependencies: ${BASIC_PACKAGES[*]}"
   for PACKAGE in ${BASIC_PACKAGES[*]}; do
     local FILE=$(echo "$LIST" | grep -m1 "^$PACKAGE-[[:digit:]].*\(\.gz\|\.xz\)$")
     test "$FILE" || { debug "Error: cannot find package: $PACKAGE"; exit 1; }
     local FILEPATH="$PACKDIR/$FILE"
+    
     if ! test -e "$FILEPATH" || ! check_compressed_integrity "$FILEPATH"; then
       debug "download package: $REPO/$FILE"
       fetch -O "$FILEPATH" "$REPO/$FILE"
@@ -148,12 +143,10 @@ main() {
   LC_ALL=C chroot "$DEST" /usr/bin/pacman --noconfirm --arch $ARCH \
     -Syf ${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}
 
-  debug "minimal configuration (DNS, passwd, hostname, mirrorlist, ...)" 
+  # Pacman must be re-configured
   configure_pacman "$DEST" "$ARCH"
 
-  echo "Done! you can now use the system: chroot \"$DEST\""
-  echo "Note that some applications may require /dev /proc or /sys to be mounted:"
-  echo "  $ sudo mount --bind /dev \"$DEST/dev\""
+  echo "Done! you can now chroot to the bootstraped system."
 }
 
 main "$@"
