@@ -72,7 +72,7 @@ def create_board(board_lines, ref_line):
         u'\uf063': 'b', u'\uf069': 'b',    
     }
     y_offset = 573 - 575
-    x_offset = 647 - 625
+    x_offset = 639 - 625
 
     ref_info = parse_text(ref_line)
     ref_top, ref_left = map(int, [ref_info["top"], ref_info["left"]])  
