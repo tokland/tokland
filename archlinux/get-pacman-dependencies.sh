@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e -u -o pipefail
 
-# shared library dependencies
 shared_dependencies() {
   local EXECUTABLE=$1
   for PACKAGE in $(ldd "$EXECUTABLE" | grep "=> /" | awk '{print $3}'); do 
@@ -9,7 +8,6 @@ shared_dependencies() {
   done | awk '{print $5}'
 }
 
-# dependencies from PKGBUILD
 pkgbuild_dependencies() {
   local PKGBUILD=$1
   local EXCLUDE=$2

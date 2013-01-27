@@ -34,9 +34,10 @@ extract_href() { sed -n '/<a / s/^.*<a [^>]*href="\([^\"]*\)".*$/\1/p'; }
 # Simple wrapper around wget
 fetch() { wget -c --passive-ftp --quiet "$@"; }
 
-# Packages needed by pacman (check get-pacman-depenencies.sh)
-BASIC_PACKAGES=(acl archlinux-keyring attr bzip2 curl expat glibc gpgme 
+# Packages needed by pacman (generated with get-pacman-dependencies.sh)
+PACMAN_PACKAGES=(acl archlinux-keyring attr bzip2 curl expat filesystem glibc gpgme 
   libarchive libassuan libgpg-error libssh2 openssl pacman pacman-mirrorlist xz zlib)
+BASIC_PACKAGES=("${PACMAN_PACKAGES[@]}" filesystem)
 EXTRA_PACKAGES=(coreutils bash grep gawk file tar initscripts)
 PACKDIR="arch-bootstrap"
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
