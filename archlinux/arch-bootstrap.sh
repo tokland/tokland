@@ -38,7 +38,7 @@ fetch() { wget -c --passive-ftp --quiet "$@"; }
 PACMAN_PACKAGES=(acl archlinux-keyring attr bzip2 curl expat filesystem glibc gpgme 
   libarchive libassuan libgpg-error libssh2 openssl pacman pacman-mirrorlist xz zlib)
 BASIC_PACKAGES=("${PACMAN_PACKAGES[@]}" filesystem)
-EXTRA_PACKAGES=(coreutils bash grep gawk file tar initscripts)
+EXTRA_PACKAGES=(coreutils bash grep gawk file tar systemd)
 PACKDIR="arch-bootstrap"
 DEFAULT_REPO_URL="http://mirrors.kernel.org/archlinux"
 DEFAULT_ARCH=i686
