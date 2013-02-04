@@ -13,7 +13,7 @@
 # Some examples:
 #
 #   $ sudo arch-bootstrap destination
-#   $ sudo arch-bootstrap -a x86_64 -r "ftp://ftp.archlinux.org" destination_x86_64 
+#   $ sudo arch-bootstrap -a x86_64 -r "ftp://ftp.archlinux.org" destination-x86_64 
 #
 # And then you can chroot to the destination directory (default user: root/root):
 #
@@ -147,7 +147,7 @@ main() {
   # Pacman must be re-configured
   configure_pacman "$DEST" "$ARCH"
 
-  echo "Done! you can now chroot to the bootstraped system."
+  echo "Done! you can now chroot to the bootstrapped system."
 }
 
 main "$@"

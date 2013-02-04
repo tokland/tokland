@@ -17,6 +17,7 @@ pkgbuild_dependencies() {
   done | grep -v "$EXCLUDE"
 }
 
+# Main
 { 
   shared_dependencies "/usr/bin/pacman"
   pkgbuild_dependencies "/var/abs/core/pacman/PKGBUILD" "bash"
