@@ -20,7 +20,7 @@ for PDF in "$@"; do
       <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />
       <script>
         window.addEventListener("load", function() {
-          var fen = 'b1R2nk1/5ppp/1p3n2/5N2/1b2p3/1P2BP2/q3BQPP/6K1 w KQkq - 0 1';
+          var fen = '$FEN';
           setTimeout(function() {
             var position = document.getElementById('board').contentWindow.p;
             position.SetFEN(fen);
