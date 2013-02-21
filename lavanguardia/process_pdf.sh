@@ -25,6 +25,7 @@ for PDF in "$@"; do
             var position = document.getElementById('board').contentWindow.p;
             position.SetFEN(fen);
           }, 50);
+        });
       </script>      
     </head>
     
