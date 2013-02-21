@@ -18,6 +18,14 @@ for PDF in "$@"; do
     <head>
       <title>La Vanguardia - Ajedrez $DATE</title> 
       <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />
+      <script>
+        window.addEventListener("load", function() {
+          var fen = 'b1R2nk1/5ppp/1p3n2/5N2/1b2p3/1P2BP2/q3BQPP/6K1 w KQkq - 0 1';
+          setTimeout(function() {
+            var position = document.getElementById('board').contentWindow.p;
+            position.SetFEN(fen);
+          }, 50);
+      </script>      
     </head>
     
     <body>
@@ -35,6 +43,8 @@ for PDF in "$@"; do
       </p>
       <p>
         <a href=\"mailto:tokland@gmail.com\">Contactar</a>
+        <br />
+        <iframe id="board" width="410" height="440" src="//download.zaudera.com:81/shredder/online/playshredder/playshredder.php?lang=en" frameborder=0></iframe>
       </p>
     </body>
   </html>" > output/$BASE.html.template

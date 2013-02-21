@@ -31,8 +31,8 @@ download() { local COOKIES=$1 DATE=$2
   echo $FILENAME
 }
 
-DATE=$1
-test "$DATE" || DATE=$(date "+%Y-%m-%d")
+DEFAULT_DATE=$(date "+%Y-%m-%d")
+DATE=${1:-$DEFAULT_DATE}
 #read USER PASSWORD < auth 
 #COOKIES=$(login $USER $PASSWORD)
 COOKIES=
