@@ -22,8 +22,9 @@ for PDF in "$@"; do
         window.addEventListener('load', function() {
           var fen = '$FEN';
           setTimeout(function() {
-            var position = document.getElementById('board').contentWindow.p;
-            position.SetFEN(fen);
+            var frame = document.getElementById('board').contentWindow;
+            frame.setLevel(2);
+            frame.p.SetFEN(fen);
           }, 50);
         });
       </script>      
