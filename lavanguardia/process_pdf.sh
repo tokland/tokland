@@ -45,7 +45,7 @@ for PDF in "$@"; do
       <p>
         <a href=\"mailto:tokland@gmail.com\">Contactar</a>
         <br />
-        <iframe id="board" width="410" height="440" src="//shredder/online/playshredder/playshredder.php?lang=en" frameborder=0></iframe>
+        <iframe id="board" width="410" height="440" src="/shredder/online/playshredder/playshredder.php?lang=en" frameborder=0></iframe>
       </p>
     </body>
   </html>" > output/$BASE.html.template
