@@ -19,7 +19,7 @@ for PDF in "$@"; do
       <title>La Vanguardia - Ajedrez $DATE</title> 
       <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />
       <script>
-        window.addEventListener("load", function() {
+        window.addEventListener('load', function() {
           var fen = '$FEN';
           setTimeout(function() {
             var position = document.getElementById('board').contentWindow.p;
