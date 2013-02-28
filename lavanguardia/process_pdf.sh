@@ -21,10 +21,10 @@ for PDF in "$@"; do
       <script>
         window.addEventListener('load', function() {
           var fen = '$FEN';
+          var white_to_play = fen.split(" ")[1] == 'w';
           setTimeout(function() {
             var frame = document.getElementById('board').contentWindow;
             frame.setLevel(2);
-            var white_to_play = fen.split(" ")[1] == 'w';
             frame.newGame(!white_to_play);
             frame.p.SetFEN(fen);
           }, 50);
