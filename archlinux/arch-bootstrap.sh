@@ -144,7 +144,7 @@ main() {
   debug "re-install basic packages and install extra packages: ${EXTRA_PACKAGES[*]}"
   minimal_configuration "$DEST"
   LC_ALL=C chroot "$DEST" /usr/bin/pacman --noconfirm --arch $ARCH \
-    -Syf ${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}
+    -Sy --force ${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}
 
   # Pacman must be re-configured
   configure_pacman "$DEST" "$ARCH"
