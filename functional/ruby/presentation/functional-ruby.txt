@@ -31,7 +31,7 @@ Introduction (1)
 Introduction (2)
 ================
 
-But isn't this a minor detail? 
+But isn't this a minor detail? We all know "x" is not a value here but a variable!
 
 We have business to run here! 
 
@@ -48,17 +48,18 @@ No, it's important, I'll try to show you why.
 Functional Programming: a bit of history
 ========================================
 
-* Lambda calculus (λ-calculus): Alonzo Church in the 30's. Tried to formalize every mathematical construct using only functions.
-* Lisp: John McCarthy in the late 50's. Multi-paradigm language, but very influenced by lambda calculus.
+* Lambda calculus (λ-calculus): Alonzo Church in the 30s formalized mathematical constructs using only functions.
+* Lisp: John McCarthy in the late 50's, very influenced by lambda calculus.
 * ML-family: Developed in the 70's.
 * FP: Language developed by John Backus (1977).
-* Haskell: Open standard for Functional Programming research (1987). 
+* Haskell: Pure functional, open standard for Functional Programming research (1987).
+* Erlang, Clojure, Scala, ... 
 
 Functional Programming: the theory
 ==================================
 
-* No mutable data (= no side effects). 
-* No state (= no implicit, hidden state).
+* No mutable data (no side effects). 
+* No state (no implicit, hidden state).
 
 Once assigned (value binding), a "variable" (a symbol) doesn't change its value.
 
@@ -85,8 +86,7 @@ That's all there is? but what comes of it?
 Referential transparency (1)
 ============================
 
-* Functions are *pure* functions in the mathematical sense.
-* Output depends solely in the input arguments. 
+* Functions are *pure* functions in the mathematical sense: their output depend only in their inputs, there is no "environment".
 * Therefore we'll have the same output for calls with the same parameters.
 * This allow cool things as:
 
@@ -117,14 +117,13 @@ We can execute *fun1* and *fun2* in parallel (*a* won't be modified)
 Concurrence
 ===========
 
-With no shared data, concurrence is a lot simpler:
+With no shared data, concurrence gets a lot simpler:
 
   * No semaphores
   * No monitors
   * No locks
   * No race-conditions
   * No dead-locks
-  * No ...
 
 Easier debugging
 ================
@@ -132,7 +131,7 @@ Easier debugging
 * If you have global state:
 
   * Functions depend on their inputs and the whole state. Hard to debug.
-  * When things go awry, you cannot go backwards (old data was probably overriden)
+  * When things go awry, you cannot see the evolution of values (old data was probably overriden)
 
 * In functional programming:
 
@@ -142,10 +141,10 @@ Easier debugging
 Modularity and composition
 ==========================
 
-Global state spreads complexity all over the code. Instead, you should use take advantage of:
+Global state spreads complexity all over the code base. Instead, you should use take advantage of:
 
-* *Modularity*: Write so there is light coupling between modules.
-* *Compositionality*: Make easy to connect modules and make them work cooperatively.
+* *Modularity*: Light coupling between modules.
+* *Compositionality*: Easy to connect modules and make them work cooperatively.
 * *Bottom-up programming*: Write the base elements first and go up in the abstraction layer.
 
   *"Programming is building abstractions and expressing ideas"* Hal Abelson 
@@ -155,27 +154,31 @@ Write better code!
  
 *All right... all right... but apart from referential transparency, parallelization, easier debugging and modularization... what has Functional Programming ever done for us?*
  
+.. image:: pics/romans.jpg
+  :height: 300
+  :align: center  
+
 .. class:: incremental
 
-You'll write more elegant, concise, easier to understand, maintainable code.  
+You'll write more elegant, concise, easier to understand, maintainable code. Let's see how.  
 
-Functional programming in Ruby?
-===============================
+But seriously, functional programming in Ruby?
+==============================================
 
-* Ruby is an imperative language.
-* But we still can apply functional principles.
+* Ok, Ruby is an imperative language...
+* ...But we still can apply functional principles.
 * In Ruby you cannot assure immutability, it's basically a programmer's choice.
 
 Don't update, create
 ====================
 
 * Use persistent data structures.
-* If you need to change something, don't modify in-place, create new objects.
+* If you need to change an object, don't modify it in-place, create a new one.
   
 Don't update, create: strings
 =============================
 
-No (even being a name rebind and not a real update):
+No (even if that's a name rebind and not a real update):
 
 .. sourcecode:: ruby
 
@@ -239,8 +242,8 @@ Yes:
 Blocks as higher-order functions (1)
 ====================================
 
-* In FP functions are first-class citizens: you pass them around the same way you pass *normal* values.
-* In Ruby (taken from Smalltalk) we have a wired-in mechanism to send functions: *blocks*
+* In FP functions are first-class values: you pass them around the same way you pass *normal* values.
+* In Ruby we have a wired-in mechanism to send functions: *blocks*
 * Functions/methods are not first-class citizens in Ruby, blocks are.
 
 .. sourcecode:: ruby
@@ -277,7 +280,7 @@ Blocks as higher-order functions (3)
 ====================================
 
 * Variables hold *values*, functions hold *behaviours*.
-* Think of a function just like another type of variable:
+* Think of a function just like another type:
 
 .. sourcecode:: ruby
 
@@ -418,7 +421,7 @@ Yes:
 Higher-order functions: each_xyz
 ================================
 
-* Ruby's *Enumerable* has some nice methods unfortunately designed for imperative usage. For example, *Enumerable#each_cons*:
+* Ruby's *Enumerable* has some nice methods originally designed for imperative usage. For example, *Enumerable#each_cons*:
 
 .. sourcecode:: ruby
 
@@ -428,7 +431,7 @@ Higher-order functions: each_xyz
   end
   pairwise_sums #=> [3, 5, 7] 
   
-However, since Ruby >= 1.8.7 we can call them without block (and return an enumerator):
+However, since 1.8.7 we can use them functionally, calling them without a block:
 
 .. sourcecode:: ruby
 
@@ -436,10 +439,10 @@ However, since Ruby >= 1.8.7 we can call them without block (and return an enume
     x + y
   end #=> [3, 5, 7] 
 
-Examples: Enumerable to hash (1)
-================================
+Example: Enumerable to hash
+===========================
 
-Novices tend to write this:
+Compare:
 
 .. sourcecode:: ruby
 
@@ -448,82 +451,23 @@ Novices tend to write this:
   values.each do |string|
     lengths[string] = string.length
   end
-  lengths #=> {"the" => 3, "ride" => 4, "dragon" => 6}
+  lengths #=> {"ride" => 4, "the" => 3, "dragon" => 6}
+
+With Facets' mash:
   
-Awful. But is there an idiomatic way?
-
-Examples: Enumerable to hash (2)
-================================
-
-We can use the (somewhat obscure) Hash constructor:
-
-.. sourcecode:: ruby
-
-  values = ["ride", "the", "dragon"]
-  length_pairs = values.map do |string|
-    [string, string.length]
-  end
-  lengths = Hash[length_pairs] 
-  #=> {"the" => 3, "ride" => 4, "dragon" => 6}
-  
-Not bad, but:
-
-1) In a OOP-language we would want to call method on objects.
-2) We are building an intermediate array of pairs.
-
-Examples: Enumerable to hash (3)
-================================
-
-Unsurprisingly, we can use *Enumerable#inject* to build a hash on the fly:
-
-.. sourcecode:: ruby
-
-  values = ["ride", "the", "dragon"]
-  lengths = values.inject({}) do |hash, string|
-    hash.merge(string => string.length)
-  end #=> {"the" => 3, "ride" => 4, "dragon" => 6}
-  
-Examples: Enumerable to hash (4)
-================================
-
-This inject code is cool, let's abstract it to get rid of the boilerplate (see Facets):
-
-.. sourcecode:: ruby
-
-  module Enumerable
-    def mash(&block)
-      self.inject({}) do |output, item|
-        key, value = block_given? ? yield(item) : item
-        output.merge(key => value)
-      end
-    end
-  end
-  
-Examples: Enumerable to hash (5)
-================================
-  
-And now use it directly without a block:
-
-.. sourcecode:: ruby
-
-  ["ride", "the", "dragon"].map { |s| [s, s.length] }.mash
-  #=> {"ride" => 4, "the" => 3, "dragon" => 6}
-
-Or with a block in a single step:
-
 .. sourcecode:: ruby
 
   ["ride", "the", "dragon"].mash { |s| [s, s.length] }
   #=> {"ride" => 4, "the" => 3, "dragon" => 6}
 
-Write your own extensions and refine them while you use them in your projects.
+Write your own extensions and improve them while you use them in your projects.
 
 Higher-order functions: each
 ============================
 
 * *Enumerable#each* is the usual imperative *for*-loop found in every imperative language.
-* It returns nothing (well, in Ruby returns the enumerable itself), so it *does* something imperatively (with a side-effect).
-* While you can do **everything** with *each*, you should do **nothing** with *each*.
+* It returns nothing (well, in Ruby returns the enumerable itself), so it does something, it does through side-effects.
+* Use only to perform real side-effects (write a file, access to DB, and so on) 
 
 .. sourcecode:: ruby
 
@@ -531,24 +475,6 @@ Higher-order functions: each
     # Write some nasty side-effect here
   end
 
-Higher-order functions: folds
-=============================
-
-In functional programming *Enumerable#inject* (folds, mathematicians call them *catamorphisms*) may work as the primary tool to build the rest:
-
-.. sourcecode:: ruby
-
-  [1, 2, 3].map { |x| x * 2 } #=> [2, 4, 6] 
-  [1, 2, 3].inject([]) { |acc, x| acc + [2*x] } #=> [2, 4, 6] 
-  
-.. sourcecode:: ruby
-
-  [1, 2, 3].select { |x| x > 1 } #=> [2, 3] 
-  [1, 2, 3].inject([]) { |acc, x| x > 1 ? acc + [x] : acc } #=> [2, 3]
-  
-* *detect*, *any?*, *all?*, *max*, *min*, *take_while*, *group_by*, ... all can be written with *Enumerable#inject*.  
-* So be careful and use the right abstraction, don't resort to *Enumerable#inject* as a Swiss knife.
-  
 Memoization (1)
 ===============
 
@@ -603,15 +529,13 @@ Narrow down the scope by immutability
 .. sourcecode:: ruby
 
   @title = "The apartment"
-  # 100 lines of code here
+  # 20 lines of code here
   render(@title)
   
 If you don't honor immutability, what's the value of *@title* when *render* is called? Easy: 
 
-* Check these 100 lines, maybe *@title* was changed.
-* Then check (recursively) **all** the code called in this 100-line fragment, maybe *@title* was modified somewhere.
-
-Happy debugging! 
+* Check these 20 lines, maybe *@title* was changed there.
+* And now... check (recursively) **all** the code called in this fragment to see if *@title* was modified somewhere, why, and under which conditions. Happy debugging!
 
 Recursion (1)
 =============
@@ -660,7 +584,7 @@ Recursion (3)
     end
   end
   
-* Or build abstractions that capture the intent of a recursion (either folds or your own)
+* Or build abstractions that capture the intent of a recursion (like `inject` does)
   
 Everything is an expression (1)
 ===============================
@@ -715,63 +639,22 @@ Lazy evaluation
 * *CPU efficient*: no need to calculate the complete result before returning.
 * Laziness is not a requisite for FP, but it's a strategy that fits nicely on the paradigm (Haskell).
 
-Lazy enumerators (1) 
-====================
+Lazy enumerators 
+================
 
 * Ruby uses eager evaluation (but short-circuits && or ||).
 * Ruby blocks are a mechanism for lazy evaluation.
-* Ruby arrays play badly with laziness. Use *enumerators* instead.
+* Ruby arrays are not lazy, use *enumerators* when necessary.
+
+In Ruby 2.0:
 
 .. sourcecode:: ruby
 
-  class Integer
-    def self.natural
-      Enumerator.new do |yielder|
-        (1..1.0/0).each do |number|
-          yielder.yield number
-        end
-      end
-    end
-  end
+   >> (0..Float::INFINITY).lazy.map { |x| 2*x }.take(5).to_a
+   #=> [0, 2, 4, 6, 8] 
 
-  Integer::natural.take(3) #=> [1, 2, 3]  
-  
-Lazy enumerators (2)
-====================
-
-* Let's try a map on our natural numbers
-
-.. sourcecode:: ruby
-
-  Integer.natural.map { |x| x * 2 }.take(3) 
-  # takes forever
-
-* *Enumerable#map* returns an array, so it must process the whole input before returning. 
-
-Lazy enumerators (3) 
-====================
-
-Lazy methods for *Enumerator* (here *Enumerable#each* is legit!):
-
-.. sourcecode:: ruby
-
-  class Enumerator
-    def map(&block)
-      Enumerator.new do |yielder|
-        self.each do |value|
-          yielder.yield(block.call(value))
-        end
-      end
-    end
-  end 
-
-  Integer::natural.map { |x| x * 2 }.take(3) #=> [2, 4, 6]
-  
-* Check Facets class *Denumerator*.
-* Check *issue4890* for a proposal to include laziness in Ruby.
-
-Programming paradigms (1)
-=========================
+Example
+=======
 
 "What's the sum of the first 10 natural number whose square value is divisible by 5?"
 
@@ -795,8 +678,8 @@ Functional:
 
   Integer::natural.select { |x| x**2 % 5 == 0 }.take(10).inject(:+) #=> 275
   
-Programming paradigms (2)
-=========================
+Programming paradigms: Imperative
+=================================
 
 * Imperative programming: focus on **how**.
 * Declarative (logic/dataflow/functional/...) programming: focus on **what**.
@@ -837,17 +720,21 @@ So we cannot do FP in OOP? Yes, we can!
 Efficiency
 ==========
 
-* Functional programming is usually very efficient... in functional programming languages.
+* Functional programming is very efficient... in functional programming languages.
 * Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...). Ruby cannot.
-* However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).
-* First write readable, maintainable code and only later worry about efficiency. 
+* However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ill-thought algorithms...).
+* First write readable, maintainable code and only after profiling worry about efficiency. 
 
 Breaking the law (1): Why
 =========================
 
 * Efficiency: You need to update big structures a lot.
 * Intricate code: You cannot figure out a clean implementation (it's preferable good imperative than bad functional).
-* Keep state: and we cannot use recursion due to the uncertainty about TCO.
+* State: You must keep state but cannot use recursion due to the uncertainty about TCO.
+
+.. image:: pics/judas-breaking-the-law.jpg
+  :height: 250
+  :align: center
 
 Breaking the law (2): Where
 ===========================
@@ -858,22 +745,24 @@ Breaking the law (2): Where
 
   module Enumerable
     def mash(&block)
-      self.inject({}) do |output, item|
-        key, value = block_given? ? yield(item) : item
-        output.update(key => value) # merge -> update
+      output = {}
+      each do |x|
+        k, v = yield(x)
+        output[k] = v
       end
+      output
     end
   end
 
-* At high-level: (but make it explicit)
+* At high-level (but make it explicit):
 
 .. sourcecode:: ruby
 
   updated_player = @player.next_state
   @player = updated_player
 
-We get it, FP is cool but...
-============================
+We get it, FP is cool but... (1)
+================================
 
 ... why imperative languages still rule the galaxy?!
 
@@ -886,109 +775,28 @@ We get it, FP is cool but...
   :height: 400
   :align: center 
 
+We get it, FP is cool but... (2)
+================================
 
-We get it, FP is cool but...
-============================
+... why is it harder to understand?!
 
-... why is it harder to catch?!
-
-  Be a craftsman: first learn the existing tools and later build your own.
+  Be a craftsman: Take your time to master the tools of your trade (and later build your own).
 
 .. image:: pics/violinmaker.jpg
   :height: 300
   :align: center
   
-Things we've not talked about
-=============================
+Advice: learn at least one functional language
+==============================================
 
-* Pattern matching
-* Partial functions  
-* Currying
-* (and a lot more...)
-
-Learn at least one functional language
-======================================
-
-* Haskell (pure FP, beautiful, inspiring language)
+* Haskell
 * ML (Standard ML, Objective Caml, ...)
-* Scheme (minimal LISP dialect)
-* Erlang (designed for fault-tolerant, highly-concurrent systems)
-* Scala (runs in JVM)
-* Clojure (LISP dialect, runs in JVM)
-* F# (OCaml dialect, runs in .NET)
-
-Exercises (1): Quicksort
-========================
-
-Write *Array#quicksort* (with no in-place modifications). Example:
+* Scheme
+* Erlang
+* Scala
+* Clojure
+* F#
  
-:Input: [4, 2, 5, 1, 3]
-
-.. sourcecode:: ruby
-
-  [4, 2, 5, 1, 3].quicksort # pivot: 4, rest: [2, 5, 1, 3]
-  [2, 1, 3].quicksort + [4] + [5].quicksort 
-  ([1].quicksort + [2] + [3].quicksort) + [4] + [5].quicksort
-  ([1] + [2] + [3]) + [4] + [5]
-  [1, 2, 3, 4, 5]  
-
-Exercises (2): Parsing
-======================
-
-Input data:
-
-.. sourcecode:: ruby
-
-  # id; name; age; points
-  1; Greg Dulli; 54; 1000
-  2; John Curley; 43; 2500
-  3; Rick McCollum; 22; 1200
-  4; Michael Horrigan; 25; 4000
-
-Create a *Parsing* class with a *@people* array and methods *problemX*:
-
-.. class:: small
-
-1) Is there any person with more than 1500 points?
-2) Sum of points of people over 30 years.
-3) Hash with total points for age in 10-year intervals (*{20 => 5200, 40 => 2500, 50 => 1000}*) 
-4) Name of the first person (ordered by age ASC) that has more than 1500 points.
-5) What are the names of the pair of people with less points difference? 
-6) Idem, but now we want to know also what's this difference.
-7) Get JSON *{people: [{id: {name: ..., age: ...}}]}*
-8) Get array of people with all people, but double the points for those with even age.
-
-Exercises (3): Countdown (numbers)
-==================================
-
-In Spain: *Cifras* y Letras.
-
-*Combine a given group of numbers using the four basic operations and return the expression to obtain a given number.*
-
-  Numbers: 3, 7, 10, 50, 100, 8
-  
-  Number to get: 548
-
-  548 = (100+(8*((10+50)-(7-3))))
-  
-Exercises (3): Countdown (numbers)
-==================================
-
-Example expression tree:
-
-.. image:: pics/expressionexptree.gif
-  :height: 400
-  :align: center
- 
-Source code
-===========
-
-**This presentation**: http://goo.gl/M5kNf
-
-**Source code for the presentation**: http://goo.gl/H5KNg
-
-**Source code for the exercises**: http://goo.gl/Z2F9I
-
 Thanks for coming!
 ==================
 
@@ -998,7 +806,7 @@ Arnau Sanchez (*tokland*)
 
 .. class:: center 
 
-Software freelance developer (and occasional teacher).
+Software freelance developer.
 
 .. image:: pics/tokland.jpg
   :height: 200
@@ -1019,8 +827,8 @@ Share this!
   :height: 100
   :align: center
 
-- Feel free to use all the material in the presentation. No need for attribution if you just get some ideas.
+- Feel free to use all the text and code of the presentation. 
 
-- All the images belong to their original authors, none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).
+- Note that the images belong to their original authors, none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber, in case you didn't notice ;-)).
 
-- The idea of beginning with the "expression" *x = x + 1*  was taken from Luca Bolognese's great presentation "An Introduction to Microsoft F#".
+- The idea of beginning with the "expression" *x = x + 1*  was taken from Luca Bolognese's great presentation "An Introduction to Microsoft F#". Check it out!

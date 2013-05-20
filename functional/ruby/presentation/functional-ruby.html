@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<meta name="generator" content="Docutils 0.8: http://docutils.sourceforge.net/" />
+<meta name="generator" content="Docutils 0.9.1: http://docutils.sourceforge.net/" />
 <meta name="version" content="S5 1.1" />
 <title>Functional Programming with Ruby</title>
 <style type="text/css">
@@ -127,7 +127,7 @@
 </div>
 <div class="slide" id="introduction-2">
 <h1>Introduction (2)</h1>
-<p>But isn't this a minor detail?</p>
+<p>But isn't this a minor detail? We all know &quot;x&quot; is not a value here but a variable!</p>
 <p>We have business to run here!</p>
 <p>Let the loony bearded guys deal with it!!</p>
 <img alt="pics/ritchie-thompson.jpg" class="center align-center" src="pics/ritchie-thompson.jpg" style="height: 300px;" />
@@ -136,18 +136,19 @@
 <div class="slide" id="functional-programming-a-bit-of-history">
 <h1>Functional Programming: a bit of history</h1>
 <ul class="simple">
-<li>Lambda calculus (λ-calculus): Alonzo Church in the 30's. Tried to formalize every mathematical construct using only functions.</li>
-<li>Lisp: John McCarthy in the late 50's. Multi-paradigm language, but very influenced by lambda calculus.</li>
+<li>Lambda calculus (λ-calculus): Alonzo Church in the 30s formalized mathematical constructs using only functions.</li>
+<li>Lisp: John McCarthy in the late 50's, very influenced by lambda calculus.</li>
 <li>ML-family: Developed in the 70's.</li>
 <li>FP: Language developed by John Backus (1977).</li>
-<li>Haskell: Open standard for Functional Programming research (1987).</li>
+<li>Haskell: Pure functional, open standard for Functional Programming research (1987).</li>
+<li>Erlang, Clojure, Scala, ...</li>
 </ul>
 </div>
 <div class="slide" id="functional-programming-the-theory">
 <h1>Functional Programming: the theory</h1>
 <ul class="simple">
-<li>No mutable data (= no side effects).</li>
-<li>No state (= no implicit, hidden state).</li>
+<li>No mutable data (no side effects).</li>
+<li>No state (no implicit, hidden state).</li>
 </ul>
 <p>Once assigned (value binding), a &quot;variable&quot; (a symbol) doesn't change its value.</p>
 <img alt="pics/functional-programming-joke.png" class="align-center" src="pics/functional-programming-joke.png" style="height: 300px;" />
@@ -165,8 +166,7 @@
 <div class="slide" id="referential-transparency-1">
 <h1>Referential transparency (1)</h1>
 <ul class="simple">
-<li>Functions are <em>pure</em> functions in the mathematical sense.</li>
-<li>Output depends solely in the input arguments.</li>
+<li>Functions are <em>pure</em> functions in the mathematical sense: their output depend only in their inputs, there is no &quot;environment&quot;.</li>
 <li>Therefore we'll have the same output for calls with the same parameters.</li>
 <li>This allow cool things as:<ul>
 <li><strong>Memoization</strong>: Speed up computation by saving results for previous function calls.</li>
@@ -192,7 +192,7 @@
 </div>
 <div class="slide" id="concurrence">
 <h1>Concurrence</h1>
-<p>With no shared data, concurrence is a lot simpler:</p>
+<p>With no shared data, concurrence gets a lot simpler:</p>
 <blockquote>
 <ul class="simple">
 <li>No semaphores</li>
@@ -200,7 +200,6 @@
 <li>No locks</li>
 <li>No race-conditions</li>
 <li>No dead-locks</li>
-<li>No ...</li>
 </ul>
 </blockquote>
 </div>
@@ -209,7 +208,7 @@
 <ul class="simple">
 <li>If you have global state:<ul>
 <li>Functions depend on their inputs and the whole state. Hard to debug.</li>
-<li>When things go awry, you cannot go backwards (old data was probably overriden)</li>
+<li>When things go awry, you cannot see the evolution of values (old data was probably overriden)</li>
 </ul>
 </li>
 <li>In functional programming:<ul>
@@ -221,11 +220,11 @@
 </div>
 <div class="slide" id="modularity-and-composition">
 <h1>Modularity and composition</h1>
-<p>Global state spreads complexity all over the code. Instead, you should use take advantage of:</p>
+<p>Global state spreads complexity all over the code base. Instead, you should use take advantage of:</p>
 <ul>
-<li><p class="first"><em>Modularity</em>: Write so there is light coupling between modules.</p>
+<li><p class="first"><em>Modularity</em>: Light coupling between modules.</p>
 </li>
-<li><p class="first"><em>Compositionality</em>: Make easy to connect modules and make them work cooperatively.</p>
+<li><p class="first"><em>Compositionality</em>: Easy to connect modules and make them work cooperatively.</p>
 </li>
 <li><p class="first"><em>Bottom-up programming</em>: Write the base elements first and go up in the abstraction layer.</p>
 <p><em>&quot;Programming is building abstractions and expressing ideas&quot;</em> Hal Abelson</p>
@@ -235,13 +234,14 @@
 <div class="slide" id="write-better-code">
 <h1>Write better code!</h1>
 <p><em>All right... all right... but apart from referential transparency, parallelization, easier debugging and modularization... what has Functional Programming ever done for us?</em></p>
-<p class="incremental">You'll write more elegant, concise, easier to understand, maintainable code.</p>
+<img alt="pics/romans.jpg" class="align-center" src="pics/romans.jpg" style="height: 300px;" />
+<p class="incremental">You'll write more elegant, concise, easier to understand, maintainable code. Let's see how.</p>
 </div>
-<div class="slide" id="functional-programming-in-ruby">
-<h1>Functional programming in Ruby?</h1>
+<div class="slide" id="but-seriously-functional-programming-in-ruby">
+<h1>But seriously, functional programming in Ruby?</h1>
 <ul class="simple">
-<li>Ruby is an imperative language.</li>
-<li>But we still can apply functional principles.</li>
+<li>Ok, Ruby is an imperative language...</li>
+<li>...But we still can apply functional principles.</li>
 <li>In Ruby you cannot assure immutability, it's basically a programmer's choice.</li>
 </ul>
 </div>
@@ -249,12 +249,12 @@
 <h1>Don't update, create</h1>
 <ul class="simple">
 <li>Use persistent data structures.</li>
-<li>If you need to change something, don't modify in-place, create new objects.</li>
+<li>If you need to change an object, don't modify it in-place, create a new one.</li>
 </ul>
 </div>
 <div class="slide" id="don-t-update-create-strings">
 <h1>Don't update, create: strings</h1>
-<p>No (even being a name rebind and not a real update):</p>
+<p>No (even if that's a name rebind and not a real update):</p>
 <div class="highlight"><pre><span class="n">movie</span> <span class="o">=</span> <span class="s2">&quot;The Apartment&quot;</span>
 <span class="n">movie</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">#{</span><span class="n">movie</span><span class="si">}</span><span class="s2"> (by Billy Wilder)&quot;</span>
 <span class="n">movie</span> <span class="o">=</span> <span class="s2">&quot;[1960] </span><span class="si">#{</span><span class="n">movie</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -301,8 +301,8 @@
 <div class="slide" id="blocks-as-higher-order-functions-1">
 <h1>Blocks as higher-order functions (1)</h1>
 <ul class="simple">
-<li>In FP functions are first-class citizens: you pass them around the same way you pass <em>normal</em> values.</li>
-<li>In Ruby (taken from Smalltalk) we have a wired-in mechanism to send functions: <em>blocks</em></li>
+<li>In FP functions are first-class values: you pass them around the same way you pass <em>normal</em> values.</li>
+<li>In Ruby we have a wired-in mechanism to send functions: <em>blocks</em></li>
 <li>Functions/methods are not first-class citizens in Ruby, blocks are.</li>
 </ul>
 <div class="highlight"><pre><span class="n">write_block</span> <span class="o">=</span> <span class="nb">proc</span> <span class="k">do</span> <span class="o">|</span><span class="n">file</span><span class="o">|</span>
@@ -334,7 +334,7 @@
 <h1>Blocks as higher-order functions (3)</h1>
 <ul class="simple">
 <li>Variables hold <em>values</em>, functions hold <em>behaviours</em>.</li>
-<li>Think of a function just like another type of variable:</li>
+<li>Think of a function just like another type:</li>
 </ul>
 <div class="highlight"><pre><span class="n">a</span> <span class="o">=</span> <span class="mi">12</span> <span class="c1"># a :: Integer</span>
 <span class="n">b</span> <span class="o">=</span> <span class="mi">12</span><span class="o">.</span><span class="mi">3</span> <span class="c1"># b :: Float</span>
@@ -437,7 +437,7 @@
 <div class="slide" id="higher-order-functions-each-xyz">
 <h1>Higher-order functions: each_xyz</h1>
 <ul class="simple">
-<li>Ruby's <em>Enumerable</em> has some nice methods unfortunately designed for imperative usage. For example, <em>Enumerable#each_cons</em>:</li>
+<li>Ruby's <em>Enumerable</em> has some nice methods originally designed for imperative usage. For example, <em>Enumerable#each_cons</em>:</li>
 </ul>
 <div class="highlight"><pre><span class="n">pairwise_sums</span> <span class="o">=</span> <span class="o">[]</span>
 <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">each_cons</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">|</span>
@@ -445,15 +445,15 @@
 <span class="k">end</span>
 <span class="n">pairwise_sums</span> <span class="c1">#=&gt; [3, 5, 7]</span>
 </pre></div>
-<p>However, since Ruby &gt;= 1.8.7 we can call them without block (and return an enumerator):</p>
+<p>However, since 1.8.7 we can use them functionally, calling them without a block:</p>
 <div class="highlight"><pre><span class="n">pairwise_sums</span> <span class="o">=</span> <span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="o">].</span><span class="n">each_cons</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">|</span>
   <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
 <span class="k">end</span> <span class="c1">#=&gt; [3, 5, 7]</span>
 </pre></div>
 </div>
-<div class="slide" id="examples-enumerable-to-hash-1">
-<h1>Examples: Enumerable to hash (1)</h1>
-<p>Novices tend to write this:</p>
+<div class="slide" id="example-enumerable-to-hash">
+<h1>Example: Enumerable to hash</h1>
+<p>Compare:</p>
 <div class="highlight"><pre><span class="n">values</span> <span class="o">=</span> <span class="o">[</span><span class="s2">&quot;ride&quot;</span><span class="p">,</span> <span class="s2">&quot;the&quot;</span><span class="p">,</span> <span class="s2">&quot;dragon&quot;</span><span class="o">]</span>
 <span class="n">lengths</span> <span class="o">=</span> <span class="p">{}</span>
 <span class="n">values</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">string</span><span class="o">|</span>
@@ -461,53 +461,7 @@
 <span class="k">end</span>
 <span class="n">lengths</span> <span class="c1">#=&gt; {&quot;the&quot; =&gt; 3, &quot;ride&quot; =&gt; 4, &quot;dragon&quot; =&gt; 6}</span>
 </pre></div>
-<p>Awful. But is there an idiomatic way?</p>
-</div>
-<div class="slide" id="examples-enumerable-to-hash-2">
-<h1>Examples: Enumerable to hash (2)</h1>
-<p>We can use the (somewhat obscure) Hash constructor:</p>
-<div class="highlight"><pre><span class="n">values</span> <span class="o">=</span> <span class="o">[</span><span class="s2">&quot;ride&quot;</span><span class="p">,</span> <span class="s2">&quot;the&quot;</span><span class="p">,</span> <span class="s2">&quot;dragon&quot;</span><span class="o">]</span>
-<span class="n">length_pairs</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">map</span> <span class="k">do</span> <span class="o">|</span><span class="n">string</span><span class="o">|</span>
-  <span class="o">[</span><span class="n">string</span><span class="p">,</span> <span class="n">string</span><span class="o">.</span><span class="n">length</span><span class="o">]</span>
-<span class="k">end</span>
-<span class="n">lengths</span> <span class="o">=</span> <span class="no">Hash</span><span class="o">[</span><span class="n">length_pairs</span><span class="o">]</span>
-<span class="c1">#=&gt; {&quot;the&quot; =&gt; 3, &quot;ride&quot; =&gt; 4, &quot;dragon&quot; =&gt; 6}</span>
-</pre></div>
-<p>Not bad, but:</p>
-<ol class="arabic simple">
-<li>In a OOP-language we would want to call method on objects.</li>
-<li>We are building an intermediate array of pairs.</li>
-</ol>
-</div>
-<div class="slide" id="examples-enumerable-to-hash-3">
-<h1>Examples: Enumerable to hash (3)</h1>
-<p>Unsurprisingly, we can use <em>Enumerable#inject</em> to build a hash on the fly:</p>
-<div class="highlight"><pre><span class="n">values</span> <span class="o">=</span> <span class="o">[</span><span class="s2">&quot;ride&quot;</span><span class="p">,</span> <span class="s2">&quot;the&quot;</span><span class="p">,</span> <span class="s2">&quot;dragon&quot;</span><span class="o">]</span>
-<span class="n">lengths</span> <span class="o">=</span> <span class="n">values</span><span class="o">.</span><span class="n">inject</span><span class="p">({})</span> <span class="k">do</span> <span class="o">|</span><span class="nb">hash</span><span class="p">,</span> <span class="n">string</span><span class="o">|</span>
-  <span class="nb">hash</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">string</span> <span class="o">=&gt;</span> <span class="n">string</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
-<span class="k">end</span> <span class="c1">#=&gt; {&quot;the&quot; =&gt; 3, &quot;ride&quot; =&gt; 4, &quot;dragon&quot; =&gt; 6}</span>
-</pre></div>
-</div>
-<div class="slide" id="examples-enumerable-to-hash-4">
-<h1>Examples: Enumerable to hash (4)</h1>
-<p>This inject code is cool, let's abstract it to get rid of the boilerplate (see Facets):</p>
-<div class="highlight"><pre><span class="k">module</span> <span class="nn">Enumerable</span>
-  <span class="k">def</span> <span class="nf">mash</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
-    <span class="nb">self</span><span class="o">.</span><span class="n">inject</span><span class="p">({})</span> <span class="k">do</span> <span class="o">|</span><span class="n">output</span><span class="p">,</span> <span class="n">item</span><span class="o">|</span>
-      <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">block_given?</span> <span class="p">?</span> <span class="k">yield</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="p">:</span> <span class="n">item</span>
-      <span class="n">output</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">key</span> <span class="o">=&gt;</span> <span class="n">value</span><span class="p">)</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-</pre></div>
-</div>
-<div class="slide" id="examples-enumerable-to-hash-5">
-<h1>Examples: Enumerable to hash (5)</h1>
-<p>And now use it directly without a block:</p>
-<div class="highlight"><pre><span class="o">[</span><span class="s2">&quot;ride&quot;</span><span class="p">,</span> <span class="s2">&quot;the&quot;</span><span class="p">,</span> <span class="s2">&quot;dragon&quot;</span><span class="o">].</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">s</span><span class="o">|</span> <span class="o">[</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">length</span><span class="o">]</span> <span class="p">}</span><span class="o">.</span><span class="n">mash</span>
-<span class="c1">#=&gt; {&quot;ride&quot; =&gt; 4, &quot;the&quot; =&gt; 3, &quot;dragon&quot; =&gt; 6}</span>
-</pre></div>
-<p>Or with a block in a single step:</p>
+<p>With Facets' mash:</p>
 <div class="highlight"><pre><span class="o">[</span><span class="s2">&quot;ride&quot;</span><span class="p">,</span> <span class="s2">&quot;the&quot;</span><span class="p">,</span> <span class="s2">&quot;dragon&quot;</span><span class="o">].</span><span class="n">mash</span> <span class="p">{</span> <span class="o">|</span><span class="n">s</span><span class="o">|</span> <span class="o">[</span><span class="n">s</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">length</span><span class="o">]</span> <span class="p">}</span>
 <span class="c1">#=&gt; {&quot;ride&quot; =&gt; 4, &quot;the&quot; =&gt; 3, &quot;dragon&quot; =&gt; 6}</span>
 </pre></div>
@@ -517,27 +471,13 @@
 <h1>Higher-order functions: each</h1>
 <ul class="simple">
 <li><em>Enumerable#each</em> is the usual imperative <em>for</em>-loop found in every imperative language.</li>
-<li>It returns nothing (well, in Ruby returns the enumerable itself), so it <em>does</em> something imperatively (with a side-effect).</li>
-<li>While you can do <strong>everything</strong> with <em>each</em>, you should do <strong>nothing</strong> with <em>each</em>.</li>
+<li>It returns nothing (well, in Ruby returns the enumerable itself), so it does something, it does through side-effects.</li>
+<li>Use only to perform real side-effects (write a file, access to DB, and so on)</li>
 </ul>
 <div class="highlight"><pre><span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
   <span class="c1"># Write some nasty side-effect here</span>
 <span class="k">end</span>
 </pre></div>
-</div>
-<div class="slide" id="higher-order-functions-folds">
-<h1>Higher-order functions: folds</h1>
-<p>In functional programming <em>Enumerable#inject</em> (folds, mathematicians call them <em>catamorphisms</em>) may work as the primary tool to build the rest:</p>
-<div class="highlight"><pre><span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="p">}</span> <span class="c1">#=&gt; [2, 4, 6]</span>
-<span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">inject</span><span class="p">(</span><span class="o">[]</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">acc</span><span class="p">,</span> <span class="n">x</span><span class="o">|</span> <span class="n">acc</span> <span class="o">+</span> <span class="o">[</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="o">]</span> <span class="p">}</span> <span class="c1">#=&gt; [2, 4, 6]</span>
-</pre></div>
-<div class="highlight"><pre><span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">select</span> <span class="p">{</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="p">}</span> <span class="c1">#=&gt; [2, 3]</span>
-<span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">inject</span><span class="p">(</span><span class="o">[]</span><span class="p">)</span> <span class="p">{</span> <span class="o">|</span><span class="n">acc</span><span class="p">,</span> <span class="n">x</span><span class="o">|</span> <span class="n">x</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">?</span> <span class="n">acc</span> <span class="o">+</span> <span class="o">[</span><span class="n">x</span><span class="o">]</span> <span class="p">:</span> <span class="n">acc</span> <span class="p">}</span> <span class="c1">#=&gt; [2, 3]</span>
-</pre></div>
-<ul class="simple">
-<li><em>detect</em>, <em>any?</em>, <em>all?</em>, <em>max</em>, <em>min</em>, <em>take_while</em>, <em>group_by</em>, ... all can be written with <em>Enumerable#inject</em>.</li>
-<li>So be careful and use the right abstraction, don't resort to <em>Enumerable#inject</em> as a Swiss knife.</li>
-</ul>
 </div>
 <div class="slide" id="memoization-1">
 <h1>Memoization (1)</h1>
@@ -582,15 +522,14 @@ real  0m0.017s
 <div class="slide" id="narrow-down-the-scope-by-immutability">
 <h1>Narrow down the scope by immutability</h1>
 <div class="highlight"><pre><span class="vi">@title</span> <span class="o">=</span> <span class="s2">&quot;The apartment&quot;</span>
-<span class="c1"># 100 lines of code here</span>
+<span class="c1"># 20 lines of code here</span>
 <span class="n">render</span><span class="p">(</span><span class="vi">@title</span><span class="p">)</span>
 </pre></div>
 <p>If you don't honor immutability, what's the value of <em>&#64;title</em> when <em>render</em> is called? Easy:</p>
 <ul class="simple">
-<li>Check these 100 lines, maybe <em>&#64;title</em> was changed.</li>
-<li>Then check (recursively) <strong>all</strong> the code called in this 100-line fragment, maybe <em>&#64;title</em> was modified somewhere.</li>
+<li>Check these 20 lines, maybe <em>&#64;title</em> was changed there.</li>
+<li>And now... check (recursively) <strong>all</strong> the code called in this fragment to see if <em>&#64;title</em> was modified somewhere, why, and in which conditions. Happy debugging!</li>
 </ul>
-<p>Happy debugging!</p>
 </div>
 <div class="slide" id="recursion-1">
 <h1>Recursion (1)</h1>
@@ -633,7 +572,7 @@ real  0m0.017s
 <span class="k">end</span>
 </pre></div>
 <ul class="simple">
-<li>Or build abstractions that capture the intent of a recursion (either folds or your own)</li>
+<li>Or build abstractions that capture the intent of a recursion (like <cite>inject</cite> does)</li>
 </ul>
 </div>
 <div class="slide" id="everything-is-an-expression-1">
@@ -683,60 +622,20 @@ real  0m0.017s
 <li>Laziness is not a requisite for FP, but it's a strategy that fits nicely on the paradigm (Haskell).</li>
 </ul>
 </div>
-<div class="slide" id="lazy-enumerators-1">
-<h1>Lazy enumerators (1)</h1>
+<div class="slide" id="lazy-enumerators">
+<h1>Lazy enumerators</h1>
 <ul class="simple">
 <li>Ruby uses eager evaluation (but short-circuits &amp;&amp; or ||).</li>
 <li>Ruby blocks are a mechanism for lazy evaluation.</li>
 <li>Ruby arrays play badly with laziness. Use <em>enumerators</em> instead.</li>
 </ul>
-<div class="highlight"><pre><span class="k">class</span> <span class="nc">Integer</span>
-  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">natural</span>
-    <span class="no">Enumerator</span><span class="o">.</span><span class="n">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">yielder</span><span class="o">|</span>
-      <span class="p">(</span><span class="mi">1</span><span class="o">.</span><span class="n">.</span><span class="mi">1</span><span class="o">.</span><span class="mi">0</span><span class="o">/</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">number</span><span class="o">|</span>
-        <span class="n">yielder</span><span class="o">.</span><span class="n">yield</span> <span class="n">number</span>
-      <span class="k">end</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="nb">Integer</span><span class="o">::</span><span class="n">natural</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="c1">#=&gt; [1, 2, 3]</span>
+<p>In Ruby 2.0:</p>
+<div class="highlight"><pre><span class="o">&gt;&gt;</span> <span class="p">(</span><span class="mi">0</span><span class="o">.</span><span class="n">.</span><span class="no">Float</span><span class="o">::</span><span class="no">INFINITY</span><span class="p">)</span><span class="o">.</span><span class="n">lazy</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span> <span class="p">}</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">to_a</span>
+<span class="c1">#=&gt; [0, 2, 4, 6, 8]</span>
 </pre></div>
 </div>
-<div class="slide" id="lazy-enumerators-2">
-<h1>Lazy enumerators (2)</h1>
-<ul class="simple">
-<li>Let's try a map on our natural numbers</li>
-</ul>
-<div class="highlight"><pre><span class="nb">Integer</span><span class="o">.</span><span class="n">natural</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="p">}</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-<span class="c1"># takes forever</span>
-</pre></div>
-<ul class="simple">
-<li><em>Enumerable#map</em> returns an array, so it must process the whole input before returning.</li>
-</ul>
-</div>
-<div class="slide" id="lazy-enumerators-3">
-<h1>Lazy enumerators (3)</h1>
-<p>Lazy methods for <em>Enumerator</em> (here <em>Enumerable#each</em> is legit!):</p>
-<div class="highlight"><pre><span class="k">class</span> <span class="nc">Enumerator</span>
-  <span class="k">def</span> <span class="nf">map</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
-    <span class="no">Enumerator</span><span class="o">.</span><span class="n">new</span> <span class="k">do</span> <span class="o">|</span><span class="n">yielder</span><span class="o">|</span>
-      <span class="nb">self</span><span class="o">.</span><span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">value</span><span class="o">|</span>
-        <span class="n">yielder</span><span class="o">.</span><span class="n">yield</span><span class="p">(</span><span class="n">block</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-      <span class="k">end</span>
-    <span class="k">end</span>
-  <span class="k">end</span>
-<span class="k">end</span>
-
-<span class="nb">Integer</span><span class="o">::</span><span class="n">natural</span><span class="o">.</span><span class="n">map</span> <span class="p">{</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">2</span> <span class="p">}</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span> <span class="c1">#=&gt; [2, 4, 6]</span>
-</pre></div>
-<ul class="simple">
-<li>Check Facets class <em>Denumerator</em>.</li>
-<li>Check <em>issue4890</em> for a proposal to include laziness in Ruby.</li>
-</ul>
-</div>
-<div class="slide" id="programming-paradigms-1">
-<h1>Programming paradigms (1)</h1>
+<div class="slide" id="example">
+<h1>Example</h1>
 <p>&quot;What's the sum of the first 10 natural number whose square value is divisible by 5?&quot;</p>
 <p>Imperative:</p>
 <div class="highlight"><pre><span class="n">n</span><span class="p">,</span> <span class="n">num_elements</span><span class="p">,</span> <span class="n">sum</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
@@ -753,8 +652,8 @@ real  0m0.017s
 <div class="highlight"><pre><span class="nb">Integer</span><span class="o">::</span><span class="n">natural</span><span class="o">.</span><span class="n">select</span> <span class="p">{</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span> <span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">}</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="o">.</span><span class="n">inject</span><span class="p">(</span><span class="ss">:+</span><span class="p">)</span> <span class="c1">#=&gt; 275</span>
 </pre></div>
 </div>
-<div class="slide" id="programming-paradigms-2">
-<h1>Programming paradigms (2)</h1>
+<div class="slide" id="programming-paradigms-imperative">
+<h1>Programming paradigms: Imperative</h1>
 <ul class="simple">
 <li>Imperative programming: focus on <strong>how</strong>.</li>
 <li>Declarative (logic/dataflow/functional/...) programming: focus on <strong>what</strong>.</li>
@@ -788,10 +687,10 @@ Functional programming is like describing your problem to a mathematician. Imper
 <div class="slide" id="efficiency">
 <h1>Efficiency</h1>
 <ul class="simple">
-<li>Functional programming is usually very efficient... in functional programming languages.</li>
+<li>Functional programming is very efficient... in functional programming languages.</li>
 <li>Why? because they can take for granted all the cool things we've talked about (persistent data-structures, referential transparency, ...). Ruby cannot.</li>
-<li>However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ...).</li>
-<li>First write readable, maintainable code and only later worry about efficiency.</li>
+<li>However, it's unlikely that the functional snippets in your Ruby code are the bottleneck of the application (usually: network, database, disk, ill-thought algorithms...).</li>
+<li>First write readable, maintainable code and only after profiling worry about efficiency.</li>
 </ul>
 </div>
 <div class="slide" id="breaking-the-law-1-why">
@@ -799,8 +698,9 @@ Functional programming is like describing your problem to a mathematician. Imper
 <ul class="simple">
 <li>Efficiency: You need to update big structures a lot.</li>
 <li>Intricate code: You cannot figure out a clean implementation (it's preferable good imperative than bad functional).</li>
-<li>Keep state: and we cannot use recursion due to the uncertainty about TCO.</li>
+<li>State: You must keep state and we cannot use recursion due to the uncertainty about TCO.</li>
 </ul>
+<img alt="pics/judas-breaking-the-law.jpg" class="align-center" src="pics/judas-breaking-the-law.jpg" style="height: 250px;" />
 </div>
 <div class="slide" id="breaking-the-law-2-where">
 <h1>Breaking the law (2): Where</h1>
@@ -809,115 +709,48 @@ Functional programming is like describing your problem to a mathematician. Imper
 </ul>
 <div class="highlight"><pre><span class="k">module</span> <span class="nn">Enumerable</span>
   <span class="k">def</span> <span class="nf">mash</span><span class="p">(</span><span class="o">&amp;</span><span class="n">block</span><span class="p">)</span>
-    <span class="nb">self</span><span class="o">.</span><span class="n">inject</span><span class="p">({})</span> <span class="k">do</span> <span class="o">|</span><span class="n">output</span><span class="p">,</span> <span class="n">item</span><span class="o">|</span>
-      <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="nb">block_given?</span> <span class="p">?</span> <span class="k">yield</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="p">:</span> <span class="n">item</span>
-      <span class="n">output</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">key</span> <span class="o">=&gt;</span> <span class="n">value</span><span class="p">)</span> <span class="c1"># merge -&gt; update</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">each</span> <span class="k">do</span> <span class="o">|</span><span class="n">x</span><span class="o">|</span>
+      <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="k">yield</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+      <span class="n">output</span><span class="o">[</span><span class="n">k</span><span class="o">]</span> <span class="o">=</span> <span class="n">v</span>
     <span class="k">end</span>
+    <span class="n">output</span>
   <span class="k">end</span>
 <span class="k">end</span>
 </pre></div>
 <ul class="simple">
-<li>At high-level: (but make it explicit)</li>
+<li>At high-level (but make it explicit):</li>
 </ul>
 <div class="highlight"><pre><span class="n">updated_player</span> <span class="o">=</span> <span class="vi">@player</span><span class="o">.</span><span class="n">next_state</span>
 <span class="vi">@player</span> <span class="o">=</span> <span class="n">updated_player</span>
 </pre></div>
 </div>
-<div class="slide" id="we-get-it-fp-is-cool-but">
-<h1>We get it, FP is cool but...</h1>
+<div class="slide" id="we-get-it-fp-is-cool-but-1">
+<h1>We get it, FP is cool but... (1)</h1>
 <p>... why imperative languages still rule the galaxy?!</p>
 <blockquote>
 Is the imperative programming stronger?
 No, no, no. Only quicker, easier, more seductive.</blockquote>
 <img alt="pics/yoda-lambda.png" class="center incremental align-center" src="pics/yoda-lambda.png" style="height: 400px;" />
 </div>
-<div class="slide" id="id1">
-<h1>We get it, FP is cool but...</h1>
+<div class="slide" id="we-get-it-fp-is-cool-but-2">
+<h1>We get it, FP is cool but... (2)</h1>
 <p>... why is it harder to catch?!</p>
 <blockquote>
-Be a craftsman: first learn the existing tools and later build your own.</blockquote>
+Be a craftsman: Take your time to master the tools of your trade, and later build your own.</blockquote>
 <img alt="pics/violinmaker.jpg" class="align-center" src="pics/violinmaker.jpg" style="height: 300px;" />
 </div>
-<div class="slide" id="things-we-ve-not-talked-about">
-<h1>Things we've not talked about</h1>
+<div class="slide" id="advice-learn-at-least-one-functional-language">
+<h1>Advice: learn at least one functional language</h1>
 <ul class="simple">
-<li>Pattern matching</li>
-<li>Partial functions</li>
-<li>Currying</li>
-<li>(and a lot more...)</li>
-</ul>
-</div>
-<div class="slide" id="learn-at-least-one-functional-language">
-<h1>Learn at least one functional language</h1>
-<ul class="simple">
-<li>Haskell (pure FP, beautiful, inspiring language)</li>
+<li>Haskell</li>
 <li>ML (Standard ML, Objective Caml, ...)</li>
-<li>Scheme (minimal LISP dialect)</li>
-<li>Erlang (designed for fault-tolerant, highly-concurrent systems)</li>
-<li>Scala (runs in JVM)</li>
-<li>Clojure (LISP dialect, runs in JVM)</li>
-<li>F# (OCaml dialect, runs in .NET)</li>
+<li>Scheme</li>
+<li>Erlang</li>
+<li>Scala</li>
+<li>Clojure</li>
+<li>F#</li>
 </ul>
-</div>
-<div class="slide" id="exercises-1-quicksort">
-<h1>Exercises (1): Quicksort</h1>
-<p>Write <em>Array#quicksort</em> (with no in-place modifications). Example:</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field"><th class="field-name">Input:</th><td class="field-body">[4, 2, 5, 1, 3]</td>
-</tr>
-</tbody>
-</table>
-<div class="highlight"><pre><span class="o">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">quicksort</span> <span class="c1"># pivot: 4, rest: [2, 5, 1, 3]</span>
-<span class="o">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="o">].</span><span class="n">quicksort</span> <span class="o">+</span> <span class="o">[</span><span class="mi">4</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span><span class="mi">5</span><span class="o">].</span><span class="n">quicksort</span>
-<span class="p">(</span><span class="o">[</span><span class="mi">1</span><span class="o">].</span><span class="n">quicksort</span> <span class="o">+</span> <span class="o">[</span><span class="mi">2</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span><span class="mi">3</span><span class="o">].</span><span class="n">quicksort</span><span class="p">)</span> <span class="o">+</span> <span class="o">[</span><span class="mi">4</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span><span class="mi">5</span><span class="o">].</span><span class="n">quicksort</span>
-<span class="p">(</span><span class="o">[</span><span class="mi">1</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span><span class="mi">2</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span><span class="mi">3</span><span class="o">]</span><span class="p">)</span> <span class="o">+</span> <span class="o">[</span><span class="mi">4</span><span class="o">]</span> <span class="o">+</span> <span class="o">[</span><span class="mi">5</span><span class="o">]</span>
-<span class="o">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="o">]</span>
-</pre></div>
-</div>
-<div class="slide" id="exercises-2-parsing">
-<h1>Exercises (2): Parsing</h1>
-<p>Input data:</p>
-<div class="highlight"><pre><span class="c1"># id; name; age; points</span>
-<span class="mi">1</span><span class="p">;</span> <span class="no">Greg</span> <span class="no">Dulli</span><span class="p">;</span> <span class="mi">54</span><span class="p">;</span> <span class="mi">1000</span>
-<span class="mi">2</span><span class="p">;</span> <span class="no">John</span> <span class="no">Curley</span><span class="p">;</span> <span class="mi">43</span><span class="p">;</span> <span class="mi">2500</span>
-<span class="mi">3</span><span class="p">;</span> <span class="no">Rick</span> <span class="no">McCollum</span><span class="p">;</span> <span class="mi">22</span><span class="p">;</span> <span class="mi">1200</span>
-<span class="mi">4</span><span class="p">;</span> <span class="no">Michael</span> <span class="no">Horrigan</span><span class="p">;</span> <span class="mi">25</span><span class="p">;</span> <span class="mi">4000</span>
-</pre></div>
-<p>Create a <em>Parsing</em> class with a <em>&#64;people</em> array and methods <em>problemX</em>:</p>
-<ol class="small arabic simple">
-<li>Is there any person with more than 1500 points?</li>
-<li>Sum of points of people over 30 years.</li>
-<li>Hash with total points for age in 10-year intervals (<em>{20 =&gt; 5200, 40 =&gt; 2500, 50 =&gt; 1000}</em>)</li>
-<li>Name of the first person (ordered by age ASC) that has more than 1500 points.</li>
-<li>What are the names of the pair of people with less points difference?</li>
-<li>Idem, but now we want to know also what's this difference.</li>
-<li>Get JSON <em>{people: [{id: {name: ..., age: ...}}]}</em></li>
-<li>Get array of people with all people, but double the points for those with even age.</li>
-</ol>
-</div>
-<div class="slide" id="exercises-3-countdown-numbers">
-<h1>Exercises (3): Countdown (numbers)</h1>
-<p>In Spain: <em>Cifras</em> y Letras.</p>
-<p><em>Combine a given group of numbers using the four basic operations and return the expression to obtain a given number.</em></p>
-<blockquote>
-<p>Numbers: 3, 7, 10, 50, 100, 8</p>
-<p>Number to get: 548</p>
-<p>548 = (100+(8*((10+50)-(7-3))))</p>
-</blockquote>
-</div>
-<div class="slide" id="id2">
-<h1>Exercises (3): Countdown (numbers)</h1>
-<p>Example expression tree:</p>
-<img alt="pics/expressionexptree.gif" class="align-center" src="pics/expressionexptree.gif" style="height: 400px;" />
-</div>
-<div class="slide" id="source-code">
-<h1>Source code</h1>
-<p><strong>This presentation</strong>: <a class="reference external" href="http://goo.gl/M5kNf">http://goo.gl/M5kNf</a></p>
-<p><strong>Source code for the presentation</strong>: <a class="reference external" href="http://goo.gl/H5KNg">http://goo.gl/H5KNg</a></p>
-<p><strong>Source code for the exercises</strong>: <a class="reference external" href="http://goo.gl/Z2F9I">http://goo.gl/Z2F9I</a></p>
 </div>
 <div class="slide" id="thanks-for-coming">
 <h1>Thanks for coming!</h1>
@@ -934,9 +767,9 @@ Be a craftsman: first learn the existing tools and later build your own.</blockq
 Creative Commons Attribution 3.0</blockquote>
 <img alt="pics/license-cc.png" class="align-center" src="pics/license-cc.png" style="height: 100px;" />
 <ul class="simple">
-<li>Feel free to use all the material in the presentation. No need for attribution if you just get some ideas.</li>
-<li>All the images belong to their original authors, none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber).</li>
-<li>The idea of beginning with the &quot;expression&quot; <em>x = x + 1</em>  was taken from Luca Bolognese's great presentation &quot;An Introduction to Microsoft F#&quot;.</li>
+<li>Feel free to use all the text and code of the presentation.</li>
+<li>Note that the images belong to their original authors, none of them are mine (the jungle and the gorilla is a collage, and so is the Yoda with the lambda lightsaber, in case you didn't notice ;-)).</li>
+<li>The idea of beginning with the &quot;expression&quot; <em>x = x + 1</em>  was taken from Luca Bolognese's great presentation &quot;An Introduction to Microsoft F#&quot;. Check it out!</li>
 </ul>
 </div>
 </div>
