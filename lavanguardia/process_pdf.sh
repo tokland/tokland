@@ -25,7 +25,7 @@ for PDF in "$@"; do
           setTimeout(function() {
             var frame = document.getElementById('board').contentWindow;
             frame.setLevel(2);
-            frame.newGame(!white_to_play);
+            frame.p.pliesplayed = 0;
             frame.p.SetFEN(fen);
           }, 50);
         });

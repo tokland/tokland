@@ -5,8 +5,8 @@ debug() { echo "$@" >&2; }
 
 login() { local EMAIL=$1 PASSWORD=$2  
   local COOKIES="cookies.txt"
-  local URL="http://registro.lavanguardia.com/reg2006/Registro"
-  local PARAMS="p_action=loginconfig&email=$EMAIL&password=$PASSWORD"
+  local URL="http://hemeroteca.lavanguardia.com/dynamic/edition/login.html"
+  local PARAMS="email=$EMAIL&password=$PASSWORD"
   debug "GET $URL"
   curl -sS -c $COOKIES "$URL?$PARAMS" || return 1
   echo $COOKIES
@@ -33,7 +33,7 @@ download() { local COOKIES=$1 DATE=$2
 
 DEFAULT_DATE=$(date "+%Y-%m-%d")
 DATE=${1:-$DEFAULT_DATE}
-#read USER PASSWORD < auth 
-#COOKIES=$(login $USER $PASSWORD)
-COOKIES=
+read USER PASSWORD < auth 
+COOKIES=$(login $USER $PASSWORD)
+#COOKIES=
 download "$COOKIES" "$DATE"
