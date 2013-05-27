@@ -242,24 +242,19 @@ Yes:
 Blocks as higher-order functions (1)
 ====================================
 
-* In FP functions are first-class values: you pass them around the same way you pass *normal* values.
-* In Ruby we have a wired-in mechanism to send functions: *blocks*
-* Functions/methods are not first-class citizens in Ruby, blocks are.
+* In FP functions are first-class values: pass/return them as *normal* values.
+* In Ruby we have a first-class wired-in mechanism to send functions: *blocks*
 
 .. sourcecode:: ruby
 
-  write_block = proc do |file| 
-    file.write("hello") 
-  end
+  write_block = proc { |file| file.write("hello") } 
   open("file.txt", &write_block)
 
 Which of course we'd write this way:
 
 .. sourcecode:: ruby
 
-  open("file.txt") do |file|
-    file.write("hello")
-  end
+  open("file.txt") { |file| file.write("hello") }
 
 Blocks as higher-order functions (2)
 ====================================

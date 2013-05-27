@@ -537,10 +537,23 @@ function trap(e) {
 }
 
 function changeSlideFromHash() {
-	var n = window.location.hash.match(/^#(\d+)/)[1];
-	if (n) {
-	  console.log(n);
-    goTo(n);
+  var match = window.location.hash.match(/^#(\d+)/);
+	if (match)
+	  goToStaticPage(match[1]);
+}
+
+function getPagesCount() {
+  return incrementals.length;
+}
+
+function goToStaticPage(page) {
+  if (page >= incrementals.length) {
+    return false;
+  } else {
+    goTo(page);
+    for(i=0; i<incrementals[page].length; i++)
+      subgo(1);
+    return true;
   }
 }
 
