@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# NOTE: This code is unmaintained, check https://github.com/tokland/arch-bootstrap
+#
 # arch-bootstrap: Bootstrap a base Arch Linux system using any GNU distribution.
 #
 # Dependencies: bash >= 4, coreutils, wget, sed, gawk, tar, gzip, chroot, xz.
