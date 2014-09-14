@@ -34,6 +34,6 @@ download() { local COOKIES=$1 DATE=$2
 DEFAULT_DATE=$(date "+%Y-%m-%d")
 DATE=${1:-$DEFAULT_DATE}
 read USER PASSWORD < auth 
-COOKIES=$(login $USER $PASSWORD)
-#COOKIES=
+#COOKIES=$(login $USER $PASSWORD)
+COOKIES=cookies.txt
 download "$COOKIES" "$DATE"
