@@ -3,7 +3,7 @@
 -- another given number.
 
 -- This is my first Haskell script.
--- Arnau Sanchez <tokland@gmail.com>
+-- Arnau Sanchez <pyarnau@gmail.com>
 
 import Data.List
 --import Text.Printf(printf)
