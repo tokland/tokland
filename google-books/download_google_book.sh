@@ -3,7 +3,7 @@
 # Download a book (individual PNG images) from Google Books.
 #
 # Dependencies: bash, curl, python
-# Author: tokland@gmail.com
+# Author: pyarnau@gmail.com
 #
 # Example: Download a book and join the images into a single PDF (imagemagick required):
 # 
