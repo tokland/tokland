@@ -54,22 +54,22 @@ def parse_text(line):
 
 def create_board(board_lines, ref_line):
     """Create a 8x8 matrix with board parsed from board_lines."""
-    spaces = [u' ', u'\uf02c']
+    spaces = [u' ', u'\uf02c', ',']
     equivalences = {
         # White pieces
-        u'\uf045': 'Q', u'\uf04b': 'Q',
-        u'\uf046': 'K', u'\uf04c': 'K',  
-        u'\uf041': 'P', u'\uf047': 'P',
-        u'\uf04a': 'R', u'\uf044': 'R',
-        u'\uf048': 'N', u'\uf042': 'N',
-        u'\uf043': 'B', u'\uf049': 'B',
+        'K': 'Q', 'E': 'Q',
+        'F': 'K', 'L': 'K',
+        'G': 'P', 'A': 'P',
+        'D': 'R', 'J': 'R',
+        'H': 'N', 'B': 'N',
+        'C': 'B', 'I': 'B',
         # Black pieces
-        u'\uf06a': 'r', u'\uf064': 'r',
-        u'\uf067': 'p', u'\uf061': 'p',
-        u'\uf06c': 'k', u'\uf066': 'k',
-        u'\uf062': 'n', u'\uf068': 'n',
-        u'\uf065': 'q', u'\uf06b': 'q',
-        u'\uf063': 'b', u'\uf069': 'b',    
+        'e': 'q', 'k': 'q',
+        'l': 'k', 'f': 'k', 
+        'a': 'p', 'g': 'p',
+        'd': 'r', 'j': 'r',
+        'b': 'n', 'h': 'n',
+        'i': 'b', 'c': 'b',
     }
     y_offset = 573 - 575
     x_offset = 650 - 625

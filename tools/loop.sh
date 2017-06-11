@@ -53,9 +53,10 @@ loop() {
     "$@" <&3 && RETVAL=0 || RETVAL=$?
     debug "try=$TRY, retval: $RETVAL (break on: $BREAK_RETVALS, comp: $COMPLEMENT)"
     
-    test "$FOREVER" = 1 && continue
-    
-    if test "$CHECK"; then
+    if test "$FOREVER" = 1; then
+      sleep $LOOPWAIT
+      continue
+    elif test "$CHECK"; then
       debug "running check command: $CHECK"
       $CHECK < /dev/null && RETVAL=0 || RETVAL=$?
       debug "override retval with the value returned by the check command: $RETVAL"
