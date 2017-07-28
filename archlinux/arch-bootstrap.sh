@@ -24,8 +24,9 @@ set -e -u -o pipefail
 
 # Packages needed by pacman (see get-pacman-dependencies.sh)
 PACMAN_PACKAGES=(
-  acl archlinux-keyring attr bzip2 curl expat glibc gpgme libarchive
-  libassuan libgpg-error libssh2 lzo2 openssl pacman pacman-mirrorlist xz zlib
+  acl archlinux-keyring attr bzip2 curl e2fsprogs expat glibc gcc-libs
+  gpgme icu keyutils krb5 libarchive libassuan libgpg-error libnghttp2 libpsl
+  libssh2 lz4 openssl pacman pacman-mirrorlist xz zlib
 )
 BASIC_PACKAGES=(${PACMAN_PACKAGES[*]} filesystem)
 EXTRA_PACKAGES=(coreutils bash grep gawk file tar systemd)
@@ -73,11 +74,6 @@ configure_minimal_system() {
   echo 'root:$1$GT9AUpJe$oXANVIjIzcnmOpY07iaGi/:14657::::::' > "$DEST/etc/shadow"
   touch "$DEST/etc/group"
   echo "bootstrap" > "$DEST/etc/hostname"
-  
-  test -e "$DEST/etc/mtab" || echo "rootfs / rootfs rw 0 0" > "$DEST/etc/mtab"
-  test -e "$DEST/dev/null" || mknod "$DEST/dev/null" c 1 3
-  test -e "$DEST/dev/random" || mknod -m 0644 "$DEST/dev/random" c 1 8
-  test -e "$DEST/dev/urandom" || mknod -m 0644 "$DEST/dev/urandom" c 1 9
   
   sed -i "s/^[[:space:]]*\(CheckSpace\)/# \1/" "$DEST/etc/pacman.conf"
   sed -i "s/^[[:space:]]*SigLevel[[:space:]]*=.*$/SigLevel = Never/" "$DEST/etc/pacman.conf"
@@ -153,7 +149,10 @@ main() {
   configure_pacman "$DEST" "$ARCH" # Pacman must be re-configured
   rm -rf "$PACKDIR"
   
-  debug "done"
+  debug "Done!"
+  debug 
+  debug "You may now chroot or arch-chroot from package arch-install-scripts:"
+  debug "$ sudo arch-chroot $DEST"
 }
 
 main "$@"
