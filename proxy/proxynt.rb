@@ -88,8 +88,10 @@ class ProxyInterceptor
 private
   
   def proxy_content_handler(request, response)
-    @logger.debug("<- #{request.request_method} #{request.request_uri.to_s}")
-    @logger.debug("Response body (#{response.content_type}): #{response.body.size} bytes")
+    @logger.debug("-> #{request.request_method} #{request.request_uri.to_s}")
+    @logger.debug("<- #{request.request_method} #{request.request_uri.to_s}" +
+        " #{response.content_type}: #{response.body ? response.body.size : "0"} bytes")
+    
     @filters.detect do |options|
       next unless options[:conditions].all? do |key, value|        
         case key.to_sym
@@ -126,7 +128,7 @@ private
   end
 
   def request_callback(request, response)
-    @logger.debug("-> #{request.request_method} #{request.request_uri.to_s}")
+    #@logger.debug("-> #{request.request_method} #{request.request_uri.to_s}")
     @urlmapping.detect do |options|
       if request.request_uri.to_s.match(options[:from])
         @logger.debug("url mapped: #{options[:from]} -> #{options[:to]}")
